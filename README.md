@@ -21,7 +21,7 @@ Data publishing efforts in the GBIF Community haven been focused on providing to
 
 The GBIF Open Data Repository intends to promote an infrastructure to store and share: 
   * Snapshots and custom exports of GBIF data.
-  * Valuable biodiversity data which publishing process does not follow current standards or is not supported by the GBIF [IPT](http://www.gbif.org/ipt).
+  * Valuable biodiversity data which publishing process does not follow current standards or is not supported by the Integrated Publishing Toolkit ([IPT](http://www.gbif.org/ipt)).
   * Datasets coming from sources that are not capable of maintaining a long-term technological platform, examples of those types of sources are short-term projects and contributions from individuals.
 
 ###Objectives
