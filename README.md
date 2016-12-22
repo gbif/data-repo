@@ -41,11 +41,23 @@ Implementation of open data repositories is problem that has been tackle by deve
   2.	Usability: quality of a user's experience when interacting with it.
   3.	Extensibility: how easy is to customize it and integrate it with external platforms?
   4.	Compliance with the existing technology stack and standards: DOI, data licensing, data validation and indexing.
-  
+
+### List of platforms 
+
+| Platform | Type | TCO | Usability | Extensibility | Compliance |
+| -------- | ---- | --- | --------- | ------------- | ---------- |
+| [Dryad](http://datadryad.org/) |  |  |  |  |  |
+| [Dspace](http://www.dspace.org/) |  |  |  |  |  |
+| [Fedora](http://www.fedora-commons.org/) |  |  |  |  |  |
+| [Duraspace](http://www.duraspace.org/) |  |  |  |  |  |
+| [Figshare](https://figshare.com/) |  |  |  |  |  |
+| [Zeonodo](https://zenodo.org/) |  |  |  |  |  |
+| [Invenio](http://invenio-software.org/) |  |  |  |  |  |
+| [Eprints](http://www.eprints.org/) |  |  |  |  |  |
 
 
 ## Milestone 2: Evaluation of selected platforms
 Platforms that passed the evaluation criterias will be evaluated in a short technical proof of concept.
 
 ## Milestone 3: Initial implementation
-As the initial implementation, one major requirement has been selected as a functionality that encompasses expected functionalities and features: *expose occurrence data snapshots as a dataset which can be downloaded, cited and referenced*.
+As the initial implementation, one major requirement has been selected as a functionality that encompasses expected functionalities and features: *support ad hoc exports of GBIF data which can be downloaded, cited and referenced using DOI*.
