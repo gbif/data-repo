@@ -47,7 +47,7 @@ Implementation of open data repositories is problem that has been tackle by deve
 | Platform | Type | TCO | Usability | Extensibility | Compliance | License | DOI Support |
 | -------- | ---- | --- | --------- | ------------- | ---------- | ------- | ----------- |
 | Dryad [http://datadryad.org/](http://datadryad.org/) | Hosted or [Open Source](https://github.com/datadryad/dryad-repo) | 39,000 USD based on 400 publications a year (http://datadryad.org/pages/paymentPlanComparisonTool#) | Similar to IPT for publishing | Not possible in hosted version | Java >7 nor supported | CC0 | yes |
-| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [hosted](http://dspacedirect.org/) | Minimum learning curve  $8,670 for the hosted solution | Poor but customizable | yes | yes | Customizable  | yes |
+| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [hosted](http://dspacedirect.org/) | Minimum learning curve  $8,670 for the hosted solution | basic but customizable | yes | yes | Customizable  | yes |
 | Fedora [http://www.fedora-commons.org/](http://www.fedora-commons.org/) |  |  |  |  |  |  |  |
 | Duraspace [http://www.duraspace.org/](http://www.duraspace.org/) |  |  |  |  |  |  |  |
 | Figshare [https://figshare.com/](https://figshare.com/) |  |  |  |  |  |  |  |
