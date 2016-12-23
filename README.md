@@ -47,8 +47,8 @@ Implementation of open data repositories is problem that has been tackle by deve
 | Platform | Type | TCO | Functionality | Extensibility | Compliance | License | DOI Support |
 | -------- | ---- | --- | --------- | ------------- | ---------- | ------- | ----------- |
 | Dryad [http://datadryad.org/](http://datadryad.org/) | Cloud or [Open Source](https://github.com/datadryad/dryad-repo) | 39,000 USD based on 400 publications a year (http://datadryad.org/pages/paymentPlanComparisonTool#) | Similar to IPT for publishing | Not possible in hosted version | Java >7 nor supported | CC0 | yes |
-| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [Cloud](http://dspacedirect.org/) | Minimum learning curve - $8,670 for the hosted solution | basic but customizable | yes | yes | customizable  | yes |
-| Fedora [http://www.fedora-commons.org/](http://www.fedora-commons.org/) | Open source | minimum | UI not available, only RESTful API |  | yes | yes | yes |
+| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [Cloud](http://dspacedirect.org/) | $8,670 for the hosted solution | basic but customizable | yes | yes | customizable  | yes |
+| Fedora [http://www.fedora-commons.org/](http://www.fedora-commons.org/) | Open source | basic upload and editing | UI not available, only RESTful API |  | yes | yes | yes |
 | Duraspace [http://www.duracloud.org/](http://www.duracloud.org/) | Cloud | $5,520 + $625/TB | basic | yes | yes | n/a | yes |
 | Figshare [https://figshare.com/](https://figshare.com/) | Cloud | ?  | Basic upload and metadata editing | Through API | n/a | yes | yes |
 | Zeonodo [https://zenodo.org/](https://zenodo.org/) | Cloud | None | Upload and metadata editing | Trough API | n/a | yes | yes |
