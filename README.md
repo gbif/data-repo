@@ -44,16 +44,15 @@ Implementation of open data repositories is problem that has been tackle by deve
 
 ### List of platforms 
 
-| Platform | Type | TCO | Usability | Extensibility | Compliance | License | DOI Support |
+| Platform | Type | TCO | Functionality | Extensibility | Compliance | License | DOI Support |
 | -------- | ---- | --- | --------- | ------------- | ---------- | ------- | ----------- |
-| Dryad [http://datadryad.org/](http://datadryad.org/) | Hosted or [Open Source](https://github.com/datadryad/dryad-repo) | 39,000 USD based on 400 publications a year (http://datadryad.org/pages/paymentPlanComparisonTool#) | Similar to IPT for publishing | Not possible in hosted version | Java >7 nor supported | CC0 | yes |
-| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [hosted](http://dspacedirect.org/) | Minimum learning curve  $8,670 for the hosted solution | basic but customizable | yes | yes | Customizable  | yes |
-| Fedora [http://www.fedora-commons.org/](http://www.fedora-commons.org/) |  |  |  |  |  |  |  |
-| Duraspace [http://www.duraspace.org/](http://www.duraspace.org/) |  |  |  |  |  |  |  |
-| Figshare [https://figshare.com/](https://figshare.com/) |  |  |  |  |  |  |  |
-| Zeonodo [https://zenodo.org/](https://zenodo.org/) |  |  |  |  |  |  |  |
-| Invenio [http://invenio-software.org/](http://invenio-software.org/) |  |  |  |  |  |  |  |
-| Eprints [http://www.eprints.org/](http://www.eprints.org/) |  |  |  |  |  |  |  |
+| Dryad [http://datadryad.org/](http://datadryad.org/) | Cloud or [Open Source](https://github.com/datadryad/dryad-repo) | 39,000 USD based on 400 publications a year (http://datadryad.org/pages/paymentPlanComparisonTool#) | Similar to IPT for publishing | Not possible in hosted version | Java >7 nor supported | CC0 | yes |
+| Dspace [http://www.dspace.org/](http://www.dspace.org/) | Open source and [Cloud](http://dspacedirect.org/) | Minimum learning curve - $8,670 for the hosted solution | basic but customizable | yes | yes | customizable  | yes |
+| Fedora [http://www.fedora-commons.org/](http://www.fedora-commons.org/) | Open source | minimum | UI not available, only RESTful API |  | yes | yes | yes |
+| Duraspace [http://www.duracloud.org/](http://www.duracloud.org/) | Cloud | $5,520 + $625/TB | basic | yes | yes | n/a | yes |
+| Figshare [https://figshare.com/](https://figshare.com/) | Cloud | ?  | Basic upload and metadata editing | Through API | n/a | yes | yes |
+| Zeonodo [https://zenodo.org/](https://zenodo.org/) | Cloud | None | Upload and metadata editing | Trough API | n/a | yes | yes |
+| Invenio [http://invenio-software.org/](http://invenio-software.org/) | Open source and cloud | Upload and metadata editing | yes |  | yes (except for Phyton web frameworks) | yes | yes |
 
 
 ## Milestone 2: Evaluation of selected platforms
