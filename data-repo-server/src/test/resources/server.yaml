@@ -1,0 +1,11 @@
+dataRepoPath: ${dataRepoPath}
+doiCommonPrefix: ${doiCommonPrefix}
+doiShoulder: ${doiShoulder}
+gbifPortalUrl: ${gbifPortalUrl}
+gbifApiUrl: ${gbifApiUrl}
+dataCiteConfiguration:
+  userName: ${datacite.userName}
+  password: ${datacite.password}
+  apiUrl: ${datacite.apiUrl}
+  threads: ${datacite.threads}
+  timeout: ${datacite.timeout}

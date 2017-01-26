@@ -1,9 +1,15 @@
 package org.gbif.datarepo.conf;
 
+import org.gbif.doi.service.ServiceConfig;
+
+import java.net.URI;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Configuration settings to access DataCite DOI services.
+ */
 public class DataCiteConfiguration {
 
   @NotNull
@@ -13,12 +19,15 @@ public class DataCiteConfiguration {
   private String password;
 
   @NotNull
-  private String apiUrl;
+  private String apiUrl = "https://mds.datacite.org/";
 
   private int threads = 1;
 
   private int timeout = 6000;
 
+  /**
+   * DataCite user name.
+   */
   @JsonProperty
   public String getUserName() {
     return userName;
@@ -28,6 +37,9 @@ public class DataCiteConfiguration {
     this.userName = userName;
   }
 
+  /**
+   * DataCite password.
+   */
   @JsonProperty
   public String getPassword() {
     return password;
@@ -37,6 +49,9 @@ public class DataCiteConfiguration {
     this.password = password;
   }
 
+  /**
+   * Url to DataCire API. It has a default value of https://mds.datacite.org/.
+   */
   @JsonProperty
   public String getApiUrl() {
     return apiUrl;
@@ -46,6 +61,9 @@ public class DataCiteConfiguration {
     this.apiUrl = apiUrl;
   }
 
+  /**
+   * Number of threads to handle HTTP client requests.
+   */
   @JsonProperty
   public int getThreads() {
     return threads;
@@ -55,6 +73,9 @@ public class DataCiteConfiguration {
     this.threads = threads;
   }
 
+  /**
+   * Connection tim-out to DataCite API.
+   */
   @JsonProperty
   public int getTimeout() {
     return timeout;
@@ -62,5 +83,14 @@ public class DataCiteConfiguration {
 
   public void setTimeout(int timeout) {
     this.timeout = timeout;
+  }
+
+  /**
+   * Converts this instance into a ServiceConfig instances, which is the class used to create DataCiteService instances.
+   */
+  public ServiceConfig asServiceConfiguration() {
+    ServiceConfig serviceConfig = new ServiceConfig(userName, password);
+    serviceConfig.setApi(URI.create(apiUrl));
+    return  serviceConfig;
   }
 }

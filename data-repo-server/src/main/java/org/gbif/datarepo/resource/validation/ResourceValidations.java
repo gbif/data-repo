@@ -1,10 +1,7 @@
 package org.gbif.datarepo.resource.validation;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.datarepo.datacite.DataCiteSchemaValidator;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -13,45 +10,62 @@ import org.assertj.core.util.Strings;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
+/**
+ * Utility class to process common validation across Data packages resources/web services.
+ */
 public class ResourceValidations {
 
+  /**
+   * Private constructor.
+   */
+  private  ResourceValidations() {
+    //empty constructor
+  }
 
+  /**
+   * Validate that the input list of file denoted by the Http form param 'file' is not empty.
+   */
   public static List<FormDataBodyPart> validateFiles(FormDataMultiPart multiPart) {
     List<FormDataBodyPart> files = multiPart.getFields("file");
-    if (files == null || files.isEmpty()) {
-      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                                          .entity("Data package must contain at least 1 file").build());
+    if (files == null || files.isEmpty()) { //if list if files is empty throw a BadRequest response.
+      throw buildWebException(Response.Status.BAD_REQUEST, "Data package must contain at least 1 file");
     }
     return files;
   }
 
-  public static InputStream validateMetadata(FormDataMultiPart multiPart) throws IOException {
-    FormDataBodyPart formDataBodyPart = multiPart.getField("metadata");
-    if (formDataBodyPart == null) {
-      throw throwBadRequest("Metadata file is required");
+  /**
+   * Validate the file denoted by 'fileName' has been submitted.
+   */
+  public static void validateFileSubmitted(FormDataMultiPart multiPart, String fileName) {
+    FormDataBodyPart formDataBodyPart = multiPart.getField(fileName);
+    if (formDataBodyPart == null) { //File hasn't not been submitted
+      throwBadRequest(fileName + " file is required");
     }
-    InputStream metadataStream = formDataBodyPart.getValueAs(InputStream.class);
-    if (!DataCiteSchemaValidator.isValidXML(metadataStream)) {
-      throwBadRequest("Invalid metadata provided");
-    }
-    return metadataStream;
   }
 
-  public static DOI validateDoi(String doiRef) {
-    if (Strings.isNullOrEmpty(doiRef)) {
+  /**
+   * Validates the DOI specified by its parts/
+   */
+  public static DOI validateDoi(String doiPrefix, String doiSuffix) {
+    if (Strings.isNullOrEmpty(doiSuffix)) {
       throwBadRequest("A non-empty DOI must be provided");
     }
-    String[] doiParts = doiRef.split("-");
-    if (doiParts.length != 2) {
-      throwBadRequest(String.format("DOI format invalid %s, it must be in the format prefix-suffix", doiRef));
+    if (doiSuffix.split("\\.").length != 2) { // Suffix/Shoulder must contain two sections divided by a .
+      throwBadRequest(String.format("DOI format invalid %s, it must be in the format prefix-suffix", doiSuffix));
     }
-    return new DOI(doiParts[0], doiParts[1]);
+    return new DOI(doiPrefix, doiSuffix);
   }
 
-  public static WebApplicationException throwBadRequest(String message) {
-    throw new WebApplicationException(buildWebException(Response.Status.BAD_REQUEST, message));
+  /**
+   * Throws a WebApplicationException containing a BadRequest status.
+   */
+  public static void throwBadRequest(String message) {
+    throw buildWebException(Response.Status.BAD_REQUEST, message);
   }
 
+  /**
+   * Returns a new WebApplicationException with a status code and an error message.
+   */
   public static WebApplicationException buildWebException(Response.Status status, String message) {
     return new WebApplicationException(Response.status(status).entity(message).build());
   }
