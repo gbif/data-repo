@@ -41,7 +41,7 @@ public class DataPackagesDoiGenerator {
   /**
    * @return a random DOI with the given prefix. It is not guaranteed to be unique and might exist already
    */
-  private DOI randomDOI() {
+  public DOI randomDOI() {
     return new DOI(prefix, shoulder + RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH));
   }
 

@@ -10,6 +10,8 @@ import io.dropwizard.Configuration;
  */
 public class DataRepoConfiguration extends Configuration {
 
+  public static final String USERS_DB_CONF_PREFIX = "drupal.db";
+
   @NotNull
   private String dataRepoPath;
 
