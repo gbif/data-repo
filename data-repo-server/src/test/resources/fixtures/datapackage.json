@@ -1,0 +1,5 @@
+{
+  "doi":"http://doi.org/10.5072/dp.bvmv02",
+  "metadata":"http://localhost:8080/data_packages/dp.bvmv02/metadata.xml",
+  "files":["http://localhost:8080/data_packages/dp.bvmv02/0008759-160822134323880.csvar"]
+}

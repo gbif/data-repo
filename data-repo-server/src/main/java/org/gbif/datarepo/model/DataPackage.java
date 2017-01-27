@@ -3,6 +3,7 @@ package org.gbif.datarepo.model;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -58,11 +59,11 @@ public class DataPackage {
    * Metadata associated to the data package.
    */
   public String getMetadata() {
-    return  baseUrl + metadata;
+    return metadata;
   }
 
   public void setMetadata(String metadata) {
-    this.metadata = metadata;
+    this.metadata = baseUrl + metadata;
   }
 
   /**
@@ -84,4 +85,14 @@ public class DataPackage {
     files.add(baseUrl + fileName);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    final DataPackage other = (DataPackage) obj;
+    return Objects.equals(doi, other.doi)
+           && Objects.equals(metadata, other.metadata)
+           && Objects.equals(files, other.files);
+
+  }
 }

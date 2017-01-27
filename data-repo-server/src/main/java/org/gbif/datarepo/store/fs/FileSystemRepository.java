@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -53,7 +54,7 @@ public class FileSystemRepository implements DataRepository {
       if (!doiPath.toFile().exists()) {
         Files.createDirectory(doiPath);
       }
-      Files.copy(file, doiPath.resolve(fileName));
+      Files.copy(file, doiPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException ex) {
       LOG.error("Error storing file {}", fileName);
       throw new RuntimeException(ex);
