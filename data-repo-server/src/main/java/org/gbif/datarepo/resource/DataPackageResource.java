@@ -2,16 +2,10 @@ package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.UserPrincipal;
-import org.gbif.api.vocabulary.IdentifierType;
+import org.gbif.datarepo.api.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
-import org.gbif.datarepo.datacite.DataPackagesDoiGenerator;
 import org.gbif.datarepo.model.DataPackage;
-import org.gbif.datarepo.store.DataRepository;
-import org.gbif.doi.metadata.datacite.DataCiteMetadata;
-import org.gbif.doi.service.DoiException;
-import org.gbif.doi.service.InvalidMetadataException;
-import org.gbif.doi.service.datacite.DataCiteService;
-import org.gbif.doi.service.datacite.DataCiteValidator;
+import org.gbif.datarepo.api.DataRepository;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
@@ -21,61 +15,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateDoi;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFileSubmitted;
+import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
+import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 
 /**
  * Data packages resource.
  * Exposes the RESTful interface to create, update metadata, retrieve and delete GBIF data packages.
  */
-@Path("/data_packages")
+@Path(DATA_PACKAGES_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class DataPackageResource {
-
-  private static final String METADATA_PARAM = "metadata";
-  private static final String METADATA_FILE = METADATA_PARAM + ".xml";
 
   private static final Logger LOG = LoggerFactory.getLogger(DataPackageResource.class);
 
   // low quality of source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
+  private static final String FILE_ATTACHMENT = "attachment; filename=";
 
 
   private final DataRepository dataRepository;
-  private final DataCiteService dataCiteService;
-  private final DataPackagesDoiGenerator doiGenerator;
   private final DataRepoConfiguration configuration;
 
   /**
    * Full constructor.
    */
-  public DataPackageResource(DataRepository dataRepository, DataCiteService dataCiteService,
-                             DataPackagesDoiGenerator doiGenerator, DataRepoConfiguration configuration) {
+  public DataPackageResource(DataRepository dataRepository, DataRepoConfiguration configuration) {
     this.dataRepository = dataRepository;
-    this.dataCiteService = dataCiteService;
-    this.doiGenerator = doiGenerator;
     this.configuration = configuration;
   }
 
@@ -88,29 +74,23 @@ public class DataPackageResource {
   @Timed
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
-  public DataPackage create(FormDataMultiPart multiPart, @Auth UserPrincipal userPrincipal) throws IOException {
+  public DataPackage create(FormDataMultiPart multiPart, @Auth UserPrincipal principal) throws IOException {
     //Validations
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = validateFiles(multiPart);
-    //Generate DOI
-    DOI doi = doiGenerator.newDOI();
-    //Store metadata.xml file
-    dataRepository.storeMetadata(doi, multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class));
-    File metadataFile = dataRepository.get(doi).get().resolve(METADATA_FILE).toFile();
-    //Generates a DataCiteMetadata object for further valdiation/manipulation
-    DataCiteMetadata dataCiteMetadata = processMetadata(metadataFile, doi);
     try {
-      //store all the submitted files
-      files.stream().forEach( formDataBodyPart -> storeFile(doi, formDataBodyPart));
-      //register the new DOI into DataCite
-      dataCiteService.register(doi, targetDoiUrl(doi), dataCiteMetadata);
-    } catch (DoiException ex) {
-      LOG.error("Error registering a DOI", ex);
-      //Deletes all data created to this DOI in case of error
-      dataRepository.delete(doi);
+      return  dataRepository.create(principal.getName(), //user
+                                    multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class), //metadata file
+                                    //files
+                                    files.stream().map(bodyPart ->
+                                                         FileInputContent.of(bodyPart.getFormDataContentDisposition()
+                                                                               .getFileName(),
+                                                                             bodyPart.getValueAs(InputStream.class)))
+                                    .collect(Collectors.toList()));
+    } catch (Exception ex) {
+      LOG.error("Error creating data package", ex);
       throw buildWebException(Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
     }
-    return get(doi.getSuffix());
   }
 
   /**
@@ -124,18 +104,9 @@ public class DataPackageResource {
     //Validates DOI structure
     DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
 
-    //Checks DOI existence
-    Optional<java.nio.file.Path> dataPackagePath = dataRepository.get(doi);
-    if (!dataPackagePath.isPresent()) {
-      throw buildWebException(Status.NOT_FOUND, String.format("DOI %s not found in repository", doiSuffix));
-    }
+    //Gets the data package, throws a NOT_FOUND error if it doesn't exist
+    return getOrNotFound(doi, doiSuffix);
 
-    //Assemble a new DataPackage instance containing all the information
-    DataPackage dataPackage = new DataPackage(dataPackageBaseUrl(doi));
-    dataPackage.setDoi(doi.getUrl());
-    Arrays.stream(dataPackagePath.get().toFile().listFiles(pathname -> !pathname.getName().equals(METADATA_FILE)))
-      .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
-    return dataPackage;
   }
 
   /**
@@ -150,56 +121,50 @@ public class DataPackageResource {
     DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiRef);
 
     //Tries to get the file
-    Optional<InputStream> fileInputStream = dataRepository.getFile(doi, fileName);
+    Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(doi, fileName);
 
     //Check file existence before send it in the Response
     return fileInputStream.isPresent()? Response.ok(fileInputStream.get())
-                                                  .header("Content-Disposition",
-                                                          "attachment; filename=" + fileName).build() :
+                                                    .header(HttpHeaders.CONTENT_DISPOSITION, FILE_ATTACHMENT + fileName)
+                                                    .build() :
                                         Response.status(Status.NOT_FOUND)
-                                                  .entity(String.format("File %s not found",fileName)).build();
+                                          .entity(String.format("File %s not found", fileName)).build();
   }
 
   /**
-   * Stores a submitted a file into the data repository.
+   * Retrieves a DataPackage by its DOI suffix.
    */
-  private void storeFile(DOI doi, FormDataBodyPart formDataBodyPart) {
-    dataRepository.store(doi, formDataBodyPart.getValueAs(InputStream.class),
-                         formDataBodyPart.getFormDataContentDisposition().getFileName());
+  @DELETE
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("{doi}")
+  public void delete(@PathParam("doi") String doiSuffix)  {
+    //Validates DOI structure
+    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
 
+    //Checks that the DataPackage exists
+    getOrNotFound(doi, doiSuffix);
+
+    //Gets the data package, throws a NOT_FOUND error if it doesn't exist
+    dataRepository.delete(doi);
+  }
+
+
+  /**
+   * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
+   */
+  private DataPackage getOrNotFound(DOI doi, String doiSuffix) {
+    return dataRepository.get(doi)
+      .orElseThrow(() -> buildWebException(Status.NOT_FOUND,
+                                           String.format("DOI %s not found in repository", doiSuffix)));
   }
 
   /**
    * Builds a API based URL of DOI assigned to a DataPackage.
    */
   private String dataPackageBaseUrl(DOI doi) {
-    return configuration.getGbifApiUrl() + doi.getSuffix() + "/";
+    return configuration.getGbifApiUrl() + doi.getSuffix() + '/';
   }
 
-  /**
-   * Builds a target Url for a DataPackage doi.
-   */
-  private URI targetDoiUrl(DOI doi) {
-    return URI.create(configuration.getGbifPortalUrl() + doi.getDoiName());
-  }
 
-  /**
-   * Reads, validates and stores the submitted metadata file.
-   */
-  private DataCiteMetadata processMetadata(File metadataFile, DOI doi) {
-   try(InputStream inputStream = new FileInputStream(metadataFile)) {
-     DataCiteMetadata dataCiteMetadata = DataCiteValidator.fromXml(inputStream);
-     dataCiteMetadata.setIdentifier(DataCiteMetadata.Identifier.builder()
-                                      .withValue(doi.getDoiName())
-                                      .withIdentifierType(IdentifierType.DOI.name())
-                                      .build());
-     dataRepository.storeMetadata(doi, new ByteArrayInputStream(DataCiteValidator.toXml(doi, dataCiteMetadata)
-                                                                  .getBytes(StandardCharsets.UTF_8)));
-     return dataCiteMetadata;
-   } catch (JAXBException | IOException | InvalidMetadataException ex) {
-     LOG.error("Error reading data package {} metadata", doi, ex);
-     dataRepository.delete(doi);
-     throw buildWebException(Status.BAD_REQUEST, "Error reading metadata");
-   }
- }
 }

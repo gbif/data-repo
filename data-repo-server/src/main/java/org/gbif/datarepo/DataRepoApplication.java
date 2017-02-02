@@ -10,7 +10,7 @@ import org.gbif.datarepo.health.DataCiteHealthCheck;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
-import org.gbif.datarepo.store.DataRepository;
+import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.doi.service.datacite.DataCiteService;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
@@ -38,8 +38,6 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
 
   private static final String APPLICATION_NAME = "DataRepo";
 
-  private static final String GBIF_REALM = "GBIF";
-
   public static void main(String[] args) throws Exception {
     new DataRepoApplication().run(args);
   }
@@ -54,26 +52,29 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
    */
   @Override
   public void run(DataRepoConfiguration configuration, Environment environment) throws Exception {
-    //Data repository creation
-    DataRepository dataRepository = new FileSystemRepository(configuration.getDataRepoPath());
+
     //DataCite and DOI services
     DataCiteService dataCiteService = dataCiteService(configuration.getDataCiteConfiguration());
     DataPackagesDoiGenerator doiGenerator = new DataPackagesDoiGenerator(configuration.getDoiCommonPrefix(),
                                                                          configuration.getDoiShoulder(),
                                                                          dataCiteService);
 
+    //Data repository creation
+    DataRepository dataRepository = new FileSystemRepository(configuration,
+                                                             doiGenerator,
+                                                             dataCiteService);
+
     //Security configuration
     Authenticator<BasicCredentials, UserPrincipal> authenticator = authenticator(configuration);
     BasicCredentialAuthFilter<UserPrincipal> userBasicCredentialAuthFilter =
       new BasicCredentialAuthFilter.Builder<UserPrincipal>().setAuthenticator(authenticator)
-        .setRealm(GBIF_REALM).buildAuthFilter();
+        .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter();
     environment.jersey().register(new AuthDynamicFeature(userBasicCredentialAuthFilter));
     environment.jersey().register(new AuthValueFactoryProvider.Binder<>(UserPrincipal.class));
 
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
-    environment.jersey().register(new DataPackageResource(dataRepository, dataCiteService, doiGenerator,
-                                                          configuration));
+    environment.jersey().register(new DataPackageResource(dataRepository, configuration));
 
     //Health checks
     environment.healthChecks().register("DataCite", new DataCiteHealthCheck(dataCiteService, doiGenerator));

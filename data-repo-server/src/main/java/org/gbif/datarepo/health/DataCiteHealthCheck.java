@@ -1,7 +1,5 @@
 package org.gbif.datarepo.health;
 
-import org.gbif.api.model.common.DOI;
-import org.gbif.api.model.common.DoiData;
 import org.gbif.datarepo.datacite.DataPackagesDoiGenerator;
 import org.gbif.doi.service.datacite.DataCiteService;
 

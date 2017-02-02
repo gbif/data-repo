@@ -16,7 +16,7 @@
   <packaging>jar</packaging>
 
   <name>GBIF Data Repo</name>
-  <description>General service to store arbitrary data arhives that will be referenced using DOIs</description>
+  <description>General service to store arbitrary data archives that will be referenced using DOIs</description>
   <url>http://github.com/gbif/data-repo</url>
 
   <scm>

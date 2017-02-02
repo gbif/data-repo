@@ -19,6 +19,9 @@ public class GbifAuthenticator implements Authenticator<BasicCredentials, UserPr
 
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthenticator.class);
 
+  //GBIF Security realm
+  public static final String GBIF_REALM = "GBIF";
+
   //For logging purposes only
   private static final String SCHEME = "BASIC";
 
@@ -47,7 +50,5 @@ public class GbifAuthenticator implements Authenticator<BasicCredentials, UserPr
     LOG.debug("User {} not found via scheme {}", credentials.getUsername(), SCHEME);
     return Optional.absent();
   }
-
-
 
 }

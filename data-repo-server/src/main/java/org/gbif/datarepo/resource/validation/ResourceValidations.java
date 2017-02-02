@@ -10,6 +10,8 @@ import org.assertj.core.util.Strings;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
+import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
+
 /**
  * Utility class to process common validation across Data packages resources/web services.
  */
@@ -26,7 +28,7 @@ public class ResourceValidations {
    * Validate that the input list of file denoted by the Http form param 'file' is not empty.
    */
   public static List<FormDataBodyPart> validateFiles(FormDataMultiPart multiPart) {
-    List<FormDataBodyPart> files = multiPart.getFields("file");
+    List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
     if (files == null || files.isEmpty()) { //if list if files is empty throw a BadRequest response.
       throw buildWebException(Response.Status.BAD_REQUEST, "Data package must contain at least 1 file");
     }

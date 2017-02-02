@@ -5,8 +5,13 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Database configuration. It is used for compatibility of how data sorces are specified in other GBIF libraries.
+ */
 public class DbConfiguration {
 
+  //Default connection time-out
+  private static final int DEFAULT_TO = 30000;
 
   @NotNull
   private String dataSourceClassName;
@@ -27,7 +32,7 @@ public class DbConfiguration {
   private int maximumPoolSize = 3;
 
   @NotNull
-  private int   connectionTimeout = 30000;
+  private int   connectionTimeout = DEFAULT_TO;
 
   /**
    * Data source fully qualified class name.
@@ -90,8 +95,7 @@ public class DbConfiguration {
   }
 
   /**
-   * Database conenction pool size.
-   * @return
+   * Database connection pool size.
    */
   @JsonProperty
   public int getMaximumPoolSize() {
@@ -120,13 +124,13 @@ public class DbConfiguration {
    */
   public Properties toProperties(String prefix) {
     Properties properties = new Properties();
-    properties.put(prefix + ".dataSourceClassName", dataSourceClassName);
-    properties.put(prefix +".dataSource.serverName", serverName);
-    properties.put(prefix +".dataSource.databaseName", databaseName);
-    properties.put(prefix +".dataSource.user", user);
-    properties.put(prefix +".dataSource.password", password);
-    properties.put(prefix +".maximumPoolSize", maximumPoolSize);
-    properties.put(prefix +".connectionTimeout", connectionTimeout);
+    properties.setProperty(prefix + ".dataSourceClassName", dataSourceClassName);
+    properties.setProperty(prefix +".dataSource.serverName", serverName);
+    properties.setProperty(prefix +".dataSource.databaseName", databaseName);
+    properties.setProperty(prefix +".dataSource.user", user);
+    properties.setProperty(prefix +".dataSource.password", password);
+    properties.setProperty(prefix +".maximumPoolSize", Integer.toString(maximumPoolSize));
+    properties.setProperty(prefix +".connectionTimeout", Integer.toString(connectionTimeout));
     return properties;
   }
 }

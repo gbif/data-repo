@@ -17,6 +17,8 @@ public class DataPackageDeSerTest {
   // Relative path to the json test file
   private static final String DP_JSON_TEST_FILE = "fixtures/datapackage.json";
 
+  public static final String TEST_DOI_SUFFIX = "dp.bvmv02";
+
   /**
    * Test that a DataPackage instance java-created is equals to an instance obtained from 'fixtures/datapackage.json'.
    */
@@ -41,10 +43,10 @@ public class DataPackageDeSerTest {
    * Creates an instance of DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
-    DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/dp.bvmv02/");
+    DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + TEST_DOI_SUFFIX + '/');
     dataPackage.setMetadata("metadata.xml");
-    dataPackage.addFile("0008759-160822134323880.csvar");
-    dataPackage.setDoi(URI.create("http://doi.org/10.5072/dp.bvmv02"));
+    dataPackage.addFile("occurrence.txt");
+    dataPackage.setDoi(URI.create("http://doi.org/10.5072/" + TEST_DOI_SUFFIX));
     return  dataPackage;
   }
 

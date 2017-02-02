@@ -1,9 +1,9 @@
 package org.gbif.datarepo.model;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -18,10 +18,10 @@ public class DataPackage {
   private URI doi;
 
   @JsonProperty
-  private String metadata = "metadata.xml";
+  private String metadata;
 
   @JsonProperty
-  private List<String> files;
+  private Set<String> files;
 
   private final String baseUrl;
 
@@ -30,7 +30,7 @@ public class DataPackage {
    * Set the base url to empty and initialises the list of files.
    */
   public DataPackage() {
-    files = new ArrayList<>();
+    files = new HashSet<>();
     baseUrl = "";
   }
 
@@ -40,7 +40,7 @@ public class DataPackage {
    * Set the base url to specified value and initialises the list of files.
    */
   public DataPackage(String baseUrl) {
-    files = new ArrayList<>();
+    files = new HashSet<>();
     this.baseUrl = baseUrl;
   }
 
@@ -69,11 +69,11 @@ public class DataPackage {
   /**
    * List of containing files (excluding the metadata.xml file).
    */
-  public List<String> getFiles() {
+  public Set<String> getFiles() {
     return files;
   }
 
-  public void setFiles(List<String> files) {
+  public void setFiles(Set<String> files) {
     this.files = files;
   }
 
@@ -94,5 +94,16 @@ public class DataPackage {
            && Objects.equals(metadata, other.metadata)
            && Objects.equals(files, other.files);
 
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(doi, metadata, files);
+  }
+
+  @Override
+  public String toString() {
+    return "{\"doi\": \"" + Objects.toString(doi) + "\", \"metadata\": \"" + Objects.toString(metadata) +
+           "\", \"files\": \"" + Objects.toString(files) + "\"}";
   }
 }
