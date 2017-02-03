@@ -9,3 +9,20 @@ dataCiteConfiguration:
   apiUrl: ${datacite.apiUrl}
   threads: ${datacite.threads}
   timeout: ${datacite.timeout}
+usersDb:
+  dataSourceClassName: com.mysql.jdbc.jdbc2.optional.MysqlDataSource
+  serverName: ${usersDb.serverName}
+  databaseName: ${usersDb.databaseName}
+  user: ${usersDb.user}
+  password: ${usersDb.password}
+  maximumPoolSize: ${usersDb.maximumPoolSize}
+  connectionTimeout: ${usersDb.connectionTimeout}
+#required to avoid Exception in thread "main" java.lang.IllegalArgumentException: Unable to override server.applicationConnectors[0].port; node with index not found.
+#Defaults port can be overriden
+server:
+ applicationConnectors:
+    - type: http
+      port: 8080
+ adminConnectors:
+     - type: http
+       port: 8081
