@@ -132,7 +132,6 @@ public class DataRepoConfiguration extends Configuration {
   @JsonProperty
   public ServiceConfiguration getService() { return service; }
 
-  @JsonProperty
   public void setService(ServiceConfiguration service) { this.service = service; }
 
 }
