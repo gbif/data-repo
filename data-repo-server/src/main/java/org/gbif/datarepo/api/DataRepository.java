@@ -2,6 +2,7 @@ package org.gbif.datarepo.api;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.datarepo.model.DataPackage;
+import org.gbif.doi.service.DoiException;
 
 import java.io.File;
 import java.io.InputStream;

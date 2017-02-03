@@ -110,9 +110,10 @@ public class FileSystemRepository implements DataRepository {
     try {
       File doiPath = getDoiPath(doi).toFile();
       if (doiPath.exists()) {
+        dataCiteService.delete(doi);
         FileUtils.deleteDirectory(doiPath);
       }
-    } catch (IOException ex) {
+    } catch (IOException | DoiException ex) {
       throw new RuntimeException(ex);
     }
   }

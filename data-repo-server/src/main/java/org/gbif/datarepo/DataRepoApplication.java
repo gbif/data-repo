@@ -12,6 +12,7 @@ import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 import org.gbif.doi.service.datacite.DataCiteService;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.utils.HttpUtil;
@@ -75,6 +76,9 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepository, configuration));
+    if (configuration.getService().isDiscoverable()) {
+      environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));
+    }
 
     //Health checks
     environment.healthChecks().register("DataCite", new DataCiteHealthCheck(dataCiteService, doiGenerator));

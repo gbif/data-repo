@@ -1,5 +1,8 @@
 package org.gbif.datarepo.conf;
 
+import org.gbif.discovery.conf.ServiceConfiguration;
+
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,6 +35,10 @@ public class DataRepoConfiguration extends Configuration {
 
   @NotNull
   private DbConfiguration usersDb;
+
+  @Valid
+  @NotNull
+  private ServiceConfiguration service;
 
   /**
    * File system path where the archives are being stored.
@@ -118,5 +125,14 @@ public class DataRepoConfiguration extends Configuration {
   public void setUsersDb(DbConfiguration usersDb) {
     this.usersDb = usersDb;
   }
+
+  /**
+   * Service Discovery configuration.
+   */
+  @JsonProperty
+  public ServiceConfiguration getService() { return service; }
+
+  @JsonProperty
+  public void setService(ServiceConfiguration service) { this.service = service; }
 
 }

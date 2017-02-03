@@ -9,8 +9,10 @@ import org.gbif.datarepo.conf.DbConfiguration;
 import org.gbif.datarepo.datacite.DataPackagesDoiGenerator;
 import org.gbif.datarepo.model.DataPackage;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.discovery.conf.ServiceConfiguration;
 import org.gbif.doi.metadata.datacite.DataCiteMetadata;
 import org.gbif.doi.service.DoiException;
+import org.gbif.doi.service.ServiceConfig;
 import org.gbif.doi.service.datacite.DataCiteService;
 
 import java.io.File;
@@ -131,6 +133,8 @@ public class DataPackageResourceTest {
       dataCiteConfiguration.setUserName("DK.GBIF");
       configuration.setDataCiteConfiguration(dataCiteConfiguration);
       configuration.setUsersDb(mock(DbConfiguration.class));
+      //empty ServiceConfiguration instance to avoid make it discoverable in Zookeeper
+      configuration.setService(new ServiceConfiguration());
     }
     return configuration;
   }
@@ -185,6 +189,8 @@ public class DataPackageResourceTest {
       when(DATA_CITE_SERVICE.exists(any(DOI.class))).thenReturn(false);
       //Do nothing for all registration calls
       doNothing().when(DATA_CITE_SERVICE).register(any(DOI.class), any(URI.class), any(DataCiteMetadata.class));
+      //Always return True when deleting DOIs
+      when(DATA_CITE_SERVICE.delete(any(DOI.class))).thenReturn(true);
       //Only the TEST_USER is valid
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
     } catch (AuthenticationException | DoiException | IOException  ex) {
@@ -230,6 +236,7 @@ public class DataPackageResourceTest {
       assertThat(newDataPackage).isEqualTo(buildTestPackage(newDataPackage.getDoi()));
       //verify that exists method was invoked
       verify(DATA_CITE_SERVICE).exists(any(DOI.class));
+      verify(DATA_CITE_SERVICE).register(any(DOI.class), any(URI.class), any(DataCiteMetadata.class));
     }
   }
 
@@ -258,6 +265,7 @@ public class DataPackageResourceTest {
     assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DOI_SUFFIX).toString())
                  .request().delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+    verify(DATA_CITE_SERVICE).delete(any(DOI.class));
   }
 
   /**
