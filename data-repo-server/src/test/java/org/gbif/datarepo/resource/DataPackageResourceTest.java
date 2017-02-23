@@ -2,18 +2,17 @@ package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.auth.GbifAuthenticator;
-import org.gbif.datarepo.conf.DataCiteConfiguration;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.conf.DbConfiguration;
-import org.gbif.datarepo.datacite.DataPackagesDoiGenerator;
-import org.gbif.datarepo.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.test.mocks.DataPackageMapperMock;
+import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
 import org.gbif.discovery.conf.ServiceConfiguration;
-import org.gbif.doi.metadata.datacite.DataCiteMetadata;
 import org.gbif.doi.service.DoiException;
-import org.gbif.doi.service.ServiceConfig;
-import org.gbif.doi.service.datacite.DataCiteService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,8 +22,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
@@ -36,6 +37,7 @@ import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.api.Condition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -54,22 +56,22 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
-import static org.gbif.datarepo.resource.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
-import static org.gbif.datarepo.resource.ResourceTestUtils.TEST_REPO_PATH;
-import static org.gbif.datarepo.resource.ResourceTestUtils.CONTENT_TEST_FILE;
-import static org.gbif.datarepo.resource.ResourceTestUtils.METADATA_TEST_FILE;
-import static org.gbif.datarepo.resource.ResourceTestUtils.TEST_USER;
-import static org.gbif.datarepo.resource.ResourceTestUtils.TEST_USER_CREDENTIALS;
-import static org.gbif.datarepo.resource.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
-import static org.gbif.datarepo.resource.ResourceTestUtils.dataBodyPartOf;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_REPO_PATH;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.METADATA_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
 
-import static org.gbif.datarepo.model.DataPackageDeSerTest.testDataPackage;
-import static org.gbif.datarepo.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
+import static org.gbif.datarepo.api.model.DataPackageDeSerTest.testDataPackage;
+import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
 
 /**
  * Test class for the DataPackageResource class.
@@ -77,17 +79,18 @@ import static org.gbif.datarepo.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
  */
 public class DataPackageResourceTest {
 
-  private static final DataCiteService DATA_CITE_SERVICE = mock(DataCiteService.class);
-
+  private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE = new GenericType<PagingResponse<DataPackage>>(){};
   private static final GbifAuthenticator AUTHENTICATOR = mock(GbifAuthenticator.class);
 
-  private static final DataPackage TEST_DATA_PACKAGE = testDataPackage();
+  private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration()));
 
-  private static DataPackagesDoiGenerator doiGenerator;
+  private static final DataPackage TEST_DATA_PACKAGE = testDataPackage();
 
   private static Path temporaryFolder;
 
   private static DataRepoConfiguration configuration;
+
+  private DataPackageUriBuilder uriBuilder;
 
   /**
    * Creates an temporary folder, the return instance is lazy evaluated into the field temporaryFolder.
@@ -105,33 +108,16 @@ public class DataPackageResourceTest {
   }
 
   /**
-   * Returns or creates a new instance of a DataPackagesDoiGenerator class using test parameters and mock services.
-   */
-  private static DataPackagesDoiGenerator getDoiGenerator() {
-    if (doiGenerator == null) {
-      doiGenerator = new DataPackagesDoiGenerator("10.5072","dp.", DATA_CITE_SERVICE);
-    }
-    return doiGenerator;
-  }
-
-  /**
    * Returns or creates a new configuration object instance.
    * The temporaryFolder field is used as the repository directory.
    */
   private static DataRepoConfiguration configuration() {
     if (configuration == null) {
       configuration = new DataRepoConfiguration();
-      configuration.setDoiShoulder("dp.");
       configuration.setDoiCommonPrefix("10.5072");
-      configuration.setGbifApiUrl("http://localhost:8080/data_packages/");
-      configuration.setGbifPortalUrl("http://www.gbif-dev.org/datapackage/");
+      configuration.setGbifApiUrl("http://localhost:8080/");
       //Used the temporary folder as the data repo path
       configuration.setDataRepoPath(temporaryFolder().toString());
-      DataCiteConfiguration dataCiteConfiguration = new DataCiteConfiguration();
-      dataCiteConfiguration.setApiUrl("https://mds.datacite.org/");
-      dataCiteConfiguration.setPassword("blah");
-      dataCiteConfiguration.setUserName("DK.GBIF");
-      configuration.setDataCiteConfiguration(dataCiteConfiguration);
       configuration.setUsersDb(mock(DbConfiguration.class));
       //empty ServiceConfiguration instance to avoid make it discoverable in Zookeeper
       configuration.setService(new ServiceConfiguration());
@@ -152,8 +138,9 @@ public class DataPackageResourceTest {
                                           .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter()))
     .addProvider(new AuthValueFactoryProvider.Binder<>(UserPrincipal.class))
     //Test resource
-    .addResource(new DataPackageResource(new FileSystemRepository(configuration(), getDoiGenerator(),
-                                                                  DATA_CITE_SERVICE), configuration()))
+    .addResource(new DataPackageResource(new FileSystemRepository(configuration(), new DoiRegistrationServiceMock(),
+                                                                  DATA_PACKAGE_MAPPER),
+                                         configuration()))
     .build();
 
   /**
@@ -162,7 +149,6 @@ public class DataPackageResourceTest {
   @BeforeClass
   public static void init() {
     temporaryFolder();
-    getDoiGenerator();
     configuration();
   }
 
@@ -182,18 +168,13 @@ public class DataPackageResourceTest {
   @Before
   public void setup() {
     try {
+      uriBuilder = new DataPackageUriBuilder(configuration.getDataPackageApiUrl());
       //Copies all the content from  'testrepo/10.5072-dp.bvmv02' to the temporary directory
       //This is done to test service to retrieve DataPackages information and files
       FileUtils.copyDirectory(new File(TEST_REPO_PATH), temporaryFolder.toFile());
-      //Mocks DOI existence check by always returning True
-      when(DATA_CITE_SERVICE.exists(any(DOI.class))).thenReturn(false);
-      //Do nothing for all registration calls
-      doNothing().when(DATA_CITE_SERVICE).register(any(DOI.class), any(URI.class), any(DataCiteMetadata.class));
-      //Always return True when deleting DOIs
-      when(DATA_CITE_SERVICE.delete(any(DOI.class))).thenReturn(true);
       //Only the TEST_USER is valid
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
-    } catch (AuthenticationException | DoiException | IOException  ex) {
+    } catch (AuthenticationException | IOException  ex) {
       throw new IllegalStateException(ex);
     }
   }
@@ -205,7 +186,6 @@ public class DataPackageResourceTest {
   public void tearDown() {
     // we have to reset the mock after each test because of the
     // @ClassRule, or use a @Rule as mentioned below.
-    reset(DATA_CITE_SERVICE);
     reset(AUTHENTICATOR);
   }
 
@@ -213,10 +193,25 @@ public class DataPackageResourceTest {
    * Tests that the content of directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
-  public void testGetDataPackage() throws DoiException {
+  public void testGetDataPackage() {
     assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DOI_SUFFIX).toString())
                  .request().get(DataPackage.class))
       .isEqualTo(TEST_DATA_PACKAGE);
+  }
+
+
+  /**
+   * Tests that the content of directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   */
+  @Test
+  public void testListDataPackage()  {
+    assertThat(resource.getJerseyTest().target(DATA_PACKAGES_PATH).request().get(GENERIC_PAGING_RESPONSE))
+      .has(new Condition<PagingResponse<DataPackage>>() {
+        @Override
+        public boolean matches(PagingResponse<DataPackage> value) {
+          return Objects.nonNull(value) && !value.getResults().isEmpty();
+        }
+      });
   }
 
   /**
@@ -233,10 +228,9 @@ public class DataPackageResourceTest {
                    .header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS)
                    .post(Entity.entity(multiPart, multiPart.getMediaType()), DataPackage.class);
       //Test that both packages contains the same elements
-      assertThat(newDataPackage).isEqualTo(buildTestPackage(newDataPackage.getDoi()));
+      assertThat(newDataPackage).isEqualTo(buildTestPackage(newDataPackage.getDoi().getUrl()));
       //verify that exists method was invoked
-      verify(DATA_CITE_SERVICE).exists(any(DOI.class));
-      verify(DATA_CITE_SERVICE).register(any(DOI.class), any(URI.class), any(DataCiteMetadata.class));
+      verify(DATA_PACKAGE_MAPPER).create(any(DataPackage.class));
     }
   }
 
@@ -263,17 +257,19 @@ public class DataPackageResourceTest {
   @Test
   public void testDeleteDataPackage() throws DoiException {
     assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DOI_SUFFIX).toString())
-                 .request().delete().getStatus())
+                 .request().header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS).delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-    verify(DATA_CITE_SERVICE).delete(any(DOI.class));
+    verify(DATA_PACKAGE_MAPPER).get(any(String.class));
+    verify(DATA_PACKAGE_MAPPER).delete(any(DOI.class));
   }
 
   /**
    * Builds a test instance using configured test resources.
    */
-  public static DataPackage buildTestPackage(URI doi) {
-    DataPackage dataPackage = new DataPackage(configuration.getGbifApiUrl()
-                                              + Paths.get(doi.getPath()).getFileName() + '/');
+  public DataPackage buildTestPackage(URI doiUrl) {
+    DOI doi = new DOI(doiUrl.toString());
+    DataPackage dataPackage = new DataPackage(uriBuilder.build(Paths.get(doiUrl.getPath()).getFileName().toString())
+                                                .toString());
     dataPackage.setMetadata(METADATA_TEST_FILE);
     dataPackage.addFile(CONTENT_TEST_FILE);
     dataPackage.setDoi(doi);

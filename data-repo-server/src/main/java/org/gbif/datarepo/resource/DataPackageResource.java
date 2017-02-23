@@ -2,9 +2,11 @@ package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.UserPrincipal;
-import org.gbif.datarepo.api.FileInputContent;
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
-import org.gbif.datarepo.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 
 import com.codahale.metrics.annotation.Timed;
@@ -14,6 +16,8 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,13 +25,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,9 +58,10 @@ public class DataPackageResource {
   private static final String OCT_STREAM_QS = ";qs=0.5";
   private static final String FILE_ATTACHMENT = "attachment; filename=";
 
-
   private final DataRepository dataRepository;
   private final DataRepoConfiguration configuration;
+
+  private final DataPackageUriBuilder uriBuilder;
 
   /**
    * Full constructor.
@@ -63,7 +69,22 @@ public class DataPackageResource {
   public DataPackageResource(DataRepository dataRepository, DataRepoConfiguration configuration) {
     this.dataRepository = dataRepository;
     this.configuration = configuration;
+    uriBuilder = new DataPackageUriBuilder(configuration.getDataPackageApiUrl());
   }
+
+  /**
+   * Creates a new data package. The parameters: file(multiple values), metadata are required. Only authenticated
+   * user are allowed to create data packages. A new DOI is created and assigned as a Identifier.
+   *
+   */
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  public PagingResponse<DataPackage> list(@Nullable @QueryParam("user") String user,
+                                          @Nullable @BeanParam PagingParam page) {
+    return dataRepository.list(user, page);
+  }
+
 
   /**
    * Creates a new data package. The parameters: file(multiple values), metadata are required. Only authenticated
@@ -79,7 +100,7 @@ public class DataPackageResource {
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = validateFiles(multiPart);
     try {
-      return  dataRepository.create(principal.getName(), //user
+      DataPackage dataPackage =  dataRepository.create(principal.getName(), //user
                                     multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class), //metadata file
                                     //files
                                     files.stream().map(bodyPart ->
@@ -87,6 +108,7 @@ public class DataPackageResource {
                                                                                .getFileName(),
                                                                              bodyPart.getValueAs(InputStream.class)))
                                     .collect(Collectors.toList()));
+      return dataPackage.inUrl(uriBuilder.build(dataPackage.getDoi()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
       throw buildWebException(Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
@@ -138,12 +160,15 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{doi}")
-  public void delete(@PathParam("doi") String doiSuffix)  {
+  public void delete(@PathParam("doi") String doiSuffix,  @Auth UserPrincipal principal)  {
     //Validates DOI structure
     DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
 
     //Checks that the DataPackage exists
-    getOrNotFound(doi, doiSuffix);
+    DataPackage dataPackage = getOrNotFound(doi, doiSuffix);
+    if(!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
+      throw buildWebException(Status.UNAUTHORIZED, "A Data Package can be deleted only by its creator");
+    }
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
     dataRepository.delete(doi);
@@ -156,15 +181,10 @@ public class DataPackageResource {
   private DataPackage getOrNotFound(DOI doi, String doiSuffix) {
     return dataRepository.get(doi)
       .orElseThrow(() -> buildWebException(Status.NOT_FOUND,
-                                           String.format("DOI %s not found in repository", doiSuffix)));
+                                           String.format("DOI %s not found in repository", doiSuffix)))
+      .inUrl(uriBuilder.build(doi));
   }
 
-  /**
-   * Builds a API based URL of DOI assigned to a DataPackage.
-   */
-  private String dataPackageBaseUrl(DOI doi) {
-    return configuration.getGbifApiUrl() + doi.getSuffix() + '/';
-  }
 
 
 }

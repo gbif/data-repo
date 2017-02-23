@@ -15,7 +15,7 @@ public class PathsParams {
   /**
    * Data packages resource parameter.
    */
-  public static final String DATA_PACKAGES_PATH = "/data_packages";
+  public static final String DATA_PACKAGES_PATH = "data_packages";
 
   /**
    * Metadata file parameter.

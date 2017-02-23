@@ -1,14 +1,7 @@
 dataRepoPath: ${dataRepoPath}
 doiCommonPrefix: ${doiCommonPrefix}
-doiShoulder: ${doiShoulder}
-gbifPortalUrl: ${gbifPortalUrl}
 gbifApiUrl: ${gbifApiUrl}
-dataCiteConfiguration:
-  userName: ${datacite.userName}
-  password: ${datacite.password}
-  apiUrl: ${datacite.apiUrl}
-  threads: ${datacite.threads}
-  timeout: ${datacite.timeout}
+dataPackageApiUrl: ${dataPackageApiUrl}
 usersDb:
   dataSourceClassName: com.mysql.jdbc.jdbc2.optional.MysqlDataSource
   serverName: ${usersDb.serverName}
@@ -17,6 +10,21 @@ usersDb:
   password: ${usersDb.password}
   maximumPoolSize: ${usersDb.maximumPoolSize}
   connectionTimeout: ${usersDb.connectionTimeout}
+dbConfig:
+  dataSourceClassName: org.postgresql.ds.PGSimpleDataSource
+  maximumPoolSize: 6
+  minimumIdle: 1
+  idleTimeout: 60000
+  connectionTimeout: 5000
+  dataSource.serverName: ${dbConfig.server}
+  dataSource.databaseName: ${dbConfig.databaseName}
+  dataSource.user: ${dbConfig.user}
+  dataSource.password: ${dbConfig.password}
+  dataSource.portNumber: ${dbConfig.portNumber}
+  poolName: datapackages
+appKey:
+  appKey: ${appKey}
+  appSecretKey: ${appSecretKey}
 #required to avoid Exception in thread "main" java.lang.IllegalArgumentException: Unable to override server.applicationConnectors[0].port; node with index not found.
 #Defaults port can be overriden
 server:
@@ -26,3 +34,6 @@ server:
  adminConnectors:
      - type: http
        port: 8081
+service:
+  zkHost: ${zkHost}
+  zkPath: ${zkPath}

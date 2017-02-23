@@ -1,17 +1,16 @@
 package org.gbif.datarepo.store.fs;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.api.vocabulary.IdentifierType;
-import org.gbif.datarepo.api.FileInputContent;
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
-import org.gbif.datarepo.datacite.DataPackagesDoiGenerator;
-import org.gbif.datarepo.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
-import org.gbif.doi.metadata.datacite.DataCiteMetadata;
-import org.gbif.doi.service.DoiException;
-import org.gbif.doi.service.InvalidMetadataException;
-import org.gbif.doi.service.datacite.DataCiteService;
-import org.gbif.doi.service.datacite.DataCiteValidator;
+import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.registry.doi.DoiType;
+import org.gbif.registry.doi.registration.DoiRegistration;
+import org.gbif.registry.doi.registration.DoiRegistrationService;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -19,20 +18,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.xml.bind.JAXBException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +37,12 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemRepository implements DataRepository {
 
-  private static final String METADATA_FILE = "metadata.xml";
-
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemRepository.class);
 
-  private final DataPackagesDoiGenerator doiGenerator;
+  private final DoiRegistrationService doiRegistrationService;
 
-  private final DataCiteService dataCiteService;
+  private final DataPackageMapper dataPackageMapper;
 
-
-  private final DataRepoConfiguration configuration;
 
   /**
    * Paths where the files are stored.
@@ -61,9 +53,10 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Default constructor: requires a path to an existing directory.
    */
-  public FileSystemRepository(DataRepoConfiguration configuration, DataPackagesDoiGenerator doiGenerator,
-                              DataCiteService dataCiteService) {
-    this.configuration = configuration;
+  public FileSystemRepository(DataRepoConfiguration configuration,
+                              DoiRegistrationService doiRegistrationService,
+                              DataPackageMapper dataPackageMapper) {
+    this.doiRegistrationService = doiRegistrationService;
     storePath = Paths.get(configuration.getDataRepoPath());
     File file = storePath.toFile();
     //Create directory if it doesn't exist
@@ -71,15 +64,13 @@ public class FileSystemRepository implements DataRepository {
       file.mkdirs();
     }
     Preconditions.checkArgument(file.isDirectory(), "Repository is not a directory");
-    this.doiGenerator = doiGenerator;
-    this.dataCiteService = dataCiteService;
+    this.dataPackageMapper = dataPackageMapper;
   }
 
   /**
    * Stores an input stream as the specified file name under the directory assigned to the DOI parameter.
    */
-  @Override
-  public void store(DOI doi, FileInputContent fileInputContent) {
+  private void store(DOI doi, FileInputContent fileInputContent) {
     try {
       Path doiPath = getDoiPath(doi);
       if (!doiPath.toFile().exists()) {
@@ -99,7 +90,7 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public void storeMetadata(DOI doi, InputStream file) {
-    store(doi, FileInputContent.of(METADATA_FILE, file));
+    store(doi, FileInputContent.of(DataPackage.METADATA_FILE, file));
   }
 
   /**
@@ -108,12 +99,13 @@ public class FileSystemRepository implements DataRepository {
   @Override
   public void delete(DOI doi) {
     try {
+      dataPackageMapper.delete(doi);
+      doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
       File doiPath = getDoiPath(doi).toFile();
       if (doiPath.exists()) {
-        dataCiteService.delete(doi);
         FileUtils.deleteDirectory(doiPath);
       }
-    } catch (IOException | DoiException ex) {
+    } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -123,49 +115,50 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public DataPackage create(String userName, InputStream metadata, List<FileInputContent> files) {
-    DOI doi = doiGenerator.newDOI();
-    //Store metadata.xml file
-    storeMetadata(doi, metadata);
-    File metadataFile = getFile(doi, METADATA_FILE).get();
     //Generates a DataCiteMetadata object for further validation/manipulation
-    DataCiteMetadata dataCiteMetadata = processMetadata(metadataFile, doi);
-    try {
-      //store all the submitted files
-      files.stream().forEach(fileInputContent -> store(doi, fileInputContent));
-      //register the new DOI into DataCite
-      dataCiteService.register(doi, targetDoiUrl(doi), dataCiteMetadata);
-    } catch (DoiException ex) {
-      LOG.error("Error registering a DOI", ex);
-      //Deletes all data created to this DOI in case of error
-      delete(doi);
+
+    try (ByteArrayInputStream  metadataInputStream = new ByteArrayInputStream(IOUtils.toByteArray(metadata))) {
+      //mark the input steam to the first position
+      metadataInputStream.mark(0);
+      String dataCiteMetadata = readMetadata(metadataInputStream);
+      //Register DOI
+      DOI doi = doiRegistrationService.register(DoiRegistration.builder().withType(DoiType.DATA_PACKAGE)
+                                                  .withMetadata(dataCiteMetadata).withUser(userName).build());
+      //Store metadata.xml file
+      metadataInputStream.reset(); //reset the input stream
+      storeMetadata(doi, metadataInputStream);
+      try {
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.setDoi(doi);
+        dataPackage.setMetadata(DataPackage.METADATA_FILE);
+        dataPackage.setCreatedBy(userName);
+        //store all the submitted files
+        files.stream().forEach(fileInputContent -> {
+          store(doi, fileInputContent);
+          dataPackage.addFile(Paths.get(fileInputContent.getName()).getFileName().toString());
+        });
+        //Persist data package info
+        dataPackageMapper.create(dataPackage);
+        return dataPackage;
+      } catch (Exception ex) {
+        LOG.error("Error registering a DOI", ex);
+        //Deletes all data created to this DOI in case of error
+        delete(doi);
+        throw new RuntimeException(ex);
+      }
+    } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
-    return get(doi).get();
-  }
-
-  /**
-   * Builds a target Url for a DataPackage doi.
-   */
-  private URI targetDoiUrl(DOI doi) {
-    return URI.create(configuration.getGbifPortalUrl() + doi.getDoiName());
   }
 
   /**
    * Reads, validates and stores the submitted metadata file.
    */
-  private DataCiteMetadata processMetadata(File metadataFile, DOI doi) {
-    try(InputStream inputStream = new FileInputStream(metadataFile)) {
-      DataCiteMetadata dataCiteMetadata = DataCiteValidator.fromXml(inputStream);
-      dataCiteMetadata.setIdentifier(DataCiteMetadata.Identifier.builder()
-                                       .withValue(doi.getDoiName())
-                                       .withIdentifierType(IdentifierType.DOI.name())
-                                       .build());
-      storeMetadata(doi, new ByteArrayInputStream(DataCiteValidator.toXml(doi, dataCiteMetadata)
-                                                                   .getBytes(StandardCharsets.UTF_8)));
-      return dataCiteMetadata;
-    } catch (JAXBException | IOException | InvalidMetadataException ex) {
-      LOG.error("Error reading data package {} metadata", doi, ex);
-      delete(doi);
+  private static String readMetadata(InputStream metadataFile) {
+    try {
+      return IOUtils.toString(metadataFile);
+    } catch (IOException ex) {
+      LOG.error("Error reading data package metadata", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -175,17 +168,17 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(DOI doi) {
-    File doiPath = getDoiPath(doi).toFile();
-    if (doiPath.exists()) {
-      //Assemble a new DataPackage instance containing all the information
-      DataPackage dataPackage = new DataPackage(configuration.getGbifApiUrl() + doi.getSuffix() + '/');
-      dataPackage.setDoi(doi.getUrl());
-      dataPackage.setMetadata(METADATA_FILE);
-      Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
-      return Optional.of(dataPackage);
-    }
-    return Optional.empty();
+    return Optional.of(dataPackageMapper.get(doi.getDoiName()));
+  }
+
+  /**
+   * Retrieves the DataPackage content stored for the DOI.
+   */
+  @Override
+  public PagingResponse<DataPackage> list(String user, Pageable page) {
+    Long count = dataPackageMapper.count(user, page);
+    List<DataPackage>  packages = dataPackageMapper.list(user, page);
+    return new PagingResponse<>(page, count, packages);
   }
 
   /**
@@ -215,7 +208,7 @@ public class FileSystemRepository implements DataRepository {
         return Optional.of(new FileInputStream(packageFile.get()));
       }
     } catch (FileNotFoundException ex) {
-      LOG.warn("Requested file {} not found",fileName, ex);
+      LOG.warn("Requested file {} not found", fileName, ex);
     }
     return Optional.empty();
   }

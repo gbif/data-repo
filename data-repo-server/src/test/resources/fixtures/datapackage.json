@@ -1,5 +1,5 @@
 {
-  "doi":"http://doi.org/10.5072/dp.bvmv02",
+  "doi":"10.5072/dp.bvmv02",
   "metadata":"http://localhost:8080/data_packages/dp.bvmv02/metadata.xml",
   "files":["http://localhost:8080/data_packages/dp.bvmv02/occurrence.txt"]
 }

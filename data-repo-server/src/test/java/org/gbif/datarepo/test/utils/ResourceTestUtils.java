@@ -1,10 +1,17 @@
-package org.gbif.datarepo.resource;
+package org.gbif.datarepo.test.utils;
 
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.User;
 import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.conf.DataRepoConfiguration;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Optional;
 import javax.ws.rs.core.MediaType;
 
 import io.dropwizard.auth.basic.BasicCredentials;
@@ -15,11 +22,11 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 /**
  * Utility class containing methods to reduce complexity in other classes.
  */
-class ResourceTestUtils {
+public class ResourceTestUtils {
 
   public static final String TEST_REPO_PATH = "src/test/resources/testrepo/";
 
-  public static final String TEST_DATA_PACKAGE_DIR = TEST_REPO_PATH + "10.5072-dp.bvmv02/";
+  public static final String TEST_DATA_PACKAGE_DIR = TEST_REPO_PATH + DOI.TEST_PREFIX +  "-dp.bvmv02/";
 
   public static final String CONTENT_TEST_FILE = "occurrence.txt";
 
@@ -70,6 +77,24 @@ class ResourceTestUtils {
     String testFileName = TEST_DATA_PACKAGE_DIR + testFile;
     return new FormDataBodyPart(FormDataContentDisposition.name(formParam).fileName(testFileName).build(),
                                 new FileInputStream(testFileName), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+  }
+
+  /**
+   * Gets DataPackage instance using a file system directory as the source for information.
+   */
+  public static Optional<DataPackage> getFromLocalFileSystem(DOI doi, DataRepoConfiguration configuration) {
+    File doiPath = Paths.get(configuration.getDataRepoPath())
+                    .resolve(doi.getPrefix() + '-' + doi.getSuffix()).toFile();
+    if (doiPath.exists()) {
+      //Assemble a new DataPackage instance containing all the information
+      DataPackage dataPackage = new DataPackage();
+      dataPackage.setDoi(doi);
+      dataPackage.setMetadata(DataPackage.METADATA_FILE);
+      Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
+        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
+      return Optional.of(dataPackage);
+    }
+    return Optional.empty();
   }
 
 }

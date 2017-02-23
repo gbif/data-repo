@@ -1,5 +1,5 @@
-package org.gbif.datarepo.model;
-import java.net.URI;
+package org.gbif.datarepo.api.model;
+import org.gbif.api.model.common.DOI;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +46,7 @@ public class DataPackageDeSerTest {
     DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + TEST_DOI_SUFFIX + '/');
     dataPackage.setMetadata("metadata.xml");
     dataPackage.addFile("occurrence.txt");
-    dataPackage.setDoi(URI.create("http://doi.org/10.5072/" + TEST_DOI_SUFFIX));
+    dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, TEST_DOI_SUFFIX));
     return  dataPackage;
   }
 

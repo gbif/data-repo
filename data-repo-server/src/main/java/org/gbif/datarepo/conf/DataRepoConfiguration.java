@@ -2,11 +2,13 @@ package org.gbif.datarepo.conf;
 
 import org.gbif.discovery.conf.ServiceConfiguration;
 
+import java.util.Properties;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.dropwizard.Configuration;
+
 
 /**
  * Main service configuration, it contains: DOI settings, required urls and DB settings.
@@ -22,23 +24,21 @@ public class DataRepoConfiguration extends Configuration {
   private String doiCommonPrefix;
 
   @NotNull
-  private String doiShoulder;
-
-  @NotNull
-  private String gbifPortalUrl;
-
-  @NotNull
   private String gbifApiUrl;
 
-  @NotNull
-  private DataCiteConfiguration dataCiteConfiguration;
+  private String dataPackageApiUrl;
 
   @NotNull
   private DbConfiguration usersDb;
 
-  @Valid
   @NotNull
+  private Properties dbConfig;
+
+  @Valid
   private ServiceConfiguration service;
+
+  @NotNull
+  private ApplicationKeyConfiguration appKey;
 
   /**
    * File system path where the archives are being stored.
@@ -65,32 +65,6 @@ public class DataRepoConfiguration extends Configuration {
   }
 
   /**
-   * Refers to the portion of a DOI suffix that is not unique and randomly generated.
-   * For example: http://doi.org/10.5072/dl.wf82r4 has "10.5072" has as a shoulder "dl.".
-   */
-  @JsonProperty
-  public String getDoiShoulder() {
-    return doiShoulder;
-  }
-
-  public void setDoiShoulder(String doiShoulder) {
-    this.doiShoulder = doiShoulder;
-  }
-
-  /**
-   * GBIF Portal URL, used to construct the target URL of DOIs.
-   * @return
-   */
-  @JsonProperty
-  public String getGbifPortalUrl() {
-    return gbifPortalUrl;
-  }
-
-  public void setGbifPortalUrl(String gbifPortalUrl) {
-    this.gbifPortalUrl = gbifPortalUrl;
-  }
-
-  /**
    * GBIF API Url, used to construct URLs of data packages elements.
    */
   @JsonProperty
@@ -102,17 +76,13 @@ public class DataRepoConfiguration extends Configuration {
     this.gbifApiUrl = gbifApiUrl;
   }
 
-  /**
-   * DataCite general configuration.
-   * @return
-   */
   @JsonProperty
-  public DataCiteConfiguration getDataCiteConfiguration() {
-    return dataCiteConfiguration;
+  public String getDataPackageApiUrl() {
+    return dataPackageApiUrl;
   }
 
-  public void setDataCiteConfiguration(DataCiteConfiguration dataCiteConfiguration) {
-    this.dataCiteConfiguration = dataCiteConfiguration;
+  public void setDataPackageApiUrl(String dataPackageApiUrl) {
+    this.dataPackageApiUrl = dataPackageApiUrl;
   }
 
   /**
@@ -134,4 +104,24 @@ public class DataRepoConfiguration extends Configuration {
 
   public void setService(ServiceConfiguration service) { this.service = service; }
 
+  @JsonProperty
+  public Properties getDbConfig() {
+    return dbConfig;
+  }
+
+  public void setDbConfig(Properties dbConfig) {
+    this.dbConfig = dbConfig;
+  }
+
+  /**
+   * Application key/secret used to communicate with other GBIF services.
+   */
+  @JsonProperty
+  public ApplicationKeyConfiguration getAppKey() {
+    return appKey;
+  }
+
+  public void setAppKey(ApplicationKeyConfiguration appKey) {
+    this.appKey = appKey;
+  }
 }

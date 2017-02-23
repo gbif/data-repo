@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.gbif.datarepo.persistence.mappers.DataPackageMapper">
+
+  <resultMap id="DATA_PACKAGE_DATA_MAP" type="DataPackage" autoMapping="true">
+    <id property="doi" column="doi" typeHandler="DoiTypeHandler"/>
+    <result property="metadata" column="metadata"/>
+    <result property="files" column="files" typeHandler="StringArrayTypeHandler"/>
+    <result property="created" column="created"/>
+    <result property="modified" column="modified"/>
+    <result property="deleted" column="deleted"/>
+    <result property="createdBy" column="created_by"/>
+  </resultMap>
+
+  <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
+    SELECT doi, metadata, files, created, modified, deleted, created_by
+    FROM data_package
+    WHERE doi = #{doi,jdbcType=OTHER}
+  </select>
+
+  <select id="list" resultType="DataPackage" parameterType="map">
+    SELECT doi, metadata, files, created, modified, deleted, created_by
+    FROM data_package
+    <where>
+    <if test="user != null" >
+      created_by=#{user,jdbcType=OTHER}
+    </if>
+    </where>
+    <if test="page != null" >
+      LIMIT #{page.limit} OFFSET #{page.offset}
+    </if>
+  </select>
+
+  <select id="count" resultType="Long" parameterType="map">
+    SELECT count(*)
+    FROM data_package
+    <where>
+      <if test="user != null" >
+        created_by=#{user,jdbcType=OTHER}
+      </if>
+    </where>
+    <if test="page != null" >
+      LIMIT #{page.limit} OFFSET #{page.offset}
+    </if>
+  </select>
+
+  <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
+    INSERT INTO data_package (doi, metadata, files, created, modified, created_by, modified_by)
+    VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{metadata, jdbcType=OTHER}, #{files, jdbcType=ARRAY, typeHandler=StringArrayTypeHandler}, now(), now(), #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
+  </insert>
+
+  <update id="update" parameterType="DataPackage">
+    UPDATE data_package SET
+      metadata = #{metadata,jdbcType=OTHER},
+      files = #{files, jdbcType=OTHER, typeHandler=StringArrayTypeHandler},
+      modified = now(),
+      modified_by = #{createdBy, jdbcType=OTHER}
+    WHERE doi = #{dataPackage.doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+  </update>
+
+  <delete id="delete" parameterType="DOI">
+    UPDATE data_package SET
+      deleted = now()
+    WHERE doi = #{doi,jdbcType=OTHER, typeHandler=DoiTypeHandler} AND deleted IS NULL
+  </delete>
+
+</mapper>
