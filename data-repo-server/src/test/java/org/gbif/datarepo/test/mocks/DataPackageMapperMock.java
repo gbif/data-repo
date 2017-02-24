@@ -5,6 +5,7 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -20,13 +21,14 @@ public class DataPackageMapperMock implements DataPackageMapper {
 
   private final Path storePath;
 
+
   public DataPackageMapperMock(DataRepoConfiguration configuration) {
     storePath = Paths.get(configuration.getDataRepoPath());
   }
 
   @Override
   public DataPackage get(@Param("doi") String doiName) {
-    String[] doiNameParts = doiName.split("-");
+    String[] doiNameParts = doiName.indexOf('-') > 0 ? doiName.split("-") : doiName.split("\\/");
     DOI doi = new DOI(doiNameParts[0], doiNameParts[1]);
     File doiPath = getDoiPath(doi).toFile();
     if (doiPath.exists()) {
@@ -34,6 +36,7 @@ public class DataPackageMapperMock implements DataPackageMapper {
       DataPackage dataPackage = new DataPackage();
       dataPackage.setDoi(doi);
       dataPackage.setMetadata(DataPackage.METADATA_FILE);
+      dataPackage.setCreatedBy(ResourceTestUtils.TEST_USER.getName());
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
         .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
       return dataPackage;

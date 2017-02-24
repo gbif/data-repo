@@ -212,11 +212,15 @@ public class DataPackage {
   /**
    * Creates a clone of the current object btu all the files are rebased to the specified URL.
    */
-  public DataPackage inUrl(String baseUrl) {
-    DataPackage dataPackage = new DataPackage(baseUrl);
+  public DataPackage inUrl(String url) {
+    DataPackage dataPackage = new DataPackage(url);
     dataPackage.setDoi(doi);
     files.stream().forEach(dataPackage::addFile);
     dataPackage.setMetadata(metadata);
+    dataPackage.setCreatedBy(createdBy);
+    dataPackage.setCreated(created);
+    dataPackage.setDeleted(deleted);
+    dataPackage.setModified(modified);
     return dataPackage;
   }
 

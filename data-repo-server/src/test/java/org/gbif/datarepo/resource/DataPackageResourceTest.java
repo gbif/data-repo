@@ -116,6 +116,7 @@ public class DataPackageResourceTest {
       configuration = new DataRepoConfiguration();
       configuration.setDoiCommonPrefix("10.5072");
       configuration.setGbifApiUrl("http://localhost:8080/");
+      configuration.setDataPackageApiUrl("http://localhost:8080/data_packages/");
       //Used the temporary folder as the data repo path
       configuration.setDataRepoPath(temporaryFolder().toString());
       configuration.setUsersDb(mock(DbConfiguration.class));
