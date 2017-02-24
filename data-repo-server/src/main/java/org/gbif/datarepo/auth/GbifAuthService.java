@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
@@ -150,7 +151,8 @@ public class GbifAuthService {
     return sb.toString();
   }
 
-  private static void appendHeader(StringBuilder sb, MultivaluedMap<String, ?> request, String header, boolean caseSensitive) {
+  private static void appendHeader(StringBuilder sb, MultivaluedMap<String, ?> request, String header,
+                                   boolean caseSensitive) {
     if (request.containsKey(header)) {
       sb.append(NEWLINE);
       if (caseSensitive) {
@@ -181,7 +183,7 @@ public class GbifAuthService {
   private String buildSignature(String stringToSign, String secretKey) {
     try {
       Mac mac = Mac.getInstance(ALGORITHM);
-      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);
+      Key secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);
       mac.init(secret);
       byte[] digest = mac.doFinal(stringToSign.getBytes());
 
@@ -215,9 +217,9 @@ public class GbifAuthService {
     }
 
     // build the unique string to sign
-    final String stringToSign = buildStringToSign(request);
+    String stringToSign = buildStringToSign(request);
     // find private key for this app
-    final String secretKey = getPrivateKey(appKey);
+    String secretKey = getPrivateKey(appKey);
     if (secretKey == null) {
       LOG.warn("Skip signing request with unknown application key: {}", appKey);
       return;
@@ -249,7 +251,7 @@ public class GbifAuthService {
 
   public boolean isValidRequest(ContainerRequestContext request) {
     // parse auth header
-    final String authHeader = request.getHeaderString(HEADER_AUTHORIZATION);
+    String authHeader = request.getHeaderString(HEADER_AUTHORIZATION);
     if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME + " ")) {
       LOG.info(HEADER_AUTHORIZATION + " header is no GBIF scheme");
       return false;

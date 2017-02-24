@@ -42,7 +42,7 @@ public class GbifAuthenticator implements Authenticator<BasicCredentials, UserPr
   @Override
   public Optional<UserPrincipal> authenticate(BasicCredentials credentials) throws AuthenticationException {
     User user = userService.authenticate(credentials.getUsername(), credentials.getPassword());
-    if(user != null) { //User found
+    if (user != null) { //User found
       LOG.debug("Authenticating user {} via scheme {}", credentials.getUsername(), SCHEME);
       return Optional.of(new UserPrincipal(user));
     }
