@@ -2,7 +2,6 @@ package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.UserPrincipal;
-import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
@@ -26,7 +25,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -138,7 +136,7 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
   @Path("{doi}/{fileName}")
-  public Response getFile(@PathParam("doi") String doiRef, @PathParam("fileName") String fileName) throws Exception {
+  public Response getFile(@PathParam("doi") String doiRef, @PathParam("fileName") String fileName)  {
     //Validation
     DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiRef);
 
@@ -148,8 +146,8 @@ public class DataPackageResource {
     //Check file existence before send it in the Response
     return fileInputStream.isPresent()? Response.ok(fileInputStream.get())
                                                     .header(HttpHeaders.CONTENT_DISPOSITION, FILE_ATTACHMENT + fileName)
-                                                    .build() :
-                                        Response.status(Status.NOT_FOUND)
+                                                    .build()
+                                        : Response.status(Status.NOT_FOUND)
                                           .entity(String.format("File %s not found", fileName)).build();
   }
 

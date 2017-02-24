@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -26,32 +25,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  */
 @JsonSerialize
 public class DataPackage {
-  /**
-   * Serializes a DOI as doi name with a doi: scheme.
-   * For example doi:10.1038/nature.2014.16460
-   */
-  public static class DOISerializer extends JsonSerializer<DOI> {
-
-    @Override
-    public void serialize(DOI value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-      gen.writeString(value.toString());
-    }
-  }
-
-  /**
-   * Deserializes a DOI from various string based formats.
-   * See DOI constructor for details.
-   */
-  public static class DOIDeserializer extends JsonDeserializer<DOI> {
-
-    @Override
-    public DOI deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-      if (p != null && p.getTextLength() > 0) {
-        return new DOI(p.getText());
-      }
-      return null;
-    }
-  }
 
   public static final String METADATA_FILE = "metadata.xml";
 
@@ -100,7 +73,7 @@ public class DataPackage {
   }
 
   /**
-   * Data package assigned DOI
+   * Data package assigned DOI.
    */
   public DOI getDoi() {
     return doi;
@@ -186,8 +159,12 @@ public class DataPackage {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     DataPackage other = (DataPackage) obj;
     return Objects.equals(doi, other.doi)
            && Objects.equals(metadata, other.metadata)
@@ -230,4 +207,33 @@ public class DataPackage {
   public DataPackage inUrl(URI baseUrl) {
     return inUrl(baseUrl.toString());
   }
+
+
+  /**
+   * Serializes a DOI as doi name with a doi: scheme.
+   * For example doi:10.1038/nature.2014.16460
+   */
+  public static class DOISerializer extends JsonSerializer<DOI> {
+
+    @Override
+    public void serialize(DOI value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+      gen.writeString(value.toString());
+    }
+  }
+
+  /**
+   * Deserializes a DOI from various string based formats.
+   * See DOI constructor for details.
+   */
+  public static class DOIDeserializer extends JsonDeserializer<DOI> {
+
+    @Override
+    public DOI deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      if (p != null && p.getTextLength() > 0) {
+        return new DOI(p.getText());
+      }
+      return null;
+    }
+  }
+
 }

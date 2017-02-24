@@ -18,6 +18,7 @@ import org.gbif.drupal.guice.DrupalMyBatisModule;
 import javax.ws.rs.client.Client;
 
 import static org.gbif.datarepo.conf.DataRepoConfiguration.USERS_DB_CONF_PREFIX;
+import static org.gbif.datarepo.registry.DoiRegistrationWsClient.buildWebTarget;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -32,9 +33,6 @@ import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 /**
@@ -75,7 +73,8 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     Client client = DoiRegistrationWsClient.buildClient(configuration, environment.getObjectMapper());
     //Data repository creation
     DataRepository dataRepository = new FileSystemRepository(configuration,
-                                                             new DoiRegistrationWsClient(DoiRegistrationWsClient.buildWebTarget(client, configuration.getGbifApiUrl())),
+                                                             new DoiRegistrationWsClient(
+                                                               buildWebTarget(client, configuration.getGbifApiUrl())),
                                                              dataPackageMapper());
     //Security configuration
     Authenticator<BasicCredentials, UserPrincipal> authenticator = authenticator();
