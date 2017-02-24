@@ -33,7 +33,7 @@ public interface DataRepository {
   void delete(DOI doi);
 
   /**
-   * Gets the path location of an archive associated to a DOI.
+   * Gets the path location from an archive associated to a DOI.
    */
   Optional<DataPackage> get(DOI doi);
 

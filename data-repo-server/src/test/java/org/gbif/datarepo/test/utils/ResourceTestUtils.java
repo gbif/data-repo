@@ -67,7 +67,7 @@ public class ResourceTestUtils {
   }
 
   /**
-   * Creates a test instance of BasicCredentials using the test user data.
+   * Creates a test instance from BasicCredentials using the test user data.
    */
   private static BasicCredentials basicCredentials() {
     return new BasicCredentials(TEST_USER.getUser().getUserName(), TEST_USER.getUser().getPasswordHash());
@@ -91,7 +91,7 @@ public class ResourceTestUtils {
       dataPackage.setDoi(doi);
       dataPackage.setMetadata(DataPackage.METADATA_FILE);
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
+        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list from files
       return Optional.of(dataPackage);
     }
     return Optional.empty();

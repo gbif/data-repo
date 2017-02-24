@@ -72,7 +72,7 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
   }
 
   /**
-   * Requests the registration of a new DOI.
+   * Requests the registration from a new DOI.
    */
   @Override
   public DOI register(DoiRegistration doiRegistration) {

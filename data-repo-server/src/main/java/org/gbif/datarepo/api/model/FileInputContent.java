@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * Represents an InputStream and its associated name.
- * It's used for the convenience of sending file streams with its associated names.
+ * It's used for the convenience from sending file streams with its associated names.
  */
 public class FileInputContent {
 
@@ -24,14 +24,14 @@ public class FileInputContent {
   /**
    * Factory method, creates an instance using the name and inputStream objects.
    */
-  public static FileInputContent of(String name, InputStream inputStream) {
+  public static FileInputContent from(String name, InputStream inputStream) {
     return new FileInputContent(name, inputStream);
   }
 
 
 
   /**
-   * Name of the InputStream, normally it's the file name.
+   * Name from the InputStream, normally it's the file name.
    */
   public String getName() {
     return name;

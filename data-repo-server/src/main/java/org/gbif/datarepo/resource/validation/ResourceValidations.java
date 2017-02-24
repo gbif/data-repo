@@ -25,7 +25,7 @@ public class ResourceValidations {
   }
 
   /**
-   * Validate that the input list of file denoted by the Http form param 'file' is not empty.
+   * Validate that the input list from file denoted by the Http form param 'file' is not empty.
    */
   public static List<FormDataBodyPart> validateFiles(FormDataMultiPart multiPart) {
     List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
@@ -46,7 +46,7 @@ public class ResourceValidations {
   }
 
   /**
-   * Validates the DOI specified by its parts/
+   * Validates the DOI specified by its parts.
    */
   public static DOI validateDoi(String doiPrefix, String doiSuffix) {
     if (Strings.isNullOrEmpty(doiSuffix)) {

@@ -59,15 +59,15 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
    */
   @Override
   public void run(DataRepoConfiguration configuration, Environment environment) throws Exception {
-    injector  = injector(configuration, environment);
+    injector  = buildInjector(configuration, environment);
 
 
-    // determines whether encountering of unknown properties (ones that do not map to a property, and there is no
+    // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
     environment.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     // "any setter" or handler that can handle it) should result in a failure (throwing a JsonMappingException) or not.
     environment.getObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    // Enforce use of ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
+    // Enforce use from ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
     environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     Client client = DoiRegistrationWsClient.buildClient(configuration, environment.getObjectMapper());
@@ -77,7 +77,7 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
                                                                buildWebTarget(client, configuration.getGbifApiUrl())),
                                                              dataPackageMapper());
     //Security configuration
-    Authenticator<BasicCredentials, UserPrincipal> authenticator = authenticator();
+    Authenticator<BasicCredentials, UserPrincipal> authenticator = getAuthenticator();
     BasicCredentialAuthFilter<UserPrincipal> userBasicCredentialAuthFilter =
       new BasicCredentialAuthFilter.Builder<UserPrincipal>().setAuthenticator(authenticator)
         .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter();
@@ -102,7 +102,7 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     // NOP
   }
 
-  private Injector injector(DataRepoConfiguration configuration, Environment environment) {
+  private static Injector buildInjector(DataRepoConfiguration configuration, Environment environment) {
     return Guice.createInjector(new DrupalMyBatisModule(configuration.getUsersDb()
                                                           .toProperties(USERS_DB_CONF_PREFIX)),
                                 new DataPackageMyBatisModule(configuration.getDbConfig(),
@@ -113,7 +113,7 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
-  private Authenticator<BasicCredentials, UserPrincipal> authenticator() {
+  private Authenticator<BasicCredentials, UserPrincipal> getAuthenticator() {
     return new  GbifAuthenticator(injector.getInstance(UserService.class));
   }
 

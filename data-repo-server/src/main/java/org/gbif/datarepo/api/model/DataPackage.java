@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
- * This class represents a data package, which contains: a metadata file, a DOI and a list of containing files.
+ * This class represents a data package, which contains: a metadata file, a DOI and a list from containing files.
  */
 @JsonSerialize
 public class DataPackage {
@@ -55,7 +55,7 @@ public class DataPackage {
 
   /**
    * Default constructor.
-   * Set the base url to empty and initialises the list of files.
+   * Set the base url to empty and initialises the list from files.
    */
   public DataPackage() {
     files = new ArrayList<>();
@@ -65,7 +65,7 @@ public class DataPackage {
 
   /**
    * Base Url constructor.
-   * Set the base url to specified value and initialises the list of files.
+   * Set the base url to specified value and initialises the list from files.
    */
   public DataPackage(String baseUrl) {
     files = new ArrayList<>();
@@ -95,7 +95,7 @@ public class DataPackage {
   }
 
   /**
-   * List of containing files (excluding the metadata.xml file).
+   * List from containing files (excluding the metadata.xml file).
    */
   public List<String> getFiles() {
     return files;
@@ -117,7 +117,7 @@ public class DataPackage {
   }
 
   /**
-   * Date of last modification.
+   * Date from last modification.
    */
   public Date getModified() {
     return modified;
@@ -150,7 +150,7 @@ public class DataPackage {
   }
 
   /**
-   * Adds a new file to the list of containing files.
+   * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
   public void addFile(String fileName) {
@@ -187,7 +187,7 @@ public class DataPackage {
   }
 
   /**
-   * Creates a clone of the current object btu all the files are rebased to the specified URL.
+   * Creates a clone from the current object btu all the files are rebased to the specified URL.
    */
   public DataPackage inUrl(String url) {
     DataPackage dataPackage = new DataPackage(url);
@@ -202,7 +202,7 @@ public class DataPackage {
   }
 
   /**
-   * Creates a clone of the current object btu all the files are rebased to the specified URL.
+   * Creates a clone from the current object btu all the files are rebased to the specified URL.
    */
   public DataPackage inUrl(URI baseUrl) {
     return inUrl(baseUrl.toString());

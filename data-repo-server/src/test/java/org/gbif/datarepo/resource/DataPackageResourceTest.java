@@ -185,13 +185,13 @@ public class DataPackageResourceTest {
    */
   @After
   public void tearDown() {
-    // we have to reset the mock after each test because of the
+    // we have to reset the mock after each test because from the
     // @ClassRule, or use a @Rule as mentioned below.
     reset(AUTHENTICATOR);
   }
 
   /**
-   * Tests that the content of directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
   public void testGetDataPackage() {
@@ -202,7 +202,7 @@ public class DataPackageResourceTest {
 
 
   /**
-   * Tests that the content of directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
   public void testListDataPackage()  {
@@ -253,7 +253,7 @@ public class DataPackageResourceTest {
 
 
   /**
-   * Tests that the content of directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
   public void testDeleteDataPackage() throws DoiException {

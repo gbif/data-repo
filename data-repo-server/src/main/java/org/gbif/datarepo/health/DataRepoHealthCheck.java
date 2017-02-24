@@ -15,7 +15,7 @@ public class DataRepoHealthCheck extends HealthCheck {
   private final DataRepoConfiguration configuration;
 
   /**
-   * Full constructor, requires the configuration settings to access the data directory.s
+   * Full constructor, requires configuration settings to access the data directory.
    */
   public DataRepoHealthCheck(DataRepoConfiguration configuration) {
     this.configuration = configuration;

@@ -8,7 +8,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Tests serialization and deserialization of DataPackage instances.
+ * Tests serialization and deserialization from DataPackage instances.
  */
 public class DataPackageDeSerTest {
 
@@ -40,7 +40,7 @@ public class DataPackageDeSerTest {
   }
 
   /**
-   * Creates an instance of DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
+   * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
     DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + TEST_DOI_SUFFIX + '/');

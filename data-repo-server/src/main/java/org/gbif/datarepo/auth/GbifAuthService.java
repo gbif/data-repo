@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  *
  * <br/>
  * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)
- * and a unique signature for the very request which is generated using a fixed set of request attributes
+ * and a unique signature for the very request which is generated using a fixed set from request attributes
  * which are then encrypted by a standard HMAC-SHA1 algorithm.
  *
  * <br/>
@@ -164,7 +164,7 @@ public class GbifAuthService {
   }
 
   /**
-   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
+   * @return an absolute uri from the resource path alone, excluding host, scheme and query parameters
    */
   private static String getCanonicalizedPath(URI uri) {
     return uri.normalize().getPath();
@@ -175,7 +175,7 @@ public class GbifAuthService {
   }
 
   /**
-   * Generates a Base64 encoded HMAC-SHA1 signature of the passed in string with the given secret key.
+   * Generates a Base64 encoded HMAC-SHA1 signature from the passed in string with the given secret key.
    * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
    * @param stringToSign the string to be signed
    * @param secretKey the secret key to use in the
@@ -234,7 +234,7 @@ public class GbifAuthService {
   }
 
   /**
-   * Generates the Base64 encoded 128 bit MD5 digest of the entire content string suitable for the
+   * Generates the Base64 encoded 128 bit MD5 digest from the entire content string suitable for the
    * Content-MD5 header value.
    * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
    */

@@ -22,14 +22,14 @@ public class DataPackageUriBuilder {
   /**
    * Generates a DataPackage URL from the DOI.suffix.
    */
-  public URI build(DOI doi){
+  public URI build(DOI doi) {
     return uriBuilder.build(doi.getSuffix());
   }
 
   /**
    * Builds a URI using the supplied path.
    */
-  public URI build(String path){
+  public URI build(String path) {
     return uriBuilder.build(path);
   }
 }

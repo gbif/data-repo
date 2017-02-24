@@ -65,7 +65,7 @@ public class DataRepoConfiguration extends Configuration {
   }
 
   /**
-   * GBIF API Url, used to construct URLs of data packages elements.
+   * GBIF API Url, used to construct URLs from data packages elements.
    */
   @JsonProperty
   public String getGbifApiUrl() {
@@ -100,9 +100,13 @@ public class DataRepoConfiguration extends Configuration {
    * Service Discovery configuration.
    */
   @JsonProperty
-  public ServiceConfiguration getService() { return service; }
+  public ServiceConfiguration getService() {
+    return service;
+  }
 
-  public void setService(ServiceConfiguration service) { this.service = service; }
+  public void setService(ServiceConfiguration service) {
+    this.service = service;
+  }
 
   @JsonProperty
   public Properties getDbConfig() {
@@ -110,7 +114,7 @@ public class DataRepoConfiguration extends Configuration {
   }
 
   public void setDbConfig(Properties dbConfig) {
-    this.dbConfig = dbConfig;
+    this.dbConfig = new Properties(dbConfig);
   }
 
   /**

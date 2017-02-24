@@ -10,7 +10,7 @@ import org.junit.Test;
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 
 /**
- * Tests serialization and deserialization of DataPackage instances.
+ * Tests serialization and deserialization from DataPackage instances.
  */
 public class DoiRegistrationDeSerTest {
 

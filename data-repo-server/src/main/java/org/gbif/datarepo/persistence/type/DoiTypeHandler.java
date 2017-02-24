@@ -16,9 +16,7 @@ import org.apache.ibatis.type.JdbcType;
 public class DoiTypeHandler extends BaseTypeHandler<DOI> {
 
   @Override
-  public void setNonNullParameter(
-    PreparedStatement ps, int i, DOI parameter, JdbcType jdbcType
-  ) throws SQLException {
+  public void setNonNullParameter(PreparedStatement ps, int i, DOI parameter, JdbcType jdbcType) throws SQLException {
     ps.setString(i, parameter.getDoiName());
   }
 

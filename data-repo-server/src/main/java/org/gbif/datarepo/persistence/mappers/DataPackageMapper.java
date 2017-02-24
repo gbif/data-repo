@@ -13,10 +13,34 @@ import org.apache.ibatis.annotations.Param;
  * MyBatis mapper to store DOIs and their status in the registry db.
  */
 public interface DataPackageMapper {
-  DataPackage get (@Param("doi") String doiName);
+
+  /**
+   * Retrieves a DataPackage by its doi name, i.e.: prefix/suffix.
+   */
+  DataPackage get(@Param("doi") String doiName);
+
+  /**
+   * Page through DataPackages, optionally filtered by user.
+   */
   List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page);
+
+  /**
+   * Count data packages, optionally filtered by user.
+   */
   Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page);
-  void create (@Param("dataPackage") DataPackage dataPackage);
-  void update (@Param("dataPackage") DataPackage dataPackage);
-  void delete (@Param("doi") DOI doi);
+
+  /**
+   * Persists a new data package.
+   */
+  void create(@Param("dataPackage") DataPackage dataPackage);
+
+  /**
+   * Updates a data package.
+   */
+  void update(@Param("dataPackage") DataPackage dataPackage);
+
+  /**
+   * Deletes a data package by its doi value.
+   */
+  void delete(@Param("doi") DOI doi);
 }

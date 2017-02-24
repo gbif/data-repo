@@ -52,7 +52,7 @@ public class DataPackageResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(DataPackageResource.class);
 
-  // low quality of source to default to JSON
+  // low quality from source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
   private static final String FILE_ATTACHMENT = "attachment; filename=";
 
@@ -102,9 +102,9 @@ public class DataPackageResource {
                                     multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class), //metadata file
                                     //files
                                     files.stream().map(bodyPart ->
-                                                         FileInputContent.of(bodyPart.getFormDataContentDisposition()
+                                                         FileInputContent.from(bodyPart.getFormDataContentDisposition()
                                                                                .getFileName(),
-                                                                             bodyPart.getValueAs(InputStream.class)))
+                                                                               bodyPart.getValueAs(InputStream.class)))
                                     .collect(Collectors.toList()));
       return dataPackage.inUrl(uriBuilder.build(dataPackage.getDoi()));
     } catch (Exception ex) {

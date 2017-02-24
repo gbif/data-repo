@@ -61,7 +61,7 @@ public class FileSystemRepository implements DataRepository {
     File file = storePath.toFile();
     //Create directory if it doesn't exist
     if (!file.exists()) {
-      file.mkdirs();
+      Preconditions.checkState(file.mkdirs(), "Error creating data directory");
     }
     Preconditions.checkArgument(file.isDirectory(), "Repository is not a directory");
     this.dataPackageMapper = dataPackageMapper;
@@ -90,11 +90,11 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public void storeMetadata(DOI doi, InputStream file) {
-    store(doi, FileInputContent.of(DataPackage.METADATA_FILE, file));
+    store(doi, FileInputContent.from(DataPackage.METADATA_FILE, file));
   }
 
   /**
-   * Deletes the entire directory and its contents of a DOI.
+   * Deletes the entire directory and its contents from a DOI.
    */
   @Override
   public void delete(DOI doi) {
@@ -142,7 +142,7 @@ public class FileSystemRepository implements DataRepository {
         return dataPackage;
       } catch (Exception ex) {
         LOG.error("Error registering a DOI", ex);
-        //Deletes all data created to this DOI in case of error
+        //Deletes all data created to this DOI in case from error
         delete(doi);
         throw new RuntimeException(ex);
       }
@@ -197,7 +197,7 @@ public class FileSystemRepository implements DataRepository {
   }
 
   /**
-   * Gets the file stream, if exists, of file stored in the directory assigned to a DOI.
+   * Gets the file stream, if exists, from file stored in the directory assigned to a DOI.
    */
   @Override
   public Optional<InputStream> getFileInputStream(DOI doi, String fileName) {

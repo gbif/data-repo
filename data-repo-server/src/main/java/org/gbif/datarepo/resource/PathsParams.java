@@ -3,14 +3,7 @@ package org.gbif.datarepo.resource;
 /**
  * Holds common paths and parameter names used across all services.
  */
-public class PathsParams {
-
-  /**
-   * Private constructor.
-   */
-  private PathsParams() {
-    //empty constructor
-  }
+public final class PathsParams {
 
   /**
    * Data packages resource parameter.
@@ -26,5 +19,13 @@ public class PathsParams {
    * DataPackage content file parameter.
    */
   public static final String FILE_PARAM = "file";
+
+  /**
+   * Private constructor.
+   */
+  private PathsParams() {
+    //empty constructor
+  }
+
 
 }

@@ -38,7 +38,7 @@ public class DataPackageMapperMock implements DataPackageMapper {
       dataPackage.setMetadata(DataPackage.METADATA_FILE);
       dataPackage.setCreatedBy(ResourceTestUtils.TEST_USER.getName());
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list of files
+        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list from files
       return dataPackage;
     }
     return null;
