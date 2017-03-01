@@ -15,10 +15,17 @@ import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 
+import java.util.EnumSet;
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
 import javax.ws.rs.client.Client;
 
 import static org.gbif.datarepo.conf.DataRepoConfiguration.USERS_DB_CONF_PREFIX;
 import static org.gbif.datarepo.registry.DoiRegistrationWsClient.buildWebTarget;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_METHODS_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_ORIGINS_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_HEADERS_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PARAM;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -33,6 +40,7 @@ import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 /**
@@ -60,6 +68,13 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
   @Override
   public void run(DataRepoConfiguration configuration, Environment environment) throws Exception {
     injector  = buildInjector(configuration, environment);
+
+    //CORS Filter
+    FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
+    filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, environment.getApplicationContext().getContextPath() + "*");
+    filter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
+    filter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
+    filter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
 
 
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
