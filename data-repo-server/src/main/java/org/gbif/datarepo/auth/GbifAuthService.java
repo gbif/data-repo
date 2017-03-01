@@ -185,7 +185,7 @@ public class GbifAuthService {
       Mac mac = Mac.getInstance(ALGORITHM);
       Key secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);
       mac.init(secret);
-      byte[] digest = mac.doFinal(stringToSign.getBytes());
+      byte[] digest = mac.doFinal(stringToSign.getBytes(Charset.forName("UTF8")));
 
       return new String(Base64.getMimeEncoder().encode(digest), "ASCII");
 

@@ -114,7 +114,7 @@ public class DataRepoConfiguration extends Configuration {
   }
 
   public void setDbConfig(Properties dbConfig) {
-    this.dbConfig = new Properties(dbConfig);
+    this.dbConfig = dbConfig;
   }
 
   /**
