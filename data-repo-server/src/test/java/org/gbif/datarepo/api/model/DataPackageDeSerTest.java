@@ -46,6 +46,8 @@ public class DataPackageDeSerTest {
     DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + TEST_DOI_SUFFIX + '/');
     dataPackage.setMetadata("metadata.xml");
     dataPackage.addFile("occurrence.txt");
+    dataPackage.setTitle("Test Title");
+    dataPackage.setDescription("Test Description");
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, TEST_DOI_SUFFIX));
     return  dataPackage;
   }

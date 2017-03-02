@@ -1,7 +1,9 @@
 CREATE TABLE data_package (
     doi text NOT NULL PRIMARY KEY,
+    title text NOT NULL CHECK (length(created_by) >= 3),
+    description text,
     metadata text,
-    files text[],
+    files text[] NOT NULL,
     created timestamp with time zone NOT NULL DEFAULT now(),
     modified timestamp with time zone NOT NULL DEFAULT now(),
     deleted timestamp with time zone,

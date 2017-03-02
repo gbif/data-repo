@@ -4,6 +4,8 @@
 
   <resultMap id="DATA_PACKAGE_DATA_MAP" type="DataPackage" autoMapping="true">
     <id property="doi" column="doi" typeHandler="DoiTypeHandler"/>
+    <result property="title" column="title"/>
+    <result property="description" column="description"/>
     <result property="metadata" column="metadata"/>
     <result property="files" column="files" typeHandler="StringArrayTypeHandler"/>
     <result property="created" column="created"/>
@@ -19,7 +21,7 @@
   </select>
 
   <select id="list" resultType="DataPackage" parameterType="map">
-    SELECT doi, metadata, files, created, modified, deleted, created_by
+    SELECT doi, title, description, metadata, files, created, modified, deleted, created_by
     FROM data_package
     <where>
     <if test="user != null" >
@@ -45,13 +47,15 @@
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (doi, metadata, files, created, modified, created_by, modified_by)
+    INSERT INTO data_package (doi, title, description, metadata, files, created, modified, created_by, modified_by)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{metadata, jdbcType=OTHER}, #{files, jdbcType=ARRAY, typeHandler=StringArrayTypeHandler}, now(), now(), #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
   </insert>
 
   <update id="update" parameterType="DataPackage">
     UPDATE data_package SET
-      metadata = #{metadata,jdbcType=OTHER},
+      title = #{title, jdbcType=OTHER},
+      description = #{description, jdbcType=OTHER},
+      metadata = #{metadata, jdbcType=OTHER},
       files = #{files, jdbcType=OTHER, typeHandler=StringArrayTypeHandler},
       modified = now(),
       modified_by = #{createdBy, jdbcType=OTHER}

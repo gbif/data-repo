@@ -29,6 +29,12 @@ public class DataPackage {
   public static final String METADATA_FILE = "metadata.xml";
 
   @JsonProperty
+  private String title;
+
+  @JsonProperty
+  private String description;
+
+  @JsonProperty
   @JsonSerialize(using = DOISerializer.class)
   @JsonDeserialize(using = DOIDeserializer.class)
   private DOI doi;
@@ -150,6 +156,28 @@ public class DataPackage {
   }
 
   /**
+   * A name or title by which a resource is known.
+   */
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  /**
+   * Additional information about this resource.
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
@@ -169,7 +197,11 @@ public class DataPackage {
     return Objects.equals(doi, other.doi)
            && Objects.equals(metadata, other.metadata)
            && Objects.equals(files, other.files)
-           && Objects.equals(createdBy, other.createdBy);
+           && Objects.equals(createdBy, other.createdBy)
+           && Objects.equals(title, other.title)
+           && Objects.equals(description, other.description)
+           && Objects.equals(created, other.created)
+           && Objects.equals(modified, other.modified);
 
   }
 
@@ -183,7 +215,11 @@ public class DataPackage {
     return "{\"doi\": \"" + Objects.toString(doi)
             + "\", \"metadata\": \"" + metadata
             + "\", \"files\": \"" + Objects.toString(files)
-            + "\", \"createdBy\": \"" + createdBy + "\"}";
+            + "\", \"createdBy\": \"" + createdBy
+            + "\", \"title\": \"" + title
+            + "\", \"description\": \"" + description
+            + "\", \"created\": \"" + created
+            + "\", \"modified\": \"" + modified + "\"}";
   }
 
   /**
@@ -198,6 +234,8 @@ public class DataPackage {
     dataPackage.setCreated(created);
     dataPackage.setDeleted(deleted);
     dataPackage.setModified(modified);
+    dataPackage.setTitle(title);
+    dataPackage.setDescription(description);
     return dataPackage;
   }
 
