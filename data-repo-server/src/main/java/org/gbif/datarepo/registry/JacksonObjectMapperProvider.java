@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 @Provider
 public class JacksonObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-  protected static final ObjectMapper MAPPER = new ObjectMapper();
+  public static final ObjectMapper MAPPER = new ObjectMapper();
 
   static {
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no

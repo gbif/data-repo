@@ -43,12 +43,19 @@ public class DataPackageDeSerTest {
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
-    DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + TEST_DOI_SUFFIX + '/');
+    return  testDataPackage(TEST_DOI_SUFFIX);
+  }
+
+  /**
+   * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
+   */
+  public static DataPackage testDataPackage(String doiSuffix) {
+    DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + doiSuffix + '/');
     dataPackage.setMetadata("metadata.xml");
     dataPackage.addFile("occurrence.txt");
     dataPackage.setTitle("Test Title");
     dataPackage.setDescription("Test Description");
-    dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, TEST_DOI_SUFFIX));
+    dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, doiSuffix));
     return  dataPackage;
   }
 

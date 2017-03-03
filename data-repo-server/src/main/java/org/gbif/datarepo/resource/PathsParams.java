@@ -21,6 +21,11 @@ public final class PathsParams {
   public static final String FILE_PARAM = "file";
 
   /**
+   * DataPackage form parameters.
+   */
+  static final String DP_FORM_PARAM = "data_package";
+
+  /**
    * Private constructor.
    */
   private PathsParams() {

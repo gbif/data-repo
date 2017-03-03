@@ -7,6 +7,7 @@ import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
@@ -41,6 +42,7 @@ import static  org.gbif.datarepo.resource.validation.ResourceValidations.validat
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFileSubmitted;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
+import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 
 /**
  * Data packages resource.
@@ -98,7 +100,11 @@ public class DataPackageResource {
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = validateFiles(multiPart);
     try {
-      DataPackage dataPackage =  dataRepository.create(principal.getName(), //user
+      DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER.
+                                  readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
+                                            DataPackage.class);
+      dataPackage.setCreatedBy(principal.getName());
+      DataPackage newDataPackage =  dataRepository.create(dataPackage, //user
                                     multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class), //metadata file
                                     //files
                                     files.stream().map(bodyPart ->
@@ -106,7 +112,7 @@ public class DataPackageResource {
                                                                                .getFileName(),
                                                                                bodyPart.getValueAs(InputStream.class)))
                                     .collect(Collectors.toList()));
-      return dataPackage.inUrl(uriBuilder.build(dataPackage.getDoi()));
+      return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getDoi()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
       throw buildWebException(Status.INTERNAL_SERVER_ERROR, "Error registering DOI");

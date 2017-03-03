@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,13 +61,16 @@ import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
+import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_REPO_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.METADATA_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfContent;
 
 import static org.gbif.datarepo.api.model.DataPackageDeSerTest.testDataPackage;
 import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
@@ -79,7 +81,9 @@ import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
  */
 public class DataPackageResourceTest {
 
-  private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE = new GenericType<PagingResponse<DataPackage>>(){};
+  private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE =
+    new GenericType<PagingResponse<DataPackage>>(){};
+
   private static final GbifAuthenticator AUTHENTICATOR = mock(GbifAuthenticator.class);
 
   private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration()));
@@ -220,8 +224,9 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testCreateDataPackage() throws Exception {
-    try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOf(CONTENT_TEST_FILE, FILE_PARAM))
-                                                      .bodyPart(dataBodyPartOf(METADATA_TEST_FILE, METADATA_PARAM))) {
+    try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM))
+                                                      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))
+                                                      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + METADATA_TEST_FILE, METADATA_PARAM))) {
       DataPackage newDataPackage = resource.getJerseyTest()
                    .target(DATA_PACKAGES_PATH)
                    .register(MultiPartFeature.class)
@@ -229,7 +234,7 @@ public class DataPackageResourceTest {
                    .header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS)
                    .post(Entity.entity(multiPart, multiPart.getMediaType()), DataPackage.class);
       //Test that both packages contains the same elements
-      assertThat(newDataPackage).isEqualTo(buildTestPackage(newDataPackage.getDoi().getUrl()));
+      assertThat(newDataPackage).isEqualTo(testDataPackage(newDataPackage.getDoi().getSuffix()));
       //verify that exists method was invoked
       verify(DATA_PACKAGE_MAPPER).create(any(DataPackage.class));
     }
@@ -264,16 +269,4 @@ public class DataPackageResourceTest {
     verify(DATA_PACKAGE_MAPPER).delete(any(DOI.class));
   }
 
-  /**
-   * Builds a test instance using configured test resources.
-   */
-  public DataPackage buildTestPackage(URI doiUrl) {
-    DOI doi = new DOI(doiUrl.toString());
-    DataPackage dataPackage = new DataPackage(uriBuilder.build(Paths.get(doiUrl.getPath()).getFileName().toString())
-                                                .toString());
-    dataPackage.setMetadata(METADATA_TEST_FILE);
-    dataPackage.addFile(CONTENT_TEST_FILE);
-    dataPackage.setDoi(doi);
-    return dataPackage;
-  }
 }

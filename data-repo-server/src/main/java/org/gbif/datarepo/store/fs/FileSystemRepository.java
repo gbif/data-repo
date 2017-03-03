@@ -114,7 +114,7 @@ public class FileSystemRepository implements DataRepository {
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
-  public DataPackage create(String userName, InputStream metadata, List<FileInputContent> files) {
+  public DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
     //Generates a DataCiteMetadata object for further validation/manipulation
 
     try (ByteArrayInputStream  metadataInputStream = new ByteArrayInputStream(IOUtils.toByteArray(metadata))) {
@@ -123,23 +123,26 @@ public class FileSystemRepository implements DataRepository {
       String dataCiteMetadata = readMetadata(metadataInputStream);
       //Register DOI
       DOI doi = doiRegistrationService.register(DoiRegistration.builder().withType(DoiType.DATA_PACKAGE)
-                                                  .withMetadata(dataCiteMetadata).withUser(userName).build());
+                                                  .withMetadata(dataCiteMetadata).withUser(dataPackage.getCreatedBy())
+                                                  .build());
       //Store metadata.xml file
       metadataInputStream.reset(); //reset the input stream
       storeMetadata(doi, metadataInputStream);
       try {
-        DataPackage dataPackage = new DataPackage();
-        dataPackage.setDoi(doi);
-        dataPackage.setMetadata(DataPackage.METADATA_FILE);
-        dataPackage.setCreatedBy(userName);
+        DataPackage newDataPackage = new DataPackage();
+        newDataPackage.setDoi(doi);
+        newDataPackage.setMetadata(DataPackage.METADATA_FILE);
+        newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
+        newDataPackage.setTitle(dataPackage.getTitle());
+        newDataPackage.setDescription(dataPackage.getDescription());
         //store all the submitted files
         files.stream().forEach(fileInputContent -> {
           store(doi, fileInputContent);
-          dataPackage.addFile(Paths.get(fileInputContent.getName()).getFileName().toString());
+          newDataPackage.addFile(Paths.get(fileInputContent.getName()).getFileName().toString());
         });
         //Persist data package info
-        dataPackageMapper.create(dataPackage);
-        return dataPackage;
+        dataPackageMapper.create(newDataPackage);
+        return newDataPackage;
       } catch (Exception ex) {
         LOG.error("Error registering a DOI", ex);
         //Deletes all data created to this DOI in case from error

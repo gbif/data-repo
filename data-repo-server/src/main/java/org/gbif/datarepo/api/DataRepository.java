@@ -20,7 +20,7 @@ public interface DataRepository {
   /**
    * Creates a DataPackage and store metadata and input content in the data repository.
    */
-  DataPackage create(String userName, InputStream metadata, List<FileInputContent> files);
+  DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files);
 
   /**
    * Stores the metadata file associated to a DOI.
