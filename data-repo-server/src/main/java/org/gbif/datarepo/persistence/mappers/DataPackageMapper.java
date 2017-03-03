@@ -32,12 +32,12 @@ public interface DataPackageMapper {
   /**
    * Persists a new data package.
    */
-  void create(@Param("dataPackage") DataPackage dataPackage);
+  void create(DataPackage dataPackage);
 
   /**
    * Updates a data package.
    */
-  void update(@Param("dataPackage") DataPackage dataPackage);
+  void update(DataPackage dataPackage);
 
   /**
    * Deletes a data package by its doi value.
