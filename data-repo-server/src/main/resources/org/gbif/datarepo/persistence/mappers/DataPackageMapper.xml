@@ -48,7 +48,9 @@
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
     INSERT INTO data_package (doi, title, description, metadata, files, created, modified, created_by, modified_by)
-    VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{metadata, jdbcType=OTHER}, #{files, jdbcType=ARRAY, typeHandler=StringArrayTypeHandler}, now(), now(), #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
+    VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
+    #{metadata, jdbcType=OTHER}, #{files, jdbcType=ARRAY, typeHandler=StringArrayTypeHandler}, now(), now(),
+    #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
   </insert>
 
   <update id="update" parameterType="DataPackage">
