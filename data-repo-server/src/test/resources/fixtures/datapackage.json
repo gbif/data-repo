@@ -3,5 +3,10 @@
   "title":"Test Title",
   "description":"Test Description",
   "metadata":"http://localhost:8080/data_packages/dp.bvmv02/metadata.xml",
-  "files":["http://localhost:8080/data_packages/dp.bvmv02/occurrence.txt"]
+  "files":[
+    {
+      "fileName": "http://localhost:8080/data_packages/dp.bvmv02/occurrence.txt",
+      "checksum": "ae5e1348dd9f8e9ec1d6f1b14937a4d4"
+    }
+  ]
 }

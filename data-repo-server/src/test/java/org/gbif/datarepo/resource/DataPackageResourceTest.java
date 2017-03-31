@@ -7,6 +7,8 @@ import org.gbif.datarepo.auth.GbifAuthenticator;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.conf.DbConfiguration;
 import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
+import org.gbif.datarepo.test.mocks.DataPackageFileMapperMock;
 import org.gbif.datarepo.test.mocks.DataPackageMapperMock;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
@@ -88,6 +90,8 @@ public class DataPackageResourceTest {
 
   private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration()));
 
+  private static final DataPackageFileMapper DATA_PACKAGE_FILE_MAPPER = spy(new DataPackageFileMapperMock(configuration()));
+
   private static final DataPackage TEST_DATA_PACKAGE = testDataPackage();
 
   private static Path temporaryFolder;
@@ -144,7 +148,7 @@ public class DataPackageResourceTest {
     .addProvider(new AuthValueFactoryProvider.Binder<>(UserPrincipal.class))
     //Test resource
     .addResource(new DataPackageResource(new FileSystemRepository(configuration(), new DoiRegistrationServiceMock(),
-                                                                  DATA_PACKAGE_MAPPER),
+                                                                  DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER),
                                          configuration()))
     .build();
 

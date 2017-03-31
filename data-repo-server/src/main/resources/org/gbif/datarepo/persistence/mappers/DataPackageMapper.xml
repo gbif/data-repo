@@ -7,21 +7,22 @@
     <result property="title" column="title"/>
     <result property="description" column="description"/>
     <result property="metadata" column="metadata"/>
-    <result property="files" column="files" typeHandler="StringArrayTypeHandler"/>
     <result property="created" column="created"/>
     <result property="modified" column="modified"/>
     <result property="deleted" column="deleted"/>
     <result property="createdBy" column="created_by"/>
+    <collection property="files" column="doi" ofType="DataPackageFile"
+                select="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.list"/>
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
-    SELECT doi, metadata, files, created, modified, deleted, created_by
+    SELECT doi, metadata, created, modified, deleted, created_by
     FROM data_package
     WHERE doi = #{doi,jdbcType=OTHER}
   </select>
 
   <select id="list" resultType="DataPackage" parameterType="map">
-    SELECT doi, title, description, metadata, files, created, modified, deleted, created_by
+    SELECT doi, title, description, metadata, created, modified, deleted, created_by
     FROM data_package
     <where>
     <if test="user != null" >
@@ -47,9 +48,9 @@
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (doi, title, description, metadata, files, created, modified, created_by, modified_by)
+    INSERT INTO data_package (doi, title, description, metadata, created, modified, created_by, modified_by)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
-    #{metadata, jdbcType=OTHER}, #{files, jdbcType=ARRAY, typeHandler=StringArrayTypeHandler}, now(), now(),
+    #{metadata, jdbcType=OTHER}, now(), now(),
     #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
   </insert>
 
@@ -58,7 +59,6 @@
       title = #{title, jdbcType=OTHER},
       description = #{description, jdbcType=OTHER},
       metadata = #{metadata, jdbcType=OTHER},
-      files = #{files, jdbcType=OTHER, typeHandler=StringArrayTypeHandler},
       modified = now(),
       modified_by = #{createdBy, jdbcType=OTHER}
     WHERE doi = #{dataPackage.doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}

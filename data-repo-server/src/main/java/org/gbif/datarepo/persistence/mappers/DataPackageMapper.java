@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * MyBatis mapper to store DOIs and their status in the registry db.
+ * MyBatis mapper to store and manage DataPackage instances.
  */
 public interface DataPackageMapper {
 

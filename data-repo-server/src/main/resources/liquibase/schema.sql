@@ -3,7 +3,6 @@ CREATE TABLE data_package (
     title text NOT NULL CHECK (length(created_by) >= 3),
     description text,
     metadata text,
-    files text[] NOT NULL,
     created timestamp with time zone NOT NULL DEFAULT now(),
     modified timestamp with time zone NOT NULL DEFAULT now(),
     deleted timestamp with time zone,
@@ -11,3 +10,11 @@ CREATE TABLE data_package (
     modified_by varchar(255) NOT NULL CHECK (length(modified_by) >= 3)
 );
 CREATE INDEX data_package_idx ON data_package (doi, created, created_by);
+
+CREATE TABLE data_package_file (
+    data_package_doi text NOT NULL REFERENCES data_package(doi) ON DELETE CASCADE,
+    file_name text NOT NULL,
+    checksum varchar(32) NOT NULL CHECK (length(checksum) = 32),
+    PRIMARY KEY (data_package_doi, file_name)
+);
+CREATE INDEX data_package_file_idx ON data_package_file (data_package_doi, file_name, checksum);

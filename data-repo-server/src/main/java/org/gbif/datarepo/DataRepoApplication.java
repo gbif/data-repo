@@ -7,6 +7,7 @@ import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
+import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.resource.DataPackageResource;
@@ -90,7 +91,8 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     DataRepository dataRepository = new FileSystemRepository(configuration,
                                                              new DoiRegistrationWsClient(
                                                                buildWebTarget(client, configuration.getGbifApiUrl())),
-                                                             dataPackageMapper());
+                                                             dataPackageMapper(),
+                                                             dataPackageFileMapper());
     //Security configuration
     Authenticator<BasicCredentials, UserPrincipal> authenticator = getAuthenticator();
     BasicCredentialAuthFilter<UserPrincipal> userBasicCredentialAuthFilter =
@@ -137,6 +139,13 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
    */
   private DataPackageMapper dataPackageMapper() {
     return injector.getInstance(DataPackageMapper.class);
+  }
+
+  /**
+   * Gets DataPackageMapper instance.
+   */
+  private DataPackageFileMapper dataPackageFileMapper() {
+    return injector.getInstance(DataPackageFileMapper.class);
   }
 
 

@@ -5,6 +5,7 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
@@ -17,6 +18,9 @@ import javax.annotation.Nullable;
 
 import org.apache.ibatis.annotations.Param;
 
+/**
+ * Mock mapper that works on a files instead of a data base.
+ */
 public class DataPackageMapperMock implements DataPackageMapper {
 
   private final Path storePath;
@@ -40,7 +44,7 @@ public class DataPackageMapperMock implements DataPackageMapper {
       dataPackage.setTitle("Test Title");
       dataPackage.setDescription("Test Description");
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName())); //metadata.xml is excluded from the list from files
+        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file))); //metadata.xml is excluded from the list from files
       return dataPackage;
     }
     return null;

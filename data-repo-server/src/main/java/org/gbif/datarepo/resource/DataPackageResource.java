@@ -3,6 +3,7 @@ package org.gbif.datarepo.resource;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.UserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.api.model.DataPackage;
@@ -155,6 +156,24 @@ public class DataPackageResource {
                                                     .build()
                                         : Response.status(Status.NOT_FOUND)
                                           .entity(String.format("File %s not found", fileName)).build();
+  }
+
+  /**
+   * Retrieves a file contained in a data package.
+   */
+  @GET
+  @Timed
+  @Path("{doi}/{fileName}/data")
+  public Response getFileData(@PathParam("doi") String doiRef, @PathParam("fileName") String fileName)  {
+    //Validation
+    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiRef);
+
+    //Tries to get the file
+    Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(doi, fileName);
+
+    //Check file existence before send it in the Response
+    return dataPackageFile.isPresent()? Response.ok(dataPackageFile.get()).build()
+      : Response.status(Status.NOT_FOUND).entity(String.format("File %s not found", fileName)).build();
   }
 
   /**

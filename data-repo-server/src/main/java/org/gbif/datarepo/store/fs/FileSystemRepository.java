@@ -3,10 +3,12 @@ package org.gbif.datarepo.store.fs;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
@@ -27,6 +29,7 @@ import java.util.Optional;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.hash.Hashing;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -43,6 +46,8 @@ public class FileSystemRepository implements DataRepository {
 
   private final DataPackageMapper dataPackageMapper;
 
+  private final DataPackageFileMapper dataPackageFileMapper;
+
 
   /**
    * Paths where the files are stored.
@@ -55,7 +60,8 @@ public class FileSystemRepository implements DataRepository {
    */
   public FileSystemRepository(DataRepoConfiguration configuration,
                               DoiRegistrationService doiRegistrationService,
-                              DataPackageMapper dataPackageMapper) {
+                              DataPackageMapper dataPackageMapper,
+                              DataPackageFileMapper dataPackageFileMapper) {
     this.doiRegistrationService = doiRegistrationService;
     storePath = Paths.get(configuration.getDataRepoPath());
     File file = storePath.toFile();
@@ -65,20 +71,24 @@ public class FileSystemRepository implements DataRepository {
     }
     Preconditions.checkArgument(file.isDirectory(), "Repository is not a directory");
     this.dataPackageMapper = dataPackageMapper;
+    this.dataPackageFileMapper = dataPackageFileMapper;
   }
 
   /**
    * Stores an input stream as the specified file name under the directory assigned to the DOI parameter.
+   * Returns the new path where the file is stored.
    */
-  private void store(DOI doi, FileInputContent fileInputContent) {
+  private Path store(DOI doi, FileInputContent fileInputContent) {
     try {
       Path doiPath = getDoiPath(doi);
       if (!doiPath.toFile().exists()) {
         Files.createDirectory(doiPath);
       }
+      Path newFilePath = doiPath.resolve(Paths.get(fileInputContent.getName()).getFileName());
       Files.copy(fileInputContent.getInputStream(),
-                 doiPath.resolve(Paths.get(fileInputContent.getName()).getFileName()), //remove path from file name
+                 newFilePath, //remove path from file name
                  StandardCopyOption.REPLACE_EXISTING);
+      return newFilePath;
     } catch (IOException ex) {
       LOG.error("Error storing file {}", fileInputContent.getName());
       throw new RuntimeException(ex);
@@ -135,13 +145,17 @@ public class FileSystemRepository implements DataRepository {
         newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
         newDataPackage.setTitle(dataPackage.getTitle());
         newDataPackage.setDescription(dataPackage.getDescription());
+        dataPackageMapper.create(newDataPackage);
         //store all the submitted files
         files.stream().forEach(fileInputContent -> {
-          store(doi, fileInputContent);
-          newDataPackage.addFile(Paths.get(fileInputContent.getName()).getFileName().toString());
+          Path newFilePath = store(doi, fileInputContent);
+          DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
+                                                                md5(newFilePath.toFile()));
+          dataPackageFileMapper.create(doi, dataPackageFile);
+          newDataPackage.addFile(dataPackageFile);
         });
         //Persist data package info
-        dataPackageMapper.create(newDataPackage);
+
         return newDataPackage;
       } catch (Exception ex) {
         LOG.error("Error registering a DOI", ex);
@@ -185,15 +199,17 @@ public class FileSystemRepository implements DataRepository {
   }
 
   /**
-   * Gets the file, if exists, stored in the directory assigned to a DOI.
+   * Gets the file, if it exists, stored in the directory assigned to a DOI.
    */
   @Override
-  public Optional<File> getFile(DOI doi, String fileName) {
+  public Optional<DataPackageFile> getFile(DOI doi, String fileName) {
+    DataPackageFile dataPackageFile =  dataPackageFileMapper.get(doi, fileName);
     Path doiPath = getDoiPath(doi);
-    if (doiPath.toFile().exists()) {
+    if (doiPath.toFile().exists() && dataPackageFile != null) {
       File packageFile = doiPath.resolve(fileName).toFile();
       if (packageFile.exists()) {
-        return Optional.of(packageFile);
+        dataPackageFile.setFileName(packageFile.getAbsolutePath());
+        return Optional.of(dataPackageFile);
       }
     }
     return Optional.empty();
@@ -206,9 +222,9 @@ public class FileSystemRepository implements DataRepository {
   public Optional<InputStream> getFileInputStream(DOI doi, String fileName) {
 
     try {
-      Optional<File> packageFile = getFile(doi, fileName);
+      Optional<DataPackageFile> packageFile = getFile(doi, fileName);
       if (packageFile.isPresent()) {
-        return Optional.of(new FileInputStream(packageFile.get()));
+        return Optional.of(new FileInputStream(packageFile.get().getFileName()));
       }
     } catch (FileNotFoundException ex) {
       LOG.warn("Requested file {} not found", fileName, ex);
@@ -221,5 +237,16 @@ public class FileSystemRepository implements DataRepository {
    */
   private Path getDoiPath(DOI doi) {
     return storePath.resolve(doi.getPrefix() + '-' + doi.getSuffix());
+  }
+
+  /**
+   * Calculates the MD5 hash of File content.
+   */
+  public static String md5(File file) {
+    try {
+      return com.google.common.io.Files.hash(file, Hashing.md5()).toString();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 }

@@ -43,7 +43,7 @@ public class DataPackage {
   private String metadata;
 
   @JsonProperty
-  private List<String> files;
+  private List<DataPackageFile> files;
 
   @JsonProperty
   private Date created;
@@ -103,11 +103,11 @@ public class DataPackage {
   /**
    * List from containing files (excluding the metadata.xml file).
    */
-  public List<String> getFiles() {
+  public List<DataPackageFile> getFiles() {
     return files;
   }
 
-  public void setFiles(List<String> files) {
+  public void setFiles(List<DataPackageFile> files) {
     this.files = files;
   }
 
@@ -181,8 +181,16 @@ public class DataPackage {
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
-  public void addFile(String fileName) {
-    files.add(baseUrl + fileName);
+  public void addFile(String fileName, String checksum) {
+    files.add(new DataPackageFile(baseUrl + fileName, checksum));
+  }
+
+  /**
+   * Adds a new file to the list from containing files.
+   * The baseUrl is prepend to the file name.
+   */
+  public void addFile(DataPackageFile file) {
+    files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum()));
   }
 
   @Override
@@ -223,7 +231,7 @@ public class DataPackage {
   }
 
   /**
-   * Creates a clone from the current object btu all the files are rebased to the specified URL.
+   * Creates a clone from the current object but all the files are rebased to the specified URL.
    */
   public DataPackage inUrl(String url) {
     DataPackage dataPackage = new DataPackage(url);

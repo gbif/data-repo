@@ -4,6 +4,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public interface DataRepository {
   /**
    * Gets a file contained in a data package referenced by a DOI.
    */
-  Optional<File> getFile(DOI doi, String fileName);
+  Optional<DataPackageFile> getFile(DOI doi, String fileName);
 
   /**
    * Gets the file content by a DOI and fileName.

@@ -1,11 +1,18 @@
 package org.gbif.datarepo.api.model;
 import org.gbif.api.model.common.DOI;
+import org.gbif.datarepo.store.fs.FileSystemRepository;
+
+import java.io.File;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 import io.dropwizard.jackson.Jackson;
+import org.apache.ibatis.io.Resources;
 import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 
 /**
  * Tests serialization and deserialization from DataPackage instances.
@@ -18,6 +25,10 @@ public class DataPackageDeSerTest {
   private static final String DP_JSON_TEST_FILE = "fixtures/datapackage.json";
 
   public static final String TEST_DOI_SUFFIX = "dp.bvmv02";
+
+  private static final DataPackageFile OCCURRENCE_TEST_FILE =
+    new DataPackageFile("occurrence.txt",
+                        FileSystemRepository.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)));
 
   /**
    * Test that a DataPackage instance java-created is equals to an instance obtained from 'fixtures/datapackage.json'.
@@ -52,7 +63,7 @@ public class DataPackageDeSerTest {
   public static DataPackage testDataPackage(String doiSuffix) {
     DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + doiSuffix + '/');
     dataPackage.setMetadata("metadata.xml");
-    dataPackage.addFile("occurrence.txt");
+    dataPackage.addFile(OCCURRENCE_TEST_FILE);
     dataPackage.setTitle("Test Title");
     dataPackage.setDescription("Test Description");
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, doiSuffix));
