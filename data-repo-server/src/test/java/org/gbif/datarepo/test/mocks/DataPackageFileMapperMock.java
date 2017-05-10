@@ -36,7 +36,8 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
     if (doiPath.toFile().exists()) {
       File packageFile = doiPath.resolve(fileName).toFile();
       if (packageFile.exists()) {
-        return new DataPackageFile(packageFile.getAbsolutePath(), FileSystemRepository.md5(packageFile));
+        return new DataPackageFile(packageFile.getAbsolutePath(), FileSystemRepository.md5(packageFile),
+                                   packageFile.length());
       }
     }
     return null;
@@ -48,7 +49,10 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
       Path doiPath = getDoiPath(doi);
       if (doiPath.toFile().exists() && doiPath.toFile().isDirectory()) {
         return Files.list(doiPath)
-          .map(path -> new DataPackageFile(path.toString(), FileSystemRepository.md5(path.toFile())))
+          .map(path -> {
+            File dataFile = path.toFile();
+            return new DataPackageFile(path.toString(), FileSystemRepository.md5(dataFile), dataFile.length());
+          })
           .collect(Collectors.toList());
       }
     } catch (IOException ex) {

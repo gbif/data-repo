@@ -7,7 +7,6 @@ import java.io.File;
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 import io.dropwizard.jackson.Jackson;
-import org.apache.ibatis.io.Resources;
 import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,7 +27,8 @@ public class DataPackageDeSerTest {
 
   private static final DataPackageFile OCCURRENCE_TEST_FILE =
     new DataPackageFile("occurrence.txt",
-                        FileSystemRepository.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)));
+                        FileSystemRepository.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)),
+                        18644);
 
   /**
    * Test that a DataPackage instance java-created is equals to an instance obtained from 'fixtures/datapackage.json'.
@@ -67,6 +67,8 @@ public class DataPackageDeSerTest {
     dataPackage.setTitle("Test Title");
     dataPackage.setDescription("Test Description");
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, doiSuffix));
+    dataPackage.setChecksum("ae5e1348dd9f8e9ec1d6f1b14937a4d4");
+    dataPackage.setSize(18644);
     return  dataPackage;
   }
 

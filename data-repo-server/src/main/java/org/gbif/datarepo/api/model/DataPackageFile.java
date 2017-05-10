@@ -11,6 +11,8 @@ public class DataPackageFile {
 
   private String checksum;
 
+  private long size;
+
   /**
    * Default constructor, use for serialization.
    */
@@ -21,9 +23,10 @@ public class DataPackageFile {
   /**
    * Full constructor.
    */
-  public DataPackageFile(String fileName, String checksum) {
+  public DataPackageFile(String fileName, String checksum, long size) {
     this.fileName = fileName;
     this.checksum = checksum;
+    this.size = size;
   }
 
   /**
@@ -48,6 +51,17 @@ public class DataPackageFile {
     this.checksum = checksum;
   }
 
+  /**
+   * File size in bytes.
+   */
+  public long getSize() {
+    return size;
+  }
+
+  public void setSize(long size) {
+    this.size = size;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(fileName, checksum);
@@ -63,12 +77,14 @@ public class DataPackageFile {
     }
     DataPackageFile other = (DataPackageFile) obj;
     return Objects.equals(checksum, other.checksum)
-           && Objects.equals(fileName, other.fileName);
+           && Objects.equals(fileName, other.fileName)
+           && Objects.equals(size, other.size);
   }
 
   @Override
   public String toString() {
     return "{\"fileName\": \"" + fileName
-           + "\", \"checksum\": \"" + checksum + "\"}";
+           + "\", \"checksum\": \"" + checksum
+           + "\", \"size\": \"" + size + "\"}";
   }
 }

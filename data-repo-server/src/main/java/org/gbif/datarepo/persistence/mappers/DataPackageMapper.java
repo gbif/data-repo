@@ -4,6 +4,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.DataPackage;
 
+import java.util.Date;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -20,14 +21,16 @@ public interface DataPackageMapper {
   DataPackage get(@Param("doi") String doiName);
 
   /**
-   * Page through DataPackages, optionally filtered by user.
+   * Page through DataPackages, optionally filtered by user and dates.
    */
-  List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page);
+  List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+                         @Nullable @Param("fromDate") Date fromDate, @Nullable @Param("toDate") Date toDate);
 
   /**
    * Count data packages, optionally filtered by user.
    */
-  Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page);
+  Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+             @Nullable @Param("fromDate") Date fromDate, @Nullable @Param("toDate") Date toDate);
 
   /**
    * Persists a new data package.

@@ -3,6 +3,7 @@ package org.gbif.datarepo.test.mocks;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -44,7 +46,9 @@ public class DataPackageMapperMock implements DataPackageMapper {
       dataPackage.setTitle("Test Title");
       dataPackage.setDescription("Test Description");
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file))); //metadata.xml is excluded from the list from files
+        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file), file.length())); //metadata.xml is excluded from the list from files
+      dataPackage.setSize(dataPackage.getFiles().stream().mapToLong(DataPackageFile::getSize).sum());
+      dataPackage.setChecksum(dataPackage.getFiles().get(0).getChecksum());
       return dataPackage;
     }
     return null;
@@ -58,12 +62,14 @@ public class DataPackageMapperMock implements DataPackageMapper {
   }
 
   @Override
-  public List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page) {
+  public List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+                                @Nullable Date fromDate, @Nullable Date toDate) {
     return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.toList());
   }
 
   @Override
-  public Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page) {
+  public Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+                    @Nullable Date fromDate, @Nullable Date toDate) {
     return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.counting());
   }
 

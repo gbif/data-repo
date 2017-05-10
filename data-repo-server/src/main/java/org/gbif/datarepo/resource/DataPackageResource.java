@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -82,8 +83,10 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   public PagingResponse<DataPackage> list(@Nullable @QueryParam("user") String user,
-                                          @Nullable @BeanParam PagingParam page) {
-    return dataRepository.list(user, page);
+                                          @Nullable @BeanParam PagingParam page,
+                                          @Nullable @QueryParam("fromDate") Date fromDate,
+                                          @Nullable @QueryParam("toDate") Date toDate) {
+    return dataRepository.list(user, page, fromDate, toDate);
   }
 
 

@@ -24,9 +24,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
@@ -146,16 +149,24 @@ public class FileSystemRepository implements DataRepository {
         newDataPackage.setTitle(dataPackage.getTitle());
         newDataPackage.setDescription(dataPackage.getDescription());
         dataPackageMapper.create(newDataPackage);
+        long dataPackageLength = 0;
         //store all the submitted files
         files.stream().forEach(fileInputContent -> {
           Path newFilePath = store(doi, fileInputContent);
+          File newFile = newFilePath.toFile();
+          long fileLength = newFile.length();
           DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
-                                                                md5(newFilePath.toFile()));
+                                                                md5(newFile), fileLength);
+          newDataPackage.setSize(newDataPackage.getSize() + fileLength);
           dataPackageFileMapper.create(doi, dataPackageFile);
           newDataPackage.addFile(dataPackageFile);
         });
+        if (newDataPackage.getFiles().size() == 1) {
+          newDataPackage.setChecksum(newDataPackage.getFiles().get(0).getChecksum());
+        } else {
+          newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream().map(DataPackageFile::getChecksum).collect(Collectors.joining()).getBytes()).toString());
+        }
         //Persist data package info
-
         return newDataPackage;
       } catch (Exception ex) {
         LOG.error("Error registering a DOI", ex);
@@ -192,11 +203,13 @@ public class FileSystemRepository implements DataRepository {
    * Retrieves the DataPackage content stored for the DOI.
    */
   @Override
-  public PagingResponse<DataPackage> list(String user, Pageable page) {
-    Long count = dataPackageMapper.count(user, page);
-    List<DataPackage>  packages = dataPackageMapper.list(user, page);
+  public PagingResponse<DataPackage> list(String user, @Nullable Pageable page,
+                                          @Nullable Date fromDate, @Nullable Date toDate) {
+    Long count = dataPackageMapper.count(user, page, fromDate, toDate);
+    List<DataPackage>  packages = dataPackageMapper.list(user, page, fromDate, toDate);
     return new PagingResponse<>(page, count, packages);
   }
+
 
   /**
    * Gets the file, if it exists, stored in the directory assigned to a DOI.

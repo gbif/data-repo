@@ -11,23 +11,31 @@
     <result property="modified" column="modified"/>
     <result property="deleted" column="deleted"/>
     <result property="createdBy" column="created_by"/>
+    <result property="checksum" column="checksum"/>
+    <result property="size" column="size"/>
     <collection property="files" column="doi" ofType="DataPackageFile"
                 select="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.list"/>
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
-    SELECT doi, metadata, created, modified, deleted, created_by
+    SELECT doi, metadata, created, modified, deleted, created_by, checksum, size
     FROM data_package
     WHERE doi = #{doi,jdbcType=OTHER}
   </select>
 
   <select id="list" resultType="DataPackage" parameterType="map">
-    SELECT doi, title, description, metadata, created, modified, deleted, created_by
+    SELECT doi, title, description, metadata, created, modified, deleted, created_by, checksum, size
     FROM data_package
     <where>
-    <if test="user != null" >
-      created_by=#{user,jdbcType=OTHER}
-    </if>
+      <if test="user != null" >
+        created_by=#{user,jdbcType=OTHER}
+      </if>
+      <if test="fromDate != null" >
+        create <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+      </if>
+      <if test="toDate !=null" >
+        create <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+      </if>
     </where>
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
@@ -41,6 +49,12 @@
       <if test="user != null" >
         created_by=#{user,jdbcType=OTHER}
       </if>
+      <if test="fromDate != null" >
+        create <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+      </if>
+      <if test="toDate !=null" >
+        create <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+      </if>
     </where>
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
@@ -48,10 +62,10 @@
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (doi, title, description, metadata, created, modified, created_by, modified_by)
+    INSERT INTO data_package (doi, title, description, metadata, created, modified, created_by, modified_by, checksum, size)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
     #{metadata, jdbcType=OTHER}, now(), now(),
-    #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER})
+    #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
   </insert>
 
   <update id="update" parameterType="DataPackage">
@@ -60,7 +74,9 @@
       description = #{description, jdbcType=OTHER},
       metadata = #{metadata, jdbcType=OTHER},
       modified = now(),
-      modified_by = #{createdBy, jdbcType=OTHER}
+      modified_by = #{createdBy, jdbcType=OTHER},
+      checksum = #{checksum, jdbcType=OTHER},
+      size = #{size, jdbcType=OTHER}
     WHERE doi = #{dataPackage.doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
   </update>
 

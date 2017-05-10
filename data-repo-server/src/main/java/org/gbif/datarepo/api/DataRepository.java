@@ -9,6 +9,7 @@ import org.gbif.datarepo.api.model.FileInputContent;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -39,9 +40,10 @@ public interface DataRepository {
   Optional<DataPackage> get(DOI doi);
 
   /**
-   * List data packages optionally filtered by user.
+   * List data packages optionally filtered by user and dates.
    */
-  PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page);
+  PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page,
+                                   @Nullable Date fromDate, @Nullable Date toDate);
 
   /**
    * Gets a file contained in a data package referenced by a DOI.

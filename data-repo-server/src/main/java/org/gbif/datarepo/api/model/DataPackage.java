@@ -51,11 +51,17 @@ public class DataPackage {
   @JsonProperty
   private Date modified;
 
-  @JsonProperty
+  @JsonIgnore
   private Date deleted;
 
   @JsonIgnore
   private String createdBy;
+
+  @JsonProperty
+  private String checksum;
+
+  @JsonProperty
+  private long size;
 
   private final String baseUrl;
 
@@ -178,11 +184,35 @@ public class DataPackage {
   }
 
   /**
+   *
+   * @return estimated size in bytes
+   */
+  public long getSize() {
+    return size;
+  }
+
+  public void setSize(long size) {
+    this.size = size;
+  }
+
+  /**
+   * This checksum is calculated by combining all checksums of contained files.
+   * @return derived data package checksum
+   */
+  public String getChecksum() {
+    return checksum;
+  }
+
+  public void setChecksum(String checksum) {
+    this.checksum = checksum;
+  }
+
+  /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
-  public void addFile(String fileName, String checksum) {
-    files.add(new DataPackageFile(baseUrl + fileName, checksum));
+  public void addFile(String fileName, String checksum, long size) {
+    files.add(new DataPackageFile(baseUrl + fileName, checksum, size));
   }
 
   /**
@@ -190,7 +220,7 @@ public class DataPackage {
    * The baseUrl is prepend to the file name.
    */
   public void addFile(DataPackageFile file) {
-    files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum()));
+    files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum(), file.getSize()));
   }
 
   @Override
@@ -209,7 +239,9 @@ public class DataPackage {
            && Objects.equals(title, other.title)
            && Objects.equals(description, other.description)
            && Objects.equals(created, other.created)
-           && Objects.equals(modified, other.modified);
+           && Objects.equals(modified, other.modified)
+           && Objects.equals(size, other.size)
+           && Objects.equals(checksum, other.checksum);
 
   }
 
@@ -227,7 +259,9 @@ public class DataPackage {
             + "\", \"title\": \"" + title
             + "\", \"description\": \"" + description
             + "\", \"created\": \"" + created
-            + "\", \"modified\": \"" + modified + "\"}";
+            + "\", \"modified\": \"" + modified
+            + "\", \"checksum\": \"" + checksum
+            + "\", \"size\": \"" + size +"\"}";
   }
 
   /**
@@ -244,6 +278,8 @@ public class DataPackage {
     dataPackage.setModified(modified);
     dataPackage.setTitle(title);
     dataPackage.setDescription(description);
+    dataPackage.setChecksum(checksum);
+    dataPackage.setSize(size);
     return dataPackage;
   }
 

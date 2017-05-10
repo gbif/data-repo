@@ -5,17 +5,18 @@
   <resultMap id="DATA_PACKAGE_FILE_DATA_MAP" type="DataPackageFile" autoMapping="true">
     <result property="fileName" column="file_name"/>
     <result property="checksum" column="checksum"/>
+    <result property="size" column="size"/>
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_FILE_DATA_MAP">
-    SELECT file_name, checksum
+    SELECT file_name, checksum, size
     FROM data_package_file
     WHERE data_package_doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
     AND file_name = #{fileName,jdbcType=OTHER}
   </select>
 
   <select id="list" resultType="DataPackageFile" parameterType="String">
-    SELECT file_name, checksum
+    SELECT file_name, checksum, size
     FROM data_package_file
     <where>
     <if test="_parameter != null" >
@@ -26,15 +27,16 @@
 
 
   <insert id="create" parameterType="map" useGeneratedKeys="false">
-    INSERT INTO data_package_file (data_package_doi, file_name, checksum)
+    INSERT INTO data_package_file (data_package_doi, file_name, checksum, size)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{dpf.fileName, jdbcType=OTHER},
-    #{dpf.checksum, jdbcType=OTHER})
+    #{dpf.checksum, jdbcType=OTHER}, #{dpf.size, jdbcType=OTHER})
   </insert>
 
   <update id="update" parameterType="map">
     UPDATE data_package_file SET
       file_name = #{dpf.fileName, jdbcType=OTHER},
       checksum = #{dpf.checksum, jdbcType=OTHER},
+      size = #{dpf.size, jdbcType=OTHER}
     WHERE data_package_doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
     AND file_name = #{dpf.fileName,jdbcType=OTHER}
   </update>
