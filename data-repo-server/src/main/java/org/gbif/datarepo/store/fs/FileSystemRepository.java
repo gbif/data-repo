@@ -148,8 +148,7 @@ public class FileSystemRepository implements DataRepository {
         newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
         newDataPackage.setTitle(dataPackage.getTitle());
         newDataPackage.setDescription(dataPackage.getDescription());
-        dataPackageMapper.create(newDataPackage);
-        long dataPackageLength = 0;
+
         //store all the submitted files
         files.stream().forEach(fileInputContent -> {
           Path newFilePath = store(doi, fileInputContent);
@@ -158,7 +157,6 @@ public class FileSystemRepository implements DataRepository {
           DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
                                                                 md5(newFile), fileLength);
           newDataPackage.setSize(newDataPackage.getSize() + fileLength);
-          dataPackageFileMapper.create(doi, dataPackageFile);
           newDataPackage.addFile(dataPackageFile);
         });
         if (newDataPackage.getFiles().size() == 1) {
@@ -167,6 +165,8 @@ public class FileSystemRepository implements DataRepository {
           newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream().map(DataPackageFile::getChecksum).collect(Collectors.joining()).getBytes()).toString());
         }
         //Persist data package info
+        dataPackageMapper.create(newDataPackage);
+        newDataPackage.getFiles().forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
         return newDataPackage;
       } catch (Exception ex) {
         LOG.error("Error registering a DOI", ex);
