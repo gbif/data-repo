@@ -75,7 +75,7 @@ public class DataRepoModule {
    * If the instance has ben created previously it is re-used.
    */
   public DoiRegistrationService doiRegistrationService() {
-    if (doiRegistrationService != null) {
+    if (doiRegistrationService == null) {
       Client client = DoiRegistrationWsClient.buildClient(configuration,
                                                           environment.getObjectMapper());
       doiRegistrationService = new DoiRegistrationWsClient(buildWebTarget(client, configuration.getGbifApiUrl()));
