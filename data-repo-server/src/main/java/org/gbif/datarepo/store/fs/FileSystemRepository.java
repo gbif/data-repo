@@ -135,8 +135,11 @@ public class FileSystemRepository implements DataRepository {
       metadataInputStream.mark(0);
       String dataCiteMetadata = readMetadata(metadataInputStream);
       //Register DOI
-      DOI doi = doiRegistrationService.register(DoiRegistration.builder().withType(DoiType.DATA_PACKAGE)
-                                                  .withMetadata(dataCiteMetadata).withUser(dataPackage.getCreatedBy())
+      DOI doi = doiRegistrationService.register(DoiRegistration.builder()
+                                                  .withType(DoiType.DATA_PACKAGE)
+                                                  .withMetadata(dataCiteMetadata)
+                                                  .withUser(dataPackage.getCreatedBy())
+                                                  .withDoi(dataPackage.getDoi())
                                                   .build());
       //Store metadata.xml file
       metadataInputStream.reset(); //reset the input stream
@@ -196,7 +199,7 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(DOI doi) {
-    return Optional.of(dataPackageMapper.get(doi.getDoiName()));
+    return Optional.ofNullable(dataPackageMapper.get(doi.getDoiName()));
   }
 
   /**
