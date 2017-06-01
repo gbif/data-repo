@@ -135,12 +135,13 @@ public class FileSystemRepository implements DataRepository {
       metadataInputStream.mark(0);
       String dataCiteMetadata = readMetadata(metadataInputStream);
       //Register DOI
-      DOI doi = doiRegistrationService.register(DoiRegistration.builder()
+      DOI doi = Optional.ofNullable(dataPackage.getDoi())
+                  .orElseGet(() -> doiRegistrationService.register(DoiRegistration.builder()
                                                   .withType(DoiType.DATA_PACKAGE)
                                                   .withMetadata(dataCiteMetadata)
                                                   .withUser(dataPackage.getCreatedBy())
                                                   .withDoi(dataPackage.getDoi())
-                                                  .build());
+                                                  .build()));
       //Store metadata.xml file
       metadataInputStream.reset(); //reset the input stream
       storeMetadata(doi, metadataInputStream);
