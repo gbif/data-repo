@@ -62,14 +62,14 @@
 
 
     <gbif-doi.version>1.5</gbif-doi.version>
-    <gbif-common.version>0.23</gbif-common.version>
+    <gbif-common.version>0.34</gbif-common.version>
     <gbif-httputils.version>0.9</gbif-httputils.version>
     <gbif-api.version>0.39</gbif-api.version>
-    <gbif-common-ws.version>0.38-SNAPSHOT</gbif-common-ws.version>
-    <service-discovery.version>0.1-SNAPSHOT</service-discovery.version>
+    <gbif-common-ws.version>0.39</gbif-common-ws.version>
+    <service-discovery.version>0.1</service-discovery.version>
     <drupal-mybatis.version>0.20</drupal-mybatis.version>
-    <gbif-common-mybatis.version>0.28-SNAPSHOT</gbif-common-mybatis.version>
-    <gbif-registry.version>2.64-SNAPSHOT</gbif-registry.version>
+    <gbif-common-mybatis.version>0.28</gbif-common-mybatis.version>
+    <gbif-registry.version>2.64</gbif-registry.version>
 
     <!-- fixed to the version coming with Dropwizard -->
     <jackson.dropwizard.version>2.6.3</jackson.dropwizard.version>
