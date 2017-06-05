@@ -23,7 +23,7 @@
     WHERE doi = #{doi,jdbcType=OTHER}
   </select>
 
-  <select id="list" resultType="DataPackage" parameterType="map">
+  <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
     SELECT doi, title, description, metadata, created, modified, deleted, created_by, checksum, size
     FROM data_package
     <where>
@@ -31,10 +31,10 @@
         created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        create <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        create <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
@@ -50,10 +50,10 @@
         created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        create <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        create <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
