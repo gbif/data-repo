@@ -28,13 +28,13 @@
     FROM data_package
     <where>
       <if test="user != null" >
-        created_by=#{user,jdbcType=OTHER}
+        AND created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        AND created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        AND created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
@@ -47,13 +47,13 @@
     FROM data_package
     <where>
       <if test="user != null" >
-        created_by=#{user,jdbcType=OTHER}
+        AND created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        AND created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        AND created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
