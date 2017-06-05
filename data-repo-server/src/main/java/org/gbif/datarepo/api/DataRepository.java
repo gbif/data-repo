@@ -35,6 +35,11 @@ public interface DataRepository {
   void delete(DOI doi);
 
   /**
+   * Hides a data packagefrom search operations, effectively preventing its discovery during normal operations.
+   */
+  void archive(DOI doi);
+
+  /**
    * Gets the path location from an archive associated to a DOI.
    */
   Optional<DataPackage> get(DOI doi);

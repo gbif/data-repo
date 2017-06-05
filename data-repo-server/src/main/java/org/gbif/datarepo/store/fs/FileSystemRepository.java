@@ -124,6 +124,14 @@ public class FileSystemRepository implements DataRepository {
   }
 
   /**
+   * Deletes the entire directory and its contents from a DOI.
+   */
+  @Override
+  public void archive(DOI doi) {
+    dataPackageMapper.delete(doi);
+  }
+
+  /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
