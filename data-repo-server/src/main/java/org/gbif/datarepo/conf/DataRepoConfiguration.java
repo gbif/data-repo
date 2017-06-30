@@ -3,6 +3,7 @@ package org.gbif.datarepo.conf;
 import org.gbif.discovery.conf.ServiceConfiguration;
 
 import java.util.Properties;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,7 +16,17 @@ import io.dropwizard.Configuration;
  */
 public class DataRepoConfiguration extends Configuration {
 
+  /**
+   * Operation Mode of this artifact.
+   */
+  public enum Mode {
+    SERVER, LIBRARY;
+  }
+
   public static final String USERS_DB_CONF_PREFIX = "drupal.db";
+
+  @NotNull
+  private Mode mode = Mode.SERVER;
 
   @NotNull
   private String dataRepoPath;
@@ -28,7 +39,7 @@ public class DataRepoConfiguration extends Configuration {
 
   private String dataPackageApiUrl;
 
-  @NotNull
+  @Nullable
   private DbConfiguration usersDb;
 
   @NotNull
@@ -39,6 +50,18 @@ public class DataRepoConfiguration extends Configuration {
 
   @NotNull
   private ApplicationKeyConfiguration appKey;
+
+  /**
+   * This server can operate as server or in lib mode, in order to make it reusable in other projects.
+   */
+  @JsonProperty
+  public Mode getMode() {
+    return mode;
+  }
+
+  public void setMode(Mode mode) {
+    this.mode = mode;
+  }
 
   /**
    * File system path where the archives are being stored.

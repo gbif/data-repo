@@ -42,11 +42,16 @@ public class DataRepoModule {
   public DataRepoModule(DataRepoConfiguration configuration, Environment environment) {
     this.configuration = configuration;
     this.environment = environment;
-    injector = Guice.createInjector(new DrupalMyBatisModule(configuration.getUsersDb()
-                                                              .toProperties(USERS_DB_CONF_PREFIX)),
-                                    new DataPackageMyBatisModule(configuration.getDbConfig(),
-                                                                 environment.metrics(),
-                                                                 environment.healthChecks()));
+    DataPackageMyBatisModule dataPackageMyBatisModule = new DataPackageMyBatisModule(configuration.getDbConfig(),
+                                                                                     environment.metrics(),
+                                                                                     environment.healthChecks());
+    if (DataRepoConfiguration.Mode.SERVER == configuration.getMode()) {
+      injector = Guice.createInjector(new DrupalMyBatisModule(configuration.getUsersDb()
+                                                                .toProperties(USERS_DB_CONF_PREFIX)),
+                                      dataPackageMyBatisModule);
+    } else {
+      injector = Guice.createInjector(dataPackageMyBatisModule);
+    }
   }
 
   /**
