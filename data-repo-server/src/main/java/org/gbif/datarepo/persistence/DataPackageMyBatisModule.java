@@ -8,7 +8,6 @@ import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.type.DoiTypeHandler;
 import org.gbif.mybatis.guice.MyBatisModule;
-import org.gbif.mybatis.type.StringArrayTypeHandler;
 
 import java.util.Properties;
 

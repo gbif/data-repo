@@ -7,7 +7,6 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
@@ -47,8 +46,8 @@ public interface DataRepository {
   /**
    * List data packages optionally filtered by user and dates.
    */
-  PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page,
-                                   @Nullable Date fromDate, @Nullable Date toDate);
+  PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page, @Nullable Date fromDate,
+                                   @Nullable Date toDate);
 
   /**
    * Gets a file contained in a data package referenced by a DOI.

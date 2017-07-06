@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,7 +94,7 @@ public class FileSystemRepository implements DataRepository {
                  StandardCopyOption.REPLACE_EXISTING);
       return newFilePath;
     } catch (IOException ex) {
-      LOG.error("Error storing file {}", fileInputContent.getName());
+      LOG.error("Error storing file {}", fileInputContent.getName(), ex);
       throw new RuntimeException(ex);
     }
   }
@@ -119,6 +120,7 @@ public class FileSystemRepository implements DataRepository {
         FileUtils.deleteDirectory(doiPath);
       }
     } catch (IOException ex) {
+      LOG.error("Error deleting file", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -176,7 +178,8 @@ public class FileSystemRepository implements DataRepository {
         } else {
           newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream()
                                                                .map(DataPackageFile::getChecksum)
-                                                               .collect(Collectors.joining()).getBytes()).toString());
+                                                               .collect(Collectors.joining())
+                                                               .getBytes(Charset.forName("UTF8"))).toString());
         }
         //Persist data package info
         dataPackageMapper.create(newDataPackage);

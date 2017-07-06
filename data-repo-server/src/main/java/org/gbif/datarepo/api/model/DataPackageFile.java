@@ -16,7 +16,7 @@ public class DataPackageFile {
   /**
    * Default constructor, use for serialization.
    */
-  public DataPackageFile(){
+  public DataPackageFile() {
     //NOP
   }
 

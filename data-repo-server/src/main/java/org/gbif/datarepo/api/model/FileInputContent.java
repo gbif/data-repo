@@ -47,8 +47,12 @@ public class FileInputContent {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     FileInputContent other = (FileInputContent) obj;
     return Objects.equals(name, other.name)
            && Objects.equals(inputStream, other.inputStream);
