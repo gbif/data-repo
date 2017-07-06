@@ -180,7 +180,7 @@ public class GbifAuthService {
    * @param stringToSign the string to be signed
    * @param secretKey the secret key to use in the
    */
-  private String buildSignature(String stringToSign, String secretKey) {
+  private static String buildSignature(String stringToSign, String secretKey) {
     try {
       Mac mac = Mac.getInstance(ALGORITHM);
       Key secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);
@@ -263,16 +263,16 @@ public class GbifAuthService {
       return false;
     }
 
-    String appKey = values[0];
+    String requestAppKey = values[0];
     String signatureFound = values[1];
-    if (appKey == null || signatureFound == null) {
+    if (requestAppKey == null || signatureFound == null) {
       LOG.warn("Authentication header missing applicationKey or signature: {}", authHeader);
       return false;
     }
 
-    String secretKey = getPrivateKey(appKey);
+    String secretKey = getPrivateKey(requestAppKey);
     if (secretKey == null) {
-      LOG.warn("Unknown application key: {}", appKey);
+      LOG.warn("Unknown application key: {}", requestAppKey);
       return false;
     }
     //
