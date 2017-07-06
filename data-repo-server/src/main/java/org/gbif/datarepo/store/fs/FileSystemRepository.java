@@ -174,7 +174,9 @@ public class FileSystemRepository implements DataRepository {
         if (newDataPackage.getFiles().size() == 1) {
           newDataPackage.setChecksum(newDataPackage.getFiles().get(0).getChecksum());
         } else {
-          newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream().map(DataPackageFile::getChecksum).collect(Collectors.joining()).getBytes()).toString());
+          newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream()
+                                                               .map(DataPackageFile::getChecksum)
+                                                               .collect(Collectors.joining()).getBytes()).toString());
         }
         //Persist data package info
         dataPackageMapper.create(newDataPackage);
@@ -245,7 +247,6 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public Optional<InputStream> getFileInputStream(DOI doi, String fileName) {
-
     try {
       Optional<DataPackageFile> packageFile = getFile(doi, fileName);
       if (packageFile.isPresent()) {

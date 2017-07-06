@@ -119,7 +119,7 @@ public class DataPackageResource {
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getDoi()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
-      throw buildWebException(Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
+      throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
     }
   }
 
@@ -154,7 +154,7 @@ public class DataPackageResource {
     Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(doi, fileName);
 
     //Check file existence before send it in the Response
-    return fileInputStream.isPresent()? Response.ok(fileInputStream.get())
+    return fileInputStream.isPresent() ? Response.ok(fileInputStream.get())
                                                     .header(HttpHeaders.CONTENT_DISPOSITION, FILE_ATTACHMENT + fileName)
                                                     .build()
                                         : Response.status(Status.NOT_FOUND)
@@ -175,7 +175,7 @@ public class DataPackageResource {
     Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(doi, fileName);
 
     //Check file existence before send it in the Response
-    return dataPackageFile.isPresent()? Response.ok(dataPackageFile.get()).build()
+    return dataPackageFile.isPresent() ? Response.ok(dataPackageFile.get()).build()
       : Response.status(Status.NOT_FOUND).entity(String.format("File %s not found", fileName)).build();
   }
 
@@ -192,7 +192,7 @@ public class DataPackageResource {
 
     //Checks that the DataPackage exists
     DataPackage dataPackage = getOrNotFound(doi, doiSuffix);
-    if(!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
+    if (!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
       throw buildWebException(Status.UNAUTHORIZED, "A Data Package can be deleted only by its creator");
     }
 

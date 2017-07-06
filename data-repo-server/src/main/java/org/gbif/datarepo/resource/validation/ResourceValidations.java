@@ -71,4 +71,11 @@ public class ResourceValidations {
   public static WebApplicationException buildWebException(Response.Status status, String message) {
     return new WebApplicationException(Response.status(status).entity(message).build());
   }
+
+  /**
+   * Returns a new WebApplicationException with a status code and an error message.
+   */
+  public static WebApplicationException buildWebException(Throwable throwable, Response.Status status, String message) {
+    return new WebApplicationException(throwable, Response.status(status).entity(message).build());
+  }
 }

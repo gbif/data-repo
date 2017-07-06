@@ -35,6 +35,9 @@ public class JacksonObjectMapperProvider implements ContextResolver<ObjectMapper
     MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
   }
 
+  /**
+   * Serializes DOI objects into a String representation.
+   */
   public static class DOISerializer extends StdSerializer<DOI> {
 
     public DOISerializer() {

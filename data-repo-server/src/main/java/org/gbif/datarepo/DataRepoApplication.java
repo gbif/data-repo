@@ -3,21 +3,16 @@ package org.gbif.datarepo;
 import org.gbif.api.model.common.UserPrincipal;
 import org.gbif.datarepo.auth.GbifAuthenticator;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
-import org.gbif.datarepo.conf.DataRepoModule;
+import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
-import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.resource.DataPackageResource;
-import org.gbif.datarepo.api.DataRepository;
-import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
-import javax.ws.rs.client.Client;
 
-import static org.gbif.datarepo.registry.DoiRegistrationWsClient.buildWebTarget;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_METHODS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_HEADERS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PARAM;
@@ -35,6 +30,8 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DropWizard application for the GBIF Data Repository.
@@ -42,10 +39,18 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
  */
 public class DataRepoApplication extends Application<DataRepoConfiguration> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DataRepoApplication.class);
+
   private static final String APPLICATION_NAME = "DataRepo";
 
-  public static void main(String[] args) throws Exception {
-    new DataRepoApplication().run(args);
+
+  public static void main(String[] args) {
+    try {
+      new DataRepoApplication().run(args);
+    } catch (Exception ex) {
+      LOG.error("Error running application", ex);
+      System.exit(1);
+    }
   }
 
   @Override
@@ -62,7 +67,8 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
 
     //CORS Filter
     FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
-    filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, environment.getApplicationContext().getContextPath() + "*");
+    filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false,
+                                    environment.getApplicationContext().getContextPath() + "*");
     filter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
     filter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
     filter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");

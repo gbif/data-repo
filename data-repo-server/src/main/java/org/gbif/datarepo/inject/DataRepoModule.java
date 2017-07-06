@@ -1,9 +1,10 @@
-package org.gbif.datarepo.conf;
+package org.gbif.datarepo.inject;
 
 import org.gbif.api.model.common.UserPrincipal;
 import org.gbif.api.service.common.UserService;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.auth.GbifAuthenticator;
+import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
