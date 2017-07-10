@@ -96,6 +96,12 @@
     WHERE doi = #{dataPackage.doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
   </update>
 
+  <update id="archive" parameterType="doi">
+    UPDATE data_package SET
+      deleted = now()
+    WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+  </update>
+
   <delete id="delete" parameterType="DOI">
     UPDATE data_package SET
       deleted = now()

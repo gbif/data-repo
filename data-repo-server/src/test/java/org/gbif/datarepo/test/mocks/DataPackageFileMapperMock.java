@@ -76,6 +76,11 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
     // NOP
   }
 
+  @Override
+  public void archive(@Param("doi") DOI doi) {
+    // NOP
+  }
+
   /**
    * Resolves a path for a DOI.
    */

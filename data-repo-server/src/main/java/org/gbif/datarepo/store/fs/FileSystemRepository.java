@@ -100,6 +100,21 @@ public class FileSystemRepository implements DataRepository {
   }
 
   /**
+   * Removes all files and directories of a data package.
+   */
+  private void clearDOIDir(DOI doi) {
+    try {
+      File doiDir = getDoiPath(doi).toFile();
+      if (doiDir.exists()) {
+        FileUtils.cleanDirectory(doiDir);
+      }
+    } catch (IOException ex) {
+      LOG.error("Error deleting datapackage content {}", ex);
+      throw new RuntimeException(ex);
+    }
+  }
+
+  /**
    * Store metadata file.
    */
   @Override
@@ -112,25 +127,17 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public void delete(DOI doi) {
-    try {
-      dataPackageMapper.delete(doi);
-      doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
-      File doiPath = getDoiPath(doi).toFile();
-      if (doiPath.exists()) {
-        FileUtils.deleteDirectory(doiPath);
-      }
-    } catch (IOException ex) {
-      LOG.error("Error deleting file", ex);
-      throw new RuntimeException(ex);
-    }
+    dataPackageMapper.delete(doi);
+    doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
+    clearDOIDir(doi);
   }
 
   /**
-   * Deletes the entire directory and its contents from a DOI.
+   * Marks the DataPackage as deleted.
    */
   @Override
   public void archive(DOI doi) {
-    dataPackageMapper.delete(doi);
+    dataPackageMapper.archive(doi);
   }
 
   /**
@@ -194,6 +201,26 @@ public class FileSystemRepository implements DataRepository {
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  /**
+   * Creates a new DataPackage containing the metadata and files specified.
+   */
+  @Override
+  public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
+    clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+    DataPackage updatedDataPackage =  create(dataPackage, metadata, files);
+    try (InputStream  metadataInputStream = getFileInputStream(dataPackage.getDoi(), DataPackage.METADATA_FILE).get()) {
+      doiRegistrationService.update(DoiRegistration.builder()
+                                      .withType(DoiType.DATA_PACKAGE)
+                                      .withMetadata(IOUtils.toString(metadataInputStream))
+                                      .withUser(updatedDataPackage.getCreatedBy())
+                                      .withDoi(updatedDataPackage.getDoi())
+                                      .build());
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return updatedDataPackage;
   }
 
   /**

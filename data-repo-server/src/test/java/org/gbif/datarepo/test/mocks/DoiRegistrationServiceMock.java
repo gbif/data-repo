@@ -44,6 +44,14 @@ public class DoiRegistrationServiceMock implements DoiRegistrationService {
   }
 
   /**
+   * Returns a random DOI if the doiRegistration parameter doesn't have a DOI, returns doiRegistration.doi otherwise.
+   */
+  @Override
+  public DOI update(DoiRegistration doiRegistration) {
+    return doiRegistration.getDoi();
+  }
+
+  /**
    * Does not perform any operation.
    */
   @Override

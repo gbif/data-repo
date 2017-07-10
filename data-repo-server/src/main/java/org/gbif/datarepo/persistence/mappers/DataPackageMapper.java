@@ -48,4 +48,9 @@ public interface DataPackageMapper {
    * Deletes a data package by its doi value.
    */
   void delete(@Param("doi") DOI doi);
+
+  /**
+   * Deletes a data package by its doi value.
+   */
+  void archive(@Param("doi") DOI doi);
 }

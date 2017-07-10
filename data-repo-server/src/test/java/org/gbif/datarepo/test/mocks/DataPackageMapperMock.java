@@ -87,4 +87,9 @@ public class DataPackageMapperMock implements DataPackageMapper {
   public void delete(@Param("doi") DOI doi) {
     //NOP;
   }
+
+  @Override
+  public void archive(@Param("doi") DOI doi) {
+    //NOP;
+  }
 }

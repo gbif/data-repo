@@ -24,6 +24,11 @@ public interface DataRepository {
   DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files);
 
   /**
+   * Updates/replaces all the contect of a DataPackage.
+   */
+  DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files);
+
+  /**
    * Stores the metadata file associated to a DOI.
    */
   void storeMetadata(DOI doi, InputStream file);

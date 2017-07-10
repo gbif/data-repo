@@ -81,6 +81,15 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
   }
 
   /**
+   * Requests the registration from a new DOI.
+   */
+  @Override
+  public DOI update(DoiRegistration doiRegistration) {
+    return request(webTarget).header(GbifAuthService.HEADER_GBIF_USER, doiRegistration.getUser())
+      .put(Entity.json(doiRegistration), DOI.class);
+  }
+
+  /**
    * Builds a Jersey Client that uses a custom JacksonObjectMapperProvider and the HttpGbifAuthFilter.
    */
   public static Client buildClient(DataRepoConfiguration configuration, ObjectMapper mapper) {

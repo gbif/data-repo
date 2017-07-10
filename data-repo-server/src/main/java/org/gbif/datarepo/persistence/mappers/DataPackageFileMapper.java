@@ -32,6 +32,11 @@ public interface DataPackageFileMapper {
   void create(@Param("doi") DOI doi, @Param("dpf") DataPackageFile dataPackageFile);
 
   /**
+   * Archive an existing package file.
+   */
+  void archive(@Param("doi") DOI doi);
+
+  /**
    * Updates a data package file.
    */
   void update(@Param("doi") String doiName, @Param("dpf") DataPackageFile dataPackageFile);
