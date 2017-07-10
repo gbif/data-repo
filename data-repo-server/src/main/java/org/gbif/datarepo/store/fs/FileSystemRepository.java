@@ -221,9 +221,10 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public PagingResponse<DataPackage> list(String user, @Nullable Pageable page,
-                                          @Nullable Date fromDate, @Nullable Date toDate) {
-    Long count = dataPackageMapper.count(user, page, fromDate, toDate);
-    List<DataPackage>  packages = dataPackageMapper.list(user, page, fromDate, toDate);
+                                          @Nullable Date fromDate, @Nullable Date toDate,
+                                          @Nullable Boolean deleted) {
+    Long count = dataPackageMapper.count(user, page, fromDate, toDate, deleted);
+    List<DataPackage>  packages = dataPackageMapper.list(user, page, fromDate, toDate, deleted);
     return new PagingResponse<>(page, count, packages);
   }
 

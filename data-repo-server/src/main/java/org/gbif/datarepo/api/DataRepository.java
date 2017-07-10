@@ -47,7 +47,7 @@ public interface DataRepository {
    * List data packages optionally filtered by user and dates.
    */
   PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page, @Nullable Date fromDate,
-                                   @Nullable Date toDate);
+                                   @Nullable Date toDate, Boolean deleted);
 
   /**
    * Gets a file contained in a data package referenced by a DOI.
