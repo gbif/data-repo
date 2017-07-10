@@ -36,9 +36,14 @@
       <if test="toDate !=null" >
         AND created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
-      <if test="deleted !=null" >
-        AND deleted IS NOT NULL
-      </if>
+      <choose>
+        <when test="deleted" >
+          AND deleted IS NOT NULL
+        </when>
+        <otherwise>
+          AND deleted IS NULL
+        </otherwise>
+      </choose>
     </where>
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
@@ -58,9 +63,14 @@
       <if test="toDate !=null" >
         AND created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
       </if>
-      <if test="deleted !=null" >
-        AND deleted IS NOT NULL
-      </if>
+      <choose>
+        <when test="deleted" >
+          AND deleted IS NOT NULL
+        </when>
+        <otherwise>
+          AND deleted IS NULL
+        </otherwise>
+      </choose>
     </where>
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
