@@ -117,8 +117,7 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Store metadata file.
    */
-  @Override
-  public void storeMetadata(DOI doi, InputStream file) {
+  private void storeMetadata(DOI doi, InputStream file) {
     store(doi, FileInputContent.from(DataPackage.METADATA_FILE, file));
   }
 
@@ -207,8 +206,11 @@ public class FileSystemRepository implements DataRepository {
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
-  public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
-    clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+  public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
+                            UpdateMode mode) {
+    if (UpdateMode.OVERWRITE == mode) {
+      clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+    }
     DataPackage updatedDataPackage =  create(dataPackage, metadata, files);
     try (InputStream  metadataInputStream = getFileInputStream(dataPackage.getDoi(), DataPackage.METADATA_FILE).get()) {
       doiRegistrationService.update(DoiRegistration.builder()

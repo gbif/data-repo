@@ -18,6 +18,10 @@ import javax.annotation.Nullable;
  */
 public interface DataRepository {
 
+  public enum UpdateMode {
+    APPEND, OVERWRITE;
+  }
+
   /**
    * Creates a DataPackage and store metadata and input content in the data repository.
    */
@@ -26,12 +30,8 @@ public interface DataRepository {
   /**
    * Updates/replaces all the contect of a DataPackage.
    */
-  DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files);
+  DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files, UpdateMode mode);
 
-  /**
-   * Stores the metadata file associated to a DOI.
-   */
-  void storeMetadata(DOI doi, InputStream file);
 
   /**
    * Deletes an archive associated to the input DOI.
