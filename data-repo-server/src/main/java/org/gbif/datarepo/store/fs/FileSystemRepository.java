@@ -284,6 +284,8 @@ public class FileSystemRepository implements DataRepository {
       Optional<DataPackageFile> packageFile = getFile(doi, fileName);
       if (packageFile.isPresent()) {
         return Optional.of(new FileInputStream(packageFile.get().getFileName()));
+      } else if (DataPackage.METADATA_FILE.equalsIgnoreCase(fileName)) {
+        return Optional.of(new FileInputStream(getDoiPath(doi).resolve(DataPackage.METADATA_FILE).toFile()));
       }
     } catch (FileNotFoundException ex) {
       LOG.warn("Requested file {} not found", fileName, ex);
