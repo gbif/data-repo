@@ -18,7 +18,7 @@
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
-    SELECT doi, metadata, created, modified, deleted, created_by, checksum, size
+    SELECT doi, title, description, metadata, created, modified, deleted, created_by, checksum, size
     FROM data_package
     WHERE doi = #{doi,jdbcType=OTHER}
   </select>
@@ -93,7 +93,7 @@
       modified_by = #{createdBy, jdbcType=OTHER},
       checksum = #{checksum, jdbcType=OTHER},
       size = #{size, jdbcType=OTHER}
-    WHERE doi = #{dataPackage.doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+    WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
   </update>
 
   <update id="archive" parameterType="doi">

@@ -27,7 +27,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -139,98 +141,141 @@ public class FileSystemRepository implements DataRepository {
     dataPackageMapper.archive(doi);
   }
 
+  private DataPackage prePersist(DataPackage dataPackage, List<FileInputContent> newFiles, DOI doi) {
+    DataPackage newDataPackage = new DataPackage();
+    newDataPackage.setDoi(doi);
+    newDataPackage.setMetadata(DataPackage.METADATA_FILE);
+    newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
+    newDataPackage.setTitle(dataPackage.getTitle());
+    newDataPackage.setDescription(dataPackage.getDescription());
+
+    //store all the submitted files
+    newFiles.stream().forEach(fileInputContent -> {
+      Path newFilePath = store(doi, fileInputContent);
+      File newFile = newFilePath.toFile();
+      long fileLength = newFile.length();
+      DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
+                                                            md5(newFile), fileLength);
+      newDataPackage.setSize(newDataPackage.getSize() + fileLength);
+      newDataPackage.addFile(dataPackageFile);
+    });
+    if (newDataPackage.getFiles().size() == 1) {
+      newDataPackage.setChecksum(newDataPackage.getFiles().get(0).getChecksum());
+    } else {
+      newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream()
+                                                           .map(DataPackageFile::getChecksum)
+                                                           .collect(Collectors.joining())
+                                                           .getBytes(Charset.forName("UTF8"))).toString());
+    }
+    return newDataPackage;
+  }
+
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
   public DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
     //Generates a DataCiteMetadata object for further validation/manipulation
-
-    try (ByteArrayInputStream  metadataInputStream = new ByteArrayInputStream(IOUtils.toByteArray(metadata))) {
-      //mark the input steam to the first position
-      metadataInputStream.mark(0);
-      String dataCiteMetadata = readMetadata(metadataInputStream);
-      //Register DOI
-      DOI doi = Optional.ofNullable(dataPackage.getDoi())
-                  .orElseGet(() -> doiRegistrationService.register(DoiRegistration.builder()
-                                                  .withType(DoiType.DATA_PACKAGE)
-                                                  .withMetadata(dataCiteMetadata)
-                                                  .withUser(dataPackage.getCreatedBy())
-                                                  .withDoi(dataPackage.getDoi())
-                                                  .build()));
-      //Store metadata.xml file
-      metadataInputStream.reset(); //reset the input stream
-      storeMetadata(doi, metadataInputStream);
-      try {
-        DataPackage newDataPackage = new DataPackage();
-        newDataPackage.setDoi(doi);
-        newDataPackage.setMetadata(DataPackage.METADATA_FILE);
-        newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
-        newDataPackage.setTitle(dataPackage.getTitle());
-        newDataPackage.setDescription(dataPackage.getDescription());
-
-        //store all the submitted files
-        files.stream().forEach(fileInputContent -> {
-          Path newFilePath = store(doi, fileInputContent);
-          File newFile = newFilePath.toFile();
-          long fileLength = newFile.length();
-          DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
-                                                                md5(newFile), fileLength);
-          newDataPackage.setSize(newDataPackage.getSize() + fileLength);
-          newDataPackage.addFile(dataPackageFile);
-        });
-        if (newDataPackage.getFiles().size() == 1) {
-          newDataPackage.setChecksum(newDataPackage.getFiles().get(0).getChecksum());
-        } else {
-          newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream()
-                                                               .map(DataPackageFile::getChecksum)
-                                                               .collect(Collectors.joining())
-                                                               .getBytes(Charset.forName("UTF8"))).toString());
-        }
-        //Persist data package info
-        dataPackageMapper.create(newDataPackage);
-        newDataPackage.getFiles().forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
-        return newDataPackage;
-      } catch (Exception ex) {
-        LOG.error("Error registering a DOI", ex);
-        //Deletes all data created to this DOI in case from error
-        delete(doi);
-        throw new RuntimeException(ex);
-      }
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
+    return Optional.ofNullable(handleMetadata(metadata, dataCiteMetadata ->
+                                                          Optional.ofNullable(dataPackage.getDoi())
+                                                            .orElseGet(() -> doiRegistrationService
+                                                                              .register(DoiRegistration.builder()
+                                                                                          .withType(DoiType
+                                                                                                      .DATA_PACKAGE)
+                                                                                        .withMetadata(dataCiteMetadata)
+                                                                                        .withUser(dataPackage
+                                                                                                    .getCreatedBy())
+                                                                                        .withDoi(dataPackage.getDoi())
+                                                                                        .build()))))
+            .map(doi -> {
+              try {
+                DataPackage newDataPackage = prePersist(dataPackage, files, doi);
+                //Persist data package info
+                dataPackageMapper.create(newDataPackage);
+                newDataPackage.getFiles().forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
+                return newDataPackage;
+              } catch (Exception ex) {
+                LOG.error("Error registering a DOI", ex);
+                //Deletes all data created to this DOI in case from error
+                delete(doi);
+                throw new RuntimeException(ex);
+              }
+            }).orElseThrow(() -> new IllegalStateException("DataPackage couldn't be created"));
   }
 
+  /**
+   * Deletes all files of a DataPackage.
+   */
+  private void clearDataPackageContent(DataPackage dataPackage) {
+    dataPackage.getFiles()
+      .forEach(dataPackageFile -> {
+        dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
+      });
+    clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+    dataPackage.getFiles().clear();
+  }
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
   public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
                             UpdateMode mode) {
+
+    DataPackage existingDataPackage =  get(dataPackage.getDoi())
+                                        .orElseThrow(() -> new RuntimeException("DataPackage not found"));
     if (UpdateMode.OVERWRITE == mode) {
-      clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+      clearDataPackageContent(dataPackage);
     }
-    DataPackage updatedDataPackage =  create(dataPackage, metadata, files);
-    try (InputStream  metadataInputStream = getFileInputStream(dataPackage.getDoi(), DataPackage.METADATA_FILE).get()) {
-      doiRegistrationService.update(DoiRegistration.builder()
-                                      .withType(DoiType.DATA_PACKAGE)
-                                      .withMetadata(IOUtils.toString(metadataInputStream))
-                                      .withUser(updatedDataPackage.getCreatedBy())
-                                      .withDoi(updatedDataPackage.getDoi())
-                                      .build());
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
-    return updatedDataPackage;
+
+    //Updates basic information
+    existingDataPackage.setDescription(dataPackage.getDescription());
+    existingDataPackage.setTitle(dataPackage.getTitle());
+
+    Map<Boolean, List<DataPackageFile>> existingFiles =  existingDataPackage.getFiles().stream()
+                                                          .collect(
+                                                            Collectors.partitioningBy(
+                                                              dataPackageFile -> files.stream()
+                                                                .anyMatch(fileInputContent -> fileInputContent.getName()
+                                                                  .equalsIgnoreCase(dataPackageFile.getFileName())),
+                                                              Collectors.toList()
+                                                            ));
+    existingFiles.get(Boolean.TRUE).forEach(dataPackageFile -> {
+      dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
+      existingDataPackage.getFiles().remove(dataPackageFile);
+    });
+
+    DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getDoi());
+    preparedDataPackage.getFiles().stream()
+      .filter(dataPackageFile -> existingFiles.get(Boolean.FALSE)
+                                  .stream()
+                                  .noneMatch(extDp -> extDp.getFileName()
+                                                       .equalsIgnoreCase(dataPackageFile.getFileName())))
+      .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getDoi(), dataPackageFile));
+
+    dataPackageMapper.update(preparedDataPackage);
+    handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
+                                                                                  .withType(DoiType.DATA_PACKAGE)
+                                                                                  .withMetadata(dataCiteMetadata)
+                                                                                  .withUser(preparedDataPackage
+                                                                                              .getCreatedBy())
+                                                                                  .withDoi(preparedDataPackage
+                                                                                             .getDoi())
+                                                                                  .build()));
+    return preparedDataPackage;
   }
 
   /**
-   * Reads, validates and stores the submitted metadata file.
+   * Read, store and a register the supplied metadata.
    */
-  private static String readMetadata(InputStream metadataFile) {
-    try {
-      return IOUtils.toString(metadataFile);
+  private DOI handleMetadata(InputStream metadata, Function<String, DOI> registrationHandler) {
+    try (ByteArrayInputStream  metadataInputStream = new ByteArrayInputStream(IOUtils.toByteArray(metadata))) {
+      metadataInputStream.mark(0);
+      String dataCiteMetadata = IOUtils.toString(metadataInputStream);
+      DOI doi = registrationHandler.apply(dataCiteMetadata);
+      //Store metadata.xml file
+      metadataInputStream.reset(); //reset the input stream
+      storeMetadata(doi, metadataInputStream);
+      return doi;
     } catch (IOException ex) {
       LOG.error("Error reading data package metadata", ex);
       throw new RuntimeException(ex);
@@ -253,7 +298,7 @@ public class FileSystemRepository implements DataRepository {
                                           @Nullable Date fromDate, @Nullable Date toDate,
                                           @Nullable Boolean deleted) {
     Long count = dataPackageMapper.count(user, page, fromDate, toDate, deleted);
-    List<DataPackage>  packages = dataPackageMapper.list(user, page, fromDate, toDate, deleted);
+    List<DataPackage> packages = dataPackageMapper.list(user, page, fromDate, toDate, deleted);
     return new PagingResponse<>(page, count, packages);
   }
 

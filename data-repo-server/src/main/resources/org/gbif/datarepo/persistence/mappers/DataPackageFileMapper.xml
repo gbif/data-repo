@@ -42,8 +42,8 @@
   </update>
 
   <delete id="delete" parameterType="map">
-    DELETE data_package_doi data_package_file
-    WHERE doi = #{doi,jdbcType=OTHER, typeHandler=DoiTypeHandler}
+    DELETE FROM data_package_file
+    WHERE data_package_doi = #{doi,jdbcType=OTHER, typeHandler=DoiTypeHandler}
     AND file_name = #{fileName,jdbcType=OTHER}
   </delete>
 
