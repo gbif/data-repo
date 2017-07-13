@@ -130,7 +130,11 @@ public class FileSystemRepository implements DataRepository {
   public void delete(DOI doi) {
     dataPackageMapper.delete(doi);
     doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
-    clearDOIDir(doi);
+    try {
+      FileUtils.deleteDirectory(getDoiPath(doi).toFile());
+    } catch (IOException ex) {
+      LOG.error("Error deleting DOI {} directory", doi);
+    }
   }
 
   /**
