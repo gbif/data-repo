@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper">
+
+  <resultMap id="REPOSITORY_STATS_MAP" type="RepositoryStats" autoMapping="true">
+  </resultMap>
+
+  <select id="get" resultType="RepositoryStats" resultMap="REPOSITORY_STATS_MAP">
+    SELECT COUNT(dpf.*) numOfFiles, sum(dpf.size) totalSize, AVG(dpf.size) averageFileSize FROM data_package_file dpf
+    JOIN data_package dp ON dp.doi = dpf.data_package_doi WHERE dp.deleted IS NULL;
+  </select>
+</mapper>

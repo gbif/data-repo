@@ -6,9 +6,14 @@ package org.gbif.datarepo.resource;
 public final class PathsParams {
 
   /**
-   * Data packages resource parameter.
+   * Data packages resource path.
    */
   public static final String DATA_PACKAGES_PATH = "data_packages";
+
+  /**
+   * Data repository stats path.
+   */
+  public static final String REPO_STATS_PATH = DATA_PACKAGES_PATH + "/stats";
 
   /**
    * Metadata file parameter.

@@ -7,6 +7,7 @@ import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
+import org.gbif.datarepo.resource.RepositoryStatsResource;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 
 import java.util.EnumSet;
@@ -93,6 +94,7 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration));
+    environment.jersey().register(new RepositoryStatsResource(dataRepoModule.repositoryStatsMapper()));
     if (configuration.getService().isDiscoverable()) {
       environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));
     }

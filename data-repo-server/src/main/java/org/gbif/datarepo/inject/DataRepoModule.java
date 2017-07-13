@@ -8,6 +8,7 @@ import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
@@ -63,12 +64,19 @@ public class DataRepoModule {
   }
 
   /**
+   * Gets RepositoryStatsMapper instance.
+   */
+  public RepositoryStatsMapper repositoryStatsMapper() {
+    return injector.getInstance(RepositoryStatsMapper.class);
+  }
+
+
+  /**
    * Gets DataPackageMapper instance.
    */
   public DataPackageFileMapper dataPackageFileMapper() {
     return injector.getInstance(DataPackageFileMapper.class);
   }
-
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
