@@ -6,6 +6,7 @@ import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
+import org.gbif.datarepo.api.model.RepositoryStats;
 
 import java.io.InputStream;
 import java.util.Date;
@@ -63,5 +64,10 @@ public interface DataRepository {
    * Gets the file content by a DOI and fileName.
    */
   Optional<InputStream> getFileInputStream(DOI doi, String fileName);
+
+  /**
+   * Provides general statistics about the data repo usage.
+   */
+  RepositoryStats getStats();
 
 }

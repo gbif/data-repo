@@ -94,7 +94,7 @@ public class DataRepoApplication extends Application<DataRepoConfiguration> {
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration));
-    environment.jersey().register(new RepositoryStatsResource(dataRepoModule.repositoryStatsMapper()));
+    environment.jersey().register(new RepositoryStatsResource(dataRepoModule.dataRepository()));
     if (configuration.getService().isDiscoverable()) {
       environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));
     }

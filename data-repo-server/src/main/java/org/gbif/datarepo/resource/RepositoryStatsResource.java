@@ -1,7 +1,7 @@
 package org.gbif.datarepo.resource;
 
+import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.RepositoryStats;
-import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -17,13 +17,13 @@ import static org.gbif.datarepo.resource.PathsParams.REPO_STATS_PATH;
 @Produces(MediaType.APPLICATION_JSON)
 public class RepositoryStatsResource {
 
-  private final RepositoryStatsMapper repositoryStatsMapper;
+  private final DataRepository dataRepository;
 
   /**
    * Default constructor.
    */
-  public RepositoryStatsResource(RepositoryStatsMapper repositoryStatsMapper) {
-    this.repositoryStatsMapper = repositoryStatsMapper;
+  public RepositoryStatsResource(DataRepository dataRepository) {
+    this.dataRepository = dataRepository;
   }
 
   /**
@@ -31,6 +31,6 @@ public class RepositoryStatsResource {
    */
   @GET
   public RepositoryStats get() {
-    return repositoryStatsMapper.get();
+    return dataRepository.getStats();
   }
 }

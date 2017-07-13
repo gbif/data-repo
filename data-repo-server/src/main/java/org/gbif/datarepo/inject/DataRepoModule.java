@@ -102,7 +102,7 @@ public class DataRepoModule {
    */
   public DataRepository dataRepository() {
     return new FileSystemRepository(configuration, doiRegistrationService(),
-                                    dataPackageMapper(), dataPackageFileMapper());
+                                    dataPackageMapper(), dataPackageFileMapper(), repositoryStatsMapper());
   }
 
 }

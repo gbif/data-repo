@@ -5,11 +5,13 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
+import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.conf.DataRepoConfiguration;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
@@ -54,6 +56,8 @@ public class FileSystemRepository implements DataRepository {
 
   private final DataPackageFileMapper dataPackageFileMapper;
 
+  private final RepositoryStatsMapper repositoryStatsMapper;
+
 
   /**
    * Paths where the files are stored.
@@ -67,7 +71,8 @@ public class FileSystemRepository implements DataRepository {
   public FileSystemRepository(DataRepoConfiguration configuration,
                               DoiRegistrationService doiRegistrationService,
                               DataPackageMapper dataPackageMapper,
-                              DataPackageFileMapper dataPackageFileMapper) {
+                              DataPackageFileMapper dataPackageFileMapper,
+                              RepositoryStatsMapper repositoryStatsMapper) {
     this.doiRegistrationService = doiRegistrationService;
     storePath = Paths.get(configuration.getDataRepoPath());
     File file = storePath.toFile();
@@ -78,6 +83,7 @@ public class FileSystemRepository implements DataRepository {
     Preconditions.checkArgument(file.isDirectory(), "Repository is not a directory");
     this.dataPackageMapper = dataPackageMapper;
     this.dataPackageFileMapper = dataPackageFileMapper;
+    this.repositoryStatsMapper = repositoryStatsMapper;
   }
 
   /**
@@ -340,6 +346,11 @@ public class FileSystemRepository implements DataRepository {
       LOG.warn("Requested file {} not found", fileName, ex);
     }
     return Optional.empty();
+  }
+
+  @Override
+  public RepositoryStats getStats() {
+    return repositoryStatsMapper.get();
   }
 
   /**

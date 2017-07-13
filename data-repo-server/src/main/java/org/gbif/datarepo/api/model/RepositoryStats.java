@@ -5,7 +5,7 @@ package org.gbif.datarepo.api.model;
  */
 public class RepositoryStats {
 
-  private Long numOfFiles;
+  private Integer numOfFiles;
 
   private Long totalSize;
 
@@ -14,11 +14,11 @@ public class RepositoryStats {
   /**
    * Number of active files.
    */
-  public Long getNumOfFiles() {
+  public Integer getNumOfFiles() {
     return numOfFiles;
   }
 
-  public void setNumOfFiles(Long numOfFiles) {
+  public void setNumOfFiles(Integer numOfFiles) {
     this.numOfFiles = numOfFiles;
   }
 
