@@ -1,8 +1,6 @@
 package org.gbif.datarepo.persistence.mappers;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 
 import java.util.List;
