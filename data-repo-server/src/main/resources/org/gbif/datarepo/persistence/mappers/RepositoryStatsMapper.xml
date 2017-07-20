@@ -6,7 +6,7 @@
   </resultMap>
 
   <select id="get" resultType="RepositoryStats" resultMap="REPOSITORY_STATS_MAP">
-    SELECT COUNT(dpf.*) numOfFiles, sum(dpf.size) totalSize, AVG(dpf.size) averageFileSize FROM data_package_file dpf
+    SELECT COUNT(dpf.*) numOfFiles, COALESCE(sum(dpf.size),0) totalSize, COALESCE(AVG(dpf.size),0) averageFileSize FROM data_package_file dpf
     JOIN data_package dp ON dp.doi = dpf.data_package_doi WHERE dp.deleted IS NULL;
   </select>
 </mapper>
