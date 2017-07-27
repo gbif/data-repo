@@ -19,8 +19,20 @@ import javax.annotation.Nullable;
  */
 public interface DataRepository {
 
-  public enum UpdateMode {
-    APPEND, OVERWRITE;
+  /**
+   * Defines the mode of how an update operation has to be handled.
+   */
+  enum UpdateMode {
+
+    /**
+     * Append content to the data package.
+     */
+    APPEND,
+
+    /**
+     * Remove replace all the data package content.
+     */
+    OVERWRITE;
   }
 
   /**
