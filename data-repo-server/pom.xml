@@ -108,9 +108,6 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
-    <resources>
-      <resource>resource</resource>
-    </resources>
 
     <plugins>
       <!-- shade a fat jar for dropwizard -->
