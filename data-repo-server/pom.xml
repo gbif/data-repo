@@ -53,13 +53,14 @@
     <guice.version>4.0</guice.version>
     <junit.version>4.12</junit.version>
     <mockito.version>1.10.19</mockito.version>
-    <liquibase.version>3.3.0</liquibase.version>
+    <liquibase.version>3.5.3</liquibase.version>
     <postgresql.version>9.4.1208.jre7</postgresql.version>
     <hikaricp.version>2.6.0</hikaricp.version>
     <mybatis-guice.version>3.7.1</mybatis-guice.version>
     <mybatis.version>3.2.8</mybatis.version>
     <javax.mail.version>1.4.7</javax.mail.version>
 
+    <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
     <gbif-doi.version>1.5</gbif-doi.version>
     <gbif-common.version>0.34</gbif-common.version>
@@ -107,6 +108,9 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
+    <resources>
+      <resource>resource</resource>
+    </resources>
 
     <plugins>
       <!-- shade a fat jar for dropwizard -->
@@ -497,6 +501,11 @@
       <artifactId>liquibase-core</artifactId>
       <version>${liquibase.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ru.yandex.qatools.embed</groupId>
+      <artifactId>postgresql-embedded</artifactId>
+      <version>${postgresql-embedded.version}</version>
     </dependency>
 
   </dependencies>
