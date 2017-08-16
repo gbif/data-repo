@@ -70,7 +70,7 @@
     <service-discovery.version>0.1</service-discovery.version>
     <drupal-mybatis.version>0.20</drupal-mybatis.version>
     <gbif-common-mybatis.version>0.28</gbif-common-mybatis.version>
-    <gbif-registry.version>2.68-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>2.69-SNAPSHOT</gbif-registry.version>
 
     <!-- fixed to the version coming with Dropwizard -->
     <jackson.dropwizard.version>2.6.3</jackson.dropwizard.version>
