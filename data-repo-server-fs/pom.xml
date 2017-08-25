@@ -10,7 +10,6 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.gbif.data</groupId>
   <artifactId>data-repo-server-fs</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -47,6 +46,10 @@
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -92,16 +95,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>drupal-mybatis</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.registry</groupId>
-      <artifactId>registry-doi</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.gbif.occurrence</groupId>
-          <artifactId>download-query-tools</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.mybatis</groupId>
