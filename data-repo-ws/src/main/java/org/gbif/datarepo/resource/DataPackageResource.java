@@ -1,7 +1,7 @@
 package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
@@ -99,7 +99,7 @@ public class DataPackageResource {
   @Timed
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
-  public DataPackage create(FormDataMultiPart multiPart, @Auth UserPrincipal principal) throws IOException {
+  public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal) throws IOException {
     //Validations
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = validateFiles(multiPart);
@@ -186,7 +186,7 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{doi}")
-  public void delete(@PathParam("doi") String doiSuffix,  @Auth UserPrincipal principal)  {
+  public void delete(@PathParam("doi") String doiSuffix,  @Auth GbifUserPrincipal principal)  {
     //Validates DOI structure
     DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
 

@@ -1,6 +1,6 @@
 package org.gbif.datarepo.app;
 
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.datarepo.auth.GbifAuthenticator;
 import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
@@ -85,12 +85,12 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     //Security configuration
-    Authenticator<BasicCredentials, UserPrincipal> authenticator = dataRepoModule.getAuthenticator();
-    BasicCredentialAuthFilter<UserPrincipal> userBasicCredentialAuthFilter =
-      new BasicCredentialAuthFilter.Builder<UserPrincipal>().setAuthenticator(dataRepoModule.getAuthenticator())
+    Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = dataRepoModule.getAuthenticator();
+    BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
+      new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>().setAuthenticator(dataRepoModule.getAuthenticator())
         .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter();
     environment.jersey().register(new AuthDynamicFeature(userBasicCredentialAuthFilter));
-    environment.jersey().register(new AuthValueFactoryProvider.Binder<>(UserPrincipal.class));
+    environment.jersey().register(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class));
 
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);

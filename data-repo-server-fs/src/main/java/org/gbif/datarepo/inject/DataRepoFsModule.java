@@ -8,7 +8,6 @@ import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
-import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
 
 import javax.ws.rs.client.Client;
@@ -41,12 +40,9 @@ public class DataRepoFsModule {
   public DataRepoFsModule(DataRepoConfiguration configuration, MetricRegistry metricRegistry,
                           HealthCheckRegistry healthCheckRegistry) {
     this.configuration = configuration;
-    DataPackageMyBatisModule dataPackageMyBatisModule = new DataPackageMyBatisModule(configuration.getDbConfig(),
+    injector = Guice.createInjector(new DataPackageMyBatisModule(configuration.getDbConfig(),
                                                                                      metricRegistry,
-                                                                                     healthCheckRegistry);
-      injector = Guice.createInjector(new DrupalMyBatisModule(configuration.getUsersDb()
-                                                                .toProperties(USERS_DB_CONF_PREFIX)),
-                                      dataPackageMyBatisModule);
+                                                                                     healthCheckRegistry));
   }
 
   /**

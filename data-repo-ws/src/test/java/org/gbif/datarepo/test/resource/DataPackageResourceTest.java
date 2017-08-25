@@ -1,14 +1,13 @@
 package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.auth.GbifAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
-import org.gbif.datarepo.store.fs.conf.DbConfiguration;
 import org.gbif.datarepo.test.mocks.DataPackageFileMapperMock;
 import org.gbif.datarepo.test.mocks.DataPackageMapperMock;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
@@ -129,7 +128,6 @@ public class DataPackageResourceTest {
       configuration.setDataPackageApiUrl("http://localhost:8080/data_packages/");
       //Used the temporary folder as the data repo path
       configuration.setDataRepoPath(temporaryFolder().toString());
-      configuration.setUsersDb(mock(DbConfiguration.class));
     }
     return configuration;
   }
@@ -142,10 +140,10 @@ public class DataPackageResourceTest {
     //required to send multiple files
     .addProvider(MultiPartFeature.class)
     //Authentication
-    .addProvider(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<UserPrincipal>()
+    .addProvider(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>()
                                           .setAuthenticator(AUTHENTICATOR)
                                           .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter()))
-    .addProvider(new AuthValueFactoryProvider.Binder<>(UserPrincipal.class))
+    .addProvider(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class))
     //Test resource
     .addResource(new DataPackageResource(new FileSystemRepository(configuration(), new DoiRegistrationServiceMock(),
                                                                   DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER,

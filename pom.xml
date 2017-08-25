@@ -68,14 +68,13 @@
     <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
     <gbif-doi.version>1.5</gbif-doi.version>
-    <gbif-common.version>0.34</gbif-common.version>
-    <gbif-httputils.version>0.9</gbif-httputils.version>
-    <gbif-api.version>0.54</gbif-api.version>
-    <gbif-common-ws.version>0.39</gbif-common-ws.version>
+    <gbif-common.version>0.35</gbif-common.version>
+    <gbif-httputils.version>0.10</gbif-httputils.version>
+    <gbif-api.version>0.55</gbif-api.version>
+    <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <service-discovery.version>0.1</service-discovery.version>
-    <drupal-mybatis.version>0.20</drupal-mybatis.version>
     <gbif-common-mybatis.version>0.28</gbif-common-mybatis.version>
-    <gbif-registry.version>2.69</gbif-registry.version>
+    <gbif-registry.version>2.70</gbif-registry.version>
     <findbugs.version>3.0.1</findbugs.version>
 
     <!-- fixed to the version coming with Dropwizard -->
@@ -356,6 +355,29 @@
           <exclusion>
             <groupId>org.gbif.occurrence</groupId>
             <artifactId>download-query-tools</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.registry</groupId>
+        <artifactId>registry-identity</artifactId>
+        <version>${gbif-registry.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

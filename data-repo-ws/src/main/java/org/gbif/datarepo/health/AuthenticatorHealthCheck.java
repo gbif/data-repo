@@ -1,6 +1,6 @@
 package org.gbif.datarepo.health;
 
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUserPrincipal;
 
 import com.codahale.metrics.health.HealthCheck;
 import io.dropwizard.auth.Authenticator;
@@ -12,13 +12,13 @@ import org.apache.commons.lang3.RandomStringUtils;
  */
 public class AuthenticatorHealthCheck extends HealthCheck {
 
-  private final Authenticator<BasicCredentials, UserPrincipal> authenticator;
+  private final Authenticator<BasicCredentials, GbifUserPrincipal> authenticator;
   private static final int CREDENTIALS_LENGTH = 5;
 
   /**
    * @param authenticator to be contacted
    */
-  public AuthenticatorHealthCheck(Authenticator<BasicCredentials, UserPrincipal> authenticator) {
+  public AuthenticatorHealthCheck(Authenticator<BasicCredentials, GbifUserPrincipal> authenticator) {
     this.authenticator = authenticator;
   }
 

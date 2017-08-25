@@ -1,7 +1,7 @@
 package org.gbif.datarepo.inject;
 
-import org.gbif.api.model.common.UserPrincipal;
-import org.gbif.api.service.common.UserService;
+import org.gbif.api.model.common.GbifUserPrincipal;
+import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.auth.GbifAuthenticator;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
@@ -11,7 +11,7 @@ import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
-import org.gbif.drupal.guice.DrupalMyBatisModule;
+import org.gbif.identity.inject.IdentityAccessModule;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
 
 import javax.ws.rs.client.Client;
@@ -35,8 +35,6 @@ public class DataRepoModule {
   private final DataRepoConfiguration configuration;
   private final Environment environment;
 
-  private static final String USERS_DB_CONF_PREFIX = "drupal.db";
-
   private DoiRegistrationService doiRegistrationService;
 
   /**
@@ -48,9 +46,7 @@ public class DataRepoModule {
     DataPackageMyBatisModule dataPackageMyBatisModule = new DataPackageMyBatisModule(configuration.getDbConfig(),
                                                                                      environment.metrics(),
                                                                                      environment.healthChecks());
-      injector = Guice.createInjector(new DrupalMyBatisModule(configuration.getUsersDb()
-                                                                .toProperties(USERS_DB_CONF_PREFIX)),
-                                      dataPackageMyBatisModule);
+    injector = Guice.createInjector(new IdentityAccessModule(configuration.getUsersDb()), dataPackageMyBatisModule);
   }
 
   /**
@@ -77,8 +73,8 @@ public class DataRepoModule {
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
-  public Authenticator<BasicCredentials, UserPrincipal> getAuthenticator() {
-    return new GbifAuthenticator(injector.getInstance(UserService.class));
+  public Authenticator<BasicCredentials, GbifUserPrincipal> getAuthenticator() {
+    return new GbifAuthenticator(injector.getInstance(IdentityAccessService.class));
   }
 
   /**
@@ -87,8 +83,7 @@ public class DataRepoModule {
    */
   public DoiRegistrationService doiRegistrationService() {
     if (doiRegistrationService == null) {
-      Client client = DoiRegistrationWsClient.buildClient(configuration,
-                                                          environment.getObjectMapper());
+      Client client = DoiRegistrationWsClient.buildClient(configuration, environment.getObjectMapper());
       doiRegistrationService = new DoiRegistrationWsClient(buildWebTarget(client, configuration.getGbifApiUrl()));
     }
     return doiRegistrationService;

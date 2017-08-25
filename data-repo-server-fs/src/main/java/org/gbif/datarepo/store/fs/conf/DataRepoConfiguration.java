@@ -24,7 +24,7 @@ public class DataRepoConfiguration  {
   private String dataPackageApiUrl;
 
   @Nullable
-  private DbConfiguration usersDb;
+  private Properties usersDb;
 
   @NotNull
   private Properties dbConfig;
@@ -77,10 +77,10 @@ public class DataRepoConfiguration  {
   /**
    * Configuration to access the GBIF users portal data base.
    */
-  public DbConfiguration getUsersDb() {
+  public Properties getUsersDb() {
     return usersDb;
   }
-  public void setUsersDb(DbConfiguration usersDb) {
+  public void setUsersDb(Properties usersDb) {
     this.usersDb = usersDb;
   }
 

@@ -1,8 +1,8 @@
 package org.gbif.datarepo.auth;
 
-import org.gbif.api.model.common.User;
-import org.gbif.api.model.common.UserPrincipal;
-import org.gbif.api.service.common.UserService;
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.model.common.GbifUserPrincipal;
+import org.gbif.api.service.common.IdentityAccessService;
 
 import com.google.common.base.Optional;
 import io.dropwizard.auth.AuthenticationException;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * Authentication service.
  * Performs a basic authentication (user and password) against the GBUIF user service.
  */
-public class GbifAuthenticator implements Authenticator<BasicCredentials, UserPrincipal> {
+public class GbifAuthenticator implements Authenticator<BasicCredentials, GbifUserPrincipal> {
 
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthenticator.class);
 
@@ -26,25 +26,25 @@ public class GbifAuthenticator implements Authenticator<BasicCredentials, UserPr
   private static final String SCHEME = "BASIC";
 
   //GBIF users service
-  private final UserService userService;
+  private final IdentityAccessService identityAccessService;
 
   /**
    * Default constructor, requires a UserService instance.
-   * @param userService GBIF user service
+   * @param identityAccessService GBIF user service
    */
-  public GbifAuthenticator(UserService userService) {
-    this.userService = userService;
+  public GbifAuthenticator(IdentityAccessService identityAccessService) {
+    this.identityAccessService = identityAccessService;
   }
 
   /**
    * Performs the authentication against the GBIF UserService.
    */
   @Override
-  public Optional<UserPrincipal> authenticate(BasicCredentials credentials) throws AuthenticationException {
-    User user = userService.authenticate(credentials.getUsername(), credentials.getPassword());
+  public Optional<GbifUserPrincipal> authenticate(BasicCredentials credentials) throws AuthenticationException {
+    GbifUser user = identityAccessService.authenticate(credentials.getUsername(), credentials.getPassword());
     if (user != null) { //User found
       LOG.debug("Authenticating user {} via scheme {}", credentials.getUsername(), SCHEME);
-      return Optional.of(new UserPrincipal(user));
+      return Optional.of(new GbifUserPrincipal(user));
     }
     //User not found
     LOG.debug("User {} not found via scheme {}", credentials.getUsername(), SCHEME);

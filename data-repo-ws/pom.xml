@@ -95,10 +95,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>drupal-mybatis</artifactId>
-    </dependency>
-    <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
     </dependency>
@@ -240,12 +236,10 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-doi</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.gbif.occurrence</groupId>
-          <artifactId>download-query-tools</artifactId>
-        </exclusion>
-      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-identity</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

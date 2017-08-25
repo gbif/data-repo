@@ -1,8 +1,8 @@
 package org.gbif.datarepo.test.utils;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.api.model.common.User;
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.model.common.GbifUserPrincipal;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class ResourceTestUtils {
 
   public static final String JSON_CREATE_TEST_FILE = "src/test/resources/datapackage_test.json";
 
-  public static final UserPrincipal TEST_USER = testUser();
+  public static final GbifUserPrincipal TEST_USER = testUser();
 
   public static final String TEST_USER_CREDENTIALS = encodedTestUserCredentials();
 
@@ -50,11 +50,11 @@ public class ResourceTestUtils {
    * Creates a test user instance.
    * User name and password are identical.
    */
-  private static UserPrincipal testUser() {
-    User user = new User();
+  private static GbifUserPrincipal testUser() {
+    GbifUser user = new GbifUser();
     user.setUserName(TEST_USER_NAME);
     user.setPasswordHash(TEST_USER_NAME);
-    return new UserPrincipal(user);
+    return new GbifUserPrincipal(user);
   }
 
   /**
