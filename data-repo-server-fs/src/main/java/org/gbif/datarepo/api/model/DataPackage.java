@@ -63,6 +63,9 @@ public class DataPackage {
   @JsonProperty
   private long size;
 
+  @JsonProperty
+  private List<AlternativeIdentifier> alternativeIdentifiers;
+
   private final String baseUrl;
 
   /**
@@ -71,6 +74,7 @@ public class DataPackage {
    */
   public DataPackage() {
     files = new ArrayList<>();
+    alternativeIdentifiers = new ArrayList<>();
     baseUrl = "";
   }
 
@@ -81,6 +85,7 @@ public class DataPackage {
    */
   public DataPackage(String baseUrl) {
     files = new ArrayList<>();
+    alternativeIdentifiers = new ArrayList<>();
     this.baseUrl = baseUrl;
   }
 
@@ -208,6 +213,17 @@ public class DataPackage {
   }
 
   /**
+   * External and alternative identifier that uniquely identify this data package.
+   */
+  public List<AlternativeIdentifier> getAlternativeIdentifiers() {
+    return alternativeIdentifiers;
+  }
+
+  public void setAlternativeIdentifiers(List<AlternativeIdentifier> alternativeIdentifiers) {
+    this.alternativeIdentifiers = alternativeIdentifiers;
+  }
+
+  /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
@@ -216,11 +232,20 @@ public class DataPackage {
   }
 
   /**
-   * Adds a new file to the list from containing files.
+   * Adds a new file to the list of containing files.
    * The baseUrl is prepend to the file name.
    */
   public void addFile(DataPackageFile file) {
     files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum(), file.getSize()));
+  }
+
+
+  /**
+   * Adds a new AlternativeIdentifier to the list of identifiers.
+   */
+  public void addAlternativeIdentifier(AlternativeIdentifier alternativeIdentifier) {
+    alternativeIdentifier.setDataPackageDoi(doi);
+    alternativeIdentifiers.add(alternativeIdentifier);
   }
 
   @Override
@@ -241,7 +266,8 @@ public class DataPackage {
            && Objects.equals(created, other.created)
            && Objects.equals(modified, other.modified)
            && Objects.equals(size, other.size)
-           && Objects.equals(checksum, other.checksum);
+           && Objects.equals(checksum, other.checksum)
+           && Objects.equals(alternativeIdentifiers, other.alternativeIdentifiers);
 
   }
 
@@ -261,7 +287,8 @@ public class DataPackage {
             + "\", \"created\": \"" + created
             + "\", \"modified\": \"" + modified
             + "\", \"checksum\": \"" + checksum
-            + "\", \"size\": \"" + size +"\"}";
+            + "\", \"size\": \"" + size
+            + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers +"\"}";
   }
 
   /**
@@ -280,6 +307,7 @@ public class DataPackage {
     dataPackage.setDescription(description);
     dataPackage.setChecksum(checksum);
     dataPackage.setSize(size);
+    dataPackage.setAlternativeIdentifiers(alternativeIdentifiers);
     return dataPackage;
   }
 

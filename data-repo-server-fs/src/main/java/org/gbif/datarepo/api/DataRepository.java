@@ -62,6 +62,11 @@ public interface DataRepository {
   Optional<DataPackage> get(DOI doi);
 
   /**
+   * Gets the path location from an archive associated to a DOI.
+   */
+  Optional<DataPackage> getByAlternativeIdentifier(String identifier);
+
+  /**
    * List data packages optionally filtered by user and dates.
    */
   PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page, @Nullable Date fromDate,

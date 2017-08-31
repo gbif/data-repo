@@ -20,6 +20,8 @@ public interface DataPackageMapper {
    */
   DataPackage get(@Param("doi") String doiName);
 
+  DataPackage getByAlternativeIdentifier(@Param("identifier") String identifier);
+
   /**
    * Page through DataPackages, optionally filtered by user and dates.
    */

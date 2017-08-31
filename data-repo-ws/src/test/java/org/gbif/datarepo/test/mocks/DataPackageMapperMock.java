@@ -33,6 +33,11 @@ public class DataPackageMapperMock implements DataPackageMapper {
   }
 
   @Override
+  public DataPackage getByAlternativeIdentifier(@Param("identifier") String identifier) {
+   return get(identifier);
+  }
+
+  @Override
   public DataPackage get(@Param("doi") String doiName) {
     String[] doiNameParts = doiName.indexOf('-') > 0 ? doiName.split("-") : doiName.split("\\/");
     DOI doi = new DOI(doiNameParts[0], doiNameParts[1]);

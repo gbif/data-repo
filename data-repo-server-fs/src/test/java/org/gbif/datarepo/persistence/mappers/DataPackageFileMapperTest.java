@@ -1,11 +1,13 @@
 package org.gbif.datarepo.persistence.mappers;
 
 import org.gbif.api.model.common.DOI;
+import org.gbif.datarepo.api.model.AlternativeIdentifier;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.common.hash.Hashing;
 import com.google.inject.Injector;
@@ -21,6 +23,8 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
   //Guice injector used to instantiate Mappers.
   private static Injector injector;
 
+  private static final String ALTERNATIVE_ID_TEST = UUID.randomUUID().toString();
+
   /**
    * Initializes the MyBatis module.
    */
@@ -34,8 +38,14 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
    */
   private static DataPackage testDataPackage() {
     DataPackage dataPackage = new DataPackage();
+    AlternativeIdentifier alternativeIdentifier = new AlternativeIdentifier();
+    alternativeIdentifier.setCreated(new Date());
+    alternativeIdentifier.setCreatedBy("testUser");
+    alternativeIdentifier.setType(AlternativeIdentifier.Type.UUID);
+    alternativeIdentifier.setIdentifier(ALTERNATIVE_ID_TEST);
     String testChecksum = Hashing.md5().newHasher(32).hash().toString();
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, Long.toString(new Date().getTime())));
+    dataPackage.addAlternativeIdentifier(alternativeIdentifier);
     dataPackage.setChecksum(testChecksum);
     dataPackage.setCreated(new Date());
     dataPackage.setCreatedBy("testUser");
@@ -57,6 +67,20 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     mapper.create(dataPackage);
     DataPackage justCreated = mapper.get(dataPackage.getDoi().getDoiName());
     Assert.assertEquals(justCreated.getDoi(), dataPackage.getDoi());
+  }
+
+  /**
+   * Tests methods create and get.
+   */
+  @Test
+  public void testGetByAlternativeIdentifier() {
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
+    DataPackage dataPackage = testDataPackage();
+    mapper.create(dataPackage);
+    AlternativeIdentifierMapper alternativeIdentifierMapper = injector.getInstance(AlternativeIdentifierMapper.class);
+    dataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+    DataPackage justCreated = mapper.getByAlternativeIdentifier(ALTERNATIVE_ID_TEST);
+    Assert.assertEquals(ALTERNATIVE_ID_TEST, justCreated.getAlternativeIdentifiers().get(0).getIdentifier());
   }
 
   /**

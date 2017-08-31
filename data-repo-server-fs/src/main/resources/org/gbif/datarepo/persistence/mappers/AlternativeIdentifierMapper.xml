@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper">
+
+  <resultMap id="ALTERNATIVE_IDENTIFIER_MAP" type="AlternativeIdentifier" autoMapping="true">
+    <id property="identifier" column="identifier"/>
+    <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
+    <result property="type" column="type"/>
+    <result property="identifier" column="identifier"/>
+    <result property="created" column="created"/>
+    <result property="createdBy" column="created_by"/>
+  </resultMap>
+
+  <select id="get" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP">
+    SELECT identifier, data_package_doi, type, created, created_by
+    FROM alternative_identifier
+    WHERE identifier = #{identifier,jdbcType=OTHER}
+  </select>
+
+  <select id="listByDoi" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP" parameterType="DOI">
+    SELECT identifier, data_package_doi, type, created, created_by
+    FROM alternative_identifier
+    WHERE data_package_doi = #{doi, jdbcType=OTHER}
+  </select>
+
+  <select id="list" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP" parameterType="map">
+    SELECT identifier, data_package_doi, type, created, created_by
+    FROM alternative_identifier
+    <where>
+      <if test="user != null" >
+        AND created_by=#{user, jdbcType=OTHER}
+      </if>
+      <if test="status != null" >
+        AND status=#{status, jdbcType=OTHER}
+      </if>
+      <if test="created != null" >
+        AND created=#{created, jdbcType=OTHER}
+      </if>
+      <if test="dataPackageDoi != null" >
+        AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+      </if>
+      <if test="type != null" >
+        AND type=#{type, jdbcType=OTHER}
+      </if>
+    </where>
+    <if test="page != null" >
+      LIMIT #{page.limit} OFFSET #{page.offset}
+    </if>
+  </select>
+
+  <select id="count" resultType="Long" parameterType="map">
+    SELECT count(*)
+    FROM alternative_identifier
+    <where>
+      <if test="user != null" >
+        AND created_by=#{user, jdbcType=OTHER}
+      </if>
+      <if test="status != null" >
+        AND status=#{status, jdbcType=OTHER}
+      </if>
+      <if test="created != null" >
+        AND created=#{created, jdbcType=OTHER}
+      </if>
+      <if test="dataPackageDoi != null" >
+        AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+      </if>
+      <if test="type != null" >
+        AND type=#{type, jdbcType=OTHER}
+      </if>
+    </where>
+    <if test="page != null" >
+      LIMIT #{page.limit} OFFSET #{page.offset}
+    </if>
+  </select>
+
+  <insert id="create" parameterType="AlternativeIdentifier" useGeneratedKeys="false">
+    INSERT INTO alternative_identifier (identifier, data_package_doi, type, created, created_by)
+    VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler},
+    #{type, jdbcType=OTHER}, #{created,jdbcType=OTHER}, #{createdBy, jdbcType=OTHER})
+  </insert>
+
+  <delete id="delete" parameterType="String">
+    DELETE FROM alternative_identifier WHERE identifier = #{identifier, jdbcType=OTHER}
+  </delete>
+
+</mapper>

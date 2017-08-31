@@ -2,6 +2,7 @@ package org.gbif.datarepo.inject;
 
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
+import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
@@ -53,6 +54,13 @@ public class DataRepoFsModule {
   }
 
   /**
+   * Gets AlternativeIdentifierMapper instance.
+   */
+  public AlternativeIdentifierMapper alternativeIdentifierMapper() {
+    return injector.getInstance(AlternativeIdentifierMapper.class);
+  }
+
+  /**
    * Gets RepositoryStatsMapper instance.
    */
   public RepositoryStatsMapper repositoryStatsMapper() {
@@ -84,7 +92,7 @@ public class DataRepoFsModule {
    */
   public DataRepository dataRepository(ObjectMapper mapper) {
     return new FileSystemRepository(configuration, doiRegistrationService(mapper), dataPackageMapper(),
-                                    dataPackageFileMapper(), repositoryStatsMapper());
+                                    dataPackageFileMapper(), repositoryStatsMapper(), alternativeIdentifierMapper());
   }
 
 }

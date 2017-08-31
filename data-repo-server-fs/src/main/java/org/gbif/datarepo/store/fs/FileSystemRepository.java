@@ -8,6 +8,7 @@ import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
@@ -56,6 +57,8 @@ public class FileSystemRepository implements DataRepository {
 
   private final DataPackageFileMapper dataPackageFileMapper;
 
+  private final AlternativeIdentifierMapper alternativeIdentifierMapper;
+
   private final RepositoryStatsMapper repositoryStatsMapper;
 
 
@@ -72,7 +75,8 @@ public class FileSystemRepository implements DataRepository {
                               DoiRegistrationService doiRegistrationService,
                               DataPackageMapper dataPackageMapper,
                               DataPackageFileMapper dataPackageFileMapper,
-                              RepositoryStatsMapper repositoryStatsMapper) {
+                              RepositoryStatsMapper repositoryStatsMapper,
+                              AlternativeIdentifierMapper alternativeIdentifierMapper) {
     this.doiRegistrationService = doiRegistrationService;
     storePath = Paths.get(configuration.getDataRepoPath());
     File file = storePath.toFile();
@@ -84,6 +88,7 @@ public class FileSystemRepository implements DataRepository {
     this.dataPackageMapper = dataPackageMapper;
     this.dataPackageFileMapper = dataPackageFileMapper;
     this.repositoryStatsMapper = repositoryStatsMapper;
+    this.alternativeIdentifierMapper = alternativeIdentifierMapper;
   }
 
   /**
@@ -177,6 +182,9 @@ public class FileSystemRepository implements DataRepository {
                                                            .collect(Collectors.joining())
                                                            .getBytes(Charset.forName("UTF8"))).toString());
     }
+
+    newDataPackage.getAlternativeIdentifiers()
+      .forEach(alternativeIdentifier -> alternativeIdentifier.setDataPackageDoi(doi));
     return newDataPackage;
   }
 
@@ -202,7 +210,9 @@ public class FileSystemRepository implements DataRepository {
                 DataPackage newDataPackage = prePersist(dataPackage, files, doi);
                 //Persist data package info
                 dataPackageMapper.create(newDataPackage);
-                newDataPackage.getFiles().forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
+                newDataPackage.getFiles()
+                  .forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
+                newDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
                 return newDataPackage;
               } catch (Exception ex) {
                 LOG.error("Error registering a DOI", ex);
@@ -253,6 +263,8 @@ public class FileSystemRepository implements DataRepository {
       dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
       existingDataPackage.getFiles().remove(dataPackageFile);
     });
+    existingDataPackage.getAlternativeIdentifiers()
+      .forEach(alternativeIdentifier -> alternativeIdentifierMapper.delete(alternativeIdentifier.getIdentifier()));
 
     DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getDoi());
     preparedDataPackage.getFiles().stream()
@@ -263,6 +275,7 @@ public class FileSystemRepository implements DataRepository {
       .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getDoi(), dataPackageFile));
 
     dataPackageMapper.update(preparedDataPackage);
+    preparedDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
     handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)
                                                                                   .withMetadata(dataCiteMetadata)
@@ -298,6 +311,14 @@ public class FileSystemRepository implements DataRepository {
   @Override
   public Optional<DataPackage> get(DOI doi) {
     return Optional.ofNullable(dataPackageMapper.get(doi.getDoiName()));
+  }
+
+  /**
+   * Retrieves the DataPackage associated to an alternative identifier.
+   */
+  @Override
+  public Optional<DataPackage> getByAlternativeIdentifier(String identifier) {
+    return Optional.ofNullable(dataPackageMapper.getByAlternativeIdentifier(identifier));
   }
 
   /**

@@ -21,3 +21,14 @@ CREATE TABLE data_package_file (
     PRIMARY KEY (data_package_doi, file_name)
 );
 CREATE INDEX data_package_file_idx ON data_package_file (data_package_doi, file_name, checksum);
+
+
+CREATE TYPE alternative_identifier_type AS ENUM ('URL', 'LSID', 'HANDLER', 'DOI', 'UUID', 'FTP', 'URI', 'UNKNOWN');
+CREATE TABLE alternative_identifier (
+    identifier varchar(800) UNIQUE NOT NULL PRIMARY KEY,
+    data_package_doi text NOT NULL REFERENCES data_package(doi) ON DELETE CASCADE,
+    type alternative_identifier_type NOT NULL,
+    created timestamp with time zone NOT NULL DEFAULT now(),
+    created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3)
+);
+CREATE INDEX alternative_identifier_idx ON alternative_identifier(data_package_doi, created, created_by);

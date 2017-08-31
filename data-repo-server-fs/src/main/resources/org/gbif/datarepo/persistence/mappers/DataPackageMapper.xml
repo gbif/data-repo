@@ -15,12 +15,20 @@
     <result property="size" column="size"/>
     <collection property="files" column="doi" ofType="DataPackageFile"
                 select="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.list"/>
+    <collection property="alternativeIdentifiers" column="doi" ofType="AlternativeIdentifier"
+                select="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper.listByDoi"/>
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
     SELECT doi, title, description, metadata, created, modified, deleted, created_by, checksum, size
     FROM data_package
     WHERE doi = #{doi,jdbcType=OTHER}
+  </select>
+
+  <select id="getByAlternativeIdentifier" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="String">
+    SELECT doi, title, description, metadata, dp.created, modified, deleted, dp.created_by, checksum, size
+    FROM data_package dp JOIN alternative_identifier ai ON ai.data_package_doi = dp.doi
+    WHERE ai.identifier = #{identifier, jdbcType=OTHER}
   </select>
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
@@ -96,7 +104,7 @@
     WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
   </update>
 
-  <update id="archive" parameterType="doi">
+  <update id="archive" parameterType="DOI">
     UPDATE data_package SET
       deleted = now()
     WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
@@ -105,7 +113,7 @@
   <delete id="delete" parameterType="DOI">
     UPDATE data_package SET
       deleted = now()
-    WHERE doi = #{doi,jdbcType=OTHER, typeHandler=DoiTypeHandler} AND deleted IS NULL
+    WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler} AND deleted IS NULL
   </delete>
 
 </mapper>

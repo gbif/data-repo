@@ -1,0 +1,33 @@
+dataRepoConfiguration:
+  dataRepoPath: /tmp/datarepo/
+  doiCommonPrefix: 10.5072
+  gbifApiUrl: http://api.gbif-dev.org/v1/
+  dataPackageApiUrl: http://api.gbif-dev.org/v1/data_packages/
+  usersDb:
+    registry.db.dataSourceClassName: org.postgresql.ds.PGSimpleDataSource
+    registry.db.dataSource.serverName: pg1.gbif-dev.org
+    registry.db.dataSource.databaseName: dev_registry
+    registry.db.dataSource.user: registry
+    registry.db.dataSource.password: h56jebHD6h
+    registry.db.maximumPoolSize: 8
+    registry.db.connectionTimeout: 3000
+    registry.db.minimumIdle: 1
+    registry.db.idleTimeout: 60000
+  dbConfig:
+    dataSourceClassName: org.postgresql.ds.PGSimpleDataSource
+    maximumPoolSize: 6
+    minimumIdle: 1
+    idleTimeout: 60000
+    connectionTimeout: 5000
+    dataSource.serverName: pg1.gbif-dev.org
+    dataSource.databaseName: dev_datapackages
+    dataSource.user: datapackages
+    dataSource.password: h56jebHD6h
+    dataSource.portNumber: 5432
+    poolName: datapackages
+  appKey:
+    appKey: gbif.datarepo
+    appSecretKey: 637e4b3f4b7050313e34317d295963364e506f562d5b246e506a613c5f
+service:
+      zkHost: zk1.gbif-dev.org:2181,zk2.gbif-dev.org:2181,zk3.gbif-dev.org:2181
+      zkPath: dev/services
