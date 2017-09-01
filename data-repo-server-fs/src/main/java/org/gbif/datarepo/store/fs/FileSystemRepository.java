@@ -184,7 +184,10 @@ public class FileSystemRepository implements DataRepository {
     }
 
     newDataPackage.getAlternativeIdentifiers()
-      .forEach(alternativeIdentifier -> alternativeIdentifier.setDataPackageDoi(doi));
+      .forEach(alternativeIdentifier -> {
+        alternativeIdentifier.setDataPackageDoi(doi);
+        alternativeIdentifier.setCreatedBy(dataPackage.getCreatedBy());
+      });
     return newDataPackage;
   }
 
