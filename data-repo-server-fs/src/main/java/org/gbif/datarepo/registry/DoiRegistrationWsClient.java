@@ -2,7 +2,6 @@ package org.gbif.datarepo.registry;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.DoiData;
-import org.gbif.datarepo.auth.GbifAuthService;
 import org.gbif.datarepo.auth.HttpGbifAuthFilter;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.registry.doi.DoiType;
@@ -76,8 +75,7 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
    */
   @Override
   public DOI register(DoiRegistration doiRegistration) {
-    return request(webTarget).header(GbifAuthService.HEADER_GBIF_USER, doiRegistration.getUser())
-      .post(Entity.json(doiRegistration), DOI.class);
+    return request(webTarget).post(Entity.json(doiRegistration), DOI.class);
   }
 
   /**
@@ -85,8 +83,7 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
    */
   @Override
   public DOI update(DoiRegistration doiRegistration) {
-    return request(webTarget).header(GbifAuthService.HEADER_GBIF_USER, doiRegistration.getUser())
-      .put(Entity.json(doiRegistration), DOI.class);
+    return request(webTarget).put(Entity.json(doiRegistration), DOI.class);
   }
 
   /**
