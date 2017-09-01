@@ -52,7 +52,7 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
    */
   @Override
   public DOI generate(DoiType doiType) {
-    return request(webTarget.path(GEN_PATH).path(doiType.name())).post(Entity.json(null), DOI.class);
+    return request(webTarget.path(GEN_PATH).path(doiType.name())).get(DOI.class);
   }
 
   /**
