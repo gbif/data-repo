@@ -183,10 +183,11 @@ public class FileSystemRepository implements DataRepository {
                                                            .getBytes(Charset.forName("UTF8"))).toString());
     }
 
-    newDataPackage.getAlternativeIdentifiers()
+    dataPackage.getAlternativeIdentifiers()
       .forEach(alternativeIdentifier -> {
         alternativeIdentifier.setDataPackageDoi(doi);
         alternativeIdentifier.setCreatedBy(dataPackage.getCreatedBy());
+        newDataPackage.addAlternativeIdentifier(alternativeIdentifier);
       });
     return newDataPackage;
   }
