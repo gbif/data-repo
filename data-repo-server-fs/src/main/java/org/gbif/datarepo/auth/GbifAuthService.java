@@ -78,28 +78,34 @@ public class GbifAuthService {
   private final String appKey;
   private final ObjectMapper mapper;
 
-  private GbifAuthService(Map<String, String> appKeys, String appKey, ObjectMapper mapper) {
+  private final boolean selfAuthenticated;
+
+  private GbifAuthService(Map<String, String> appKeys, String appKey, ObjectMapper mapper,
+                          boolean selfAuthenticated) {
     this.mapper = mapper;
     keyStore = ImmutableMap.copyOf(appKeys);
     this.appKey = appKey;
+    this.selfAuthenticated = selfAuthenticated;
     LOG.info("Initialised appkey store with {} keys", keyStore.size());
-  }
-
-  /**
-   * Creates a new GBIF authentication service for applications that need to validate requests
-   * for various application keys. Used by the GBIF webservice apps that require authentication.
-   */
-  public static GbifAuthService multiKeyAuthService(Map<String, String> appKeys, ObjectMapper mapper) {
-    return new GbifAuthService(appKeys, null, mapper);
   }
 
   /**
    * Creates a new GBIF authentication service for clients that want to sign requests always using a single
    * application key. Used by the GBIF portal and other trusted applications that need to proxy a user.
    */
-  public static GbifAuthService singleKeyAuthService(String appKey, String secret, ObjectMapper mapper) {
+  public static GbifAuthService singleKeyAuthService(String appKey, String secret, ObjectMapper mapper,
+                                                     boolean selfAuthenticated) {
     LOG.info("Initialising auth service with key {}", appKey);
-    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey, mapper);
+    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey, mapper, selfAuthenticated);
+  }
+
+  /**
+   * Creates a new GBIF authentication service for clients that want to sign requests always using a single
+   * application key. Used by the GBIF portal and other trusted applications that need to proxy a user.
+   */
+  public static GbifAuthService singleKeySelfAuthService(String appKey, String secret, ObjectMapper mapper) {
+    LOG.info("Initialising auth service with key {}", appKey);
+    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey, mapper, true);
   }
 
   /**
@@ -207,6 +213,10 @@ public class GbifAuthService {
    */
   public void signRequest(ClientRequestContext request) {
     Preconditions.checkNotNull(appKey, "To sign request a single application key is required");
+
+    if (selfAuthenticated && !request.getHeaders().containsKey(HEADER_GBIF_USER)) {
+      request.getHeaders().add(HEADER_GBIF_USER, appKey);
+    }
     // first add custom GBIF headers so we can use them to build the string to sign
 
     // the canonical path header

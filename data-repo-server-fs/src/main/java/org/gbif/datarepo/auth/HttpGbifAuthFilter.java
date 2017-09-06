@@ -20,7 +20,9 @@ public class HttpGbifAuthFilter implements ClientRequestFilter {
    */
   public HttpGbifAuthFilter(ApplicationKeyConfiguration appKeyConfiguration, ObjectMapper mapper) {
     authService = GbifAuthService.singleKeyAuthService(appKeyConfiguration.getAppKey(),
-                                                       appKeyConfiguration.getAppSecretKey(), mapper);
+                                                       appKeyConfiguration.getAppSecretKey(),
+                                                       mapper,
+                                                       appKeyConfiguration.isSelfAuthenticated());
 
   }
 

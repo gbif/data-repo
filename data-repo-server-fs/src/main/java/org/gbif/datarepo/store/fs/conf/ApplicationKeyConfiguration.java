@@ -13,6 +13,9 @@ public class ApplicationKeyConfiguration {
   @NotNull
   private String appSecretKey;
 
+  @NotNull
+  private boolean selfAuthenticated;
+
   /**
    * Application Key/Username.
    */
@@ -33,5 +36,13 @@ public class ApplicationKeyConfiguration {
 
   public void setAppSecretKey(String appSecretKey) {
     this.appSecretKey = appSecretKey;
+  }
+
+  public boolean isSelfAuthenticated() {
+    return selfAuthenticated;
+  }
+
+  public void setSelfAuthenticated(boolean selfAuthenticated) {
+    this.selfAuthenticated = selfAuthenticated;
   }
 }
