@@ -76,7 +76,7 @@
   <insert id="create" parameterType="AlternativeIdentifier" useGeneratedKeys="false">
     INSERT INTO alternative_identifier (identifier, data_package_doi, type, created, created_by)
     VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler},
-    #{type, jdbcType=OTHER}, #{created,jdbcType=OTHER}, #{createdBy, jdbcType=OTHER})
+    #{type, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
   </insert>
 
   <delete id="delete" parameterType="String">
