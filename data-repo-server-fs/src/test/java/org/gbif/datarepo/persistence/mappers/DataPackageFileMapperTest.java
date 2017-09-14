@@ -148,7 +148,9 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"));
-    Assert.assertTrue(dataPackages.size() >=  0);
+    Long count = mapper.count(null, null, null, null, null, Collections.singletonList("NoATag"));
+    Assert.assertTrue(dataPackages.size() ==  0);
+    Assert.assertTrue(count ==  0);
   }
 
   /**

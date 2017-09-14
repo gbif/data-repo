@@ -32,8 +32,6 @@ public class DataRepoFsModule {
 
   private final DataRepoConfiguration configuration;
 
-  private static final String USERS_DB_CONF_PREFIX = "drupal.db";
-
   private DoiRegistrationService doiRegistrationService;
 
   /**
