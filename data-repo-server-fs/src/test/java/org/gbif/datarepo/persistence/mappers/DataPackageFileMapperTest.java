@@ -6,6 +6,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.Tag;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -64,19 +65,25 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     return dataPackage;
   }
 
-  /**
-   * Tests methods create and get.
-   */
-  @Test
-  public void testCreate() {
-    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
-    DataPackage dataPackage = testDataPackage();
-    mapper.create(dataPackage);
+  private void insertDataPackage(DataPackage dataPackage) {
+    DataPackageMapper dataPackageMapper = injector.getInstance(DataPackageMapper.class);
+    dataPackageMapper.create(dataPackage);
+
     AlternativeIdentifierMapper alternativeIdentifierMapper = injector.getInstance(AlternativeIdentifierMapper.class);
     dataPackage.getAlternativeIdentifiers().forEach( alternativeIdentifierMapper::create);
 
     TagMapper tagMapper = injector.getInstance(TagMapper.class);
     dataPackage.getTags().forEach(tagMapper::create);
+  }
+
+  /**
+   * Tests methods create and get.
+   */
+  @Test
+  public void testCreate() {
+    DataPackage dataPackage = testDataPackage();
+    insertDataPackage(dataPackage);
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
 
     DataPackage justCreated = mapper.get(dataPackage.getDoi().getDoiName());
     Assert.assertEquals(justCreated.getDoi(), dataPackage.getDoi());
@@ -89,9 +96,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
   public void testGetByAlternativeIdentifier() {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
-    mapper.create(dataPackage);
-    AlternativeIdentifierMapper alternativeIdentifierMapper = injector.getInstance(AlternativeIdentifierMapper.class);
-    dataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+    insertDataPackage(dataPackage);
     DataPackage justCreated = mapper.getByAlternativeIdentifier(ALTERNATIVE_ID_TEST);
     Assert.assertEquals(ALTERNATIVE_ID_TEST, justCreated.getAlternativeIdentifiers().get(0).getIdentifier());
   }
@@ -103,7 +108,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
   public void testDelete() {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
-    mapper.create(dataPackage);
+    insertDataPackage(dataPackage);
     mapper.delete(dataPackage.getDoi());
   }
 
@@ -125,14 +130,25 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
   @Test
   public void testListByTags() {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
-    TagMapper tagMapper = injector.getInstance(TagMapper.class);
     DataPackage dataPackage = testDataPackage();
-    mapper.create(dataPackage);
-    dataPackage.getTags().forEach(tagMapper::create);
+    insertDataPackage(dataPackage);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null,
                                                  dataPackage.getTags().stream()
                                                    .map(Tag::getValue).collect(Collectors.toList()));
     Assert.assertTrue(dataPackages.size() >=  1);
+  }
+
+
+  /**
+   * Tests methods create and list.
+   */
+  @Test
+  public void testListByNonExistingTags() {
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
+    DataPackage dataPackage = testDataPackage();
+    insertDataPackage(dataPackage);
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"));
+    Assert.assertTrue(dataPackages.size() >=  0);
   }
 
   /**
