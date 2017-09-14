@@ -27,14 +27,14 @@ public interface DataPackageMapper {
    */
   List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
                          @Nullable @Param("fromDate") Date fromDate, @Nullable @Param("toDate") Date toDate,
-                         @Nullable @Param("deleted") Boolean deleted);
+                         @Nullable @Param("deleted") Boolean deleted, @Nullable @Param("tags") List<String> tags);
 
   /**
    * Count data packages, optionally filtered by user.
    */
   Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
              @Nullable @Param("fromDate") Date fromDate, @Nullable @Param("toDate") Date toDate,
-             @Nullable @Param("deleted") Boolean deleted);
+             @Nullable @Param("deleted") Boolean deleted, @Nullable @Param("tags") List<String> tags);
 
   /**
    * Persists a new data package.

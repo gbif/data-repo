@@ -85,8 +85,9 @@ public class DataPackageResource {
   public PagingResponse<DataPackage> list(@Nullable @QueryParam("user") String user,
                                           @Nullable @BeanParam PagingParam page,
                                           @Nullable @QueryParam("fromDate") Date fromDate,
-                                          @Nullable @QueryParam("toDate") Date toDate) {
-    return dataRepository.list(user, page, fromDate, toDate, false);
+                                          @Nullable @QueryParam("toDate") Date toDate,
+                                          @Nullable @QueryParam("tag") List<String> tags) {
+    return dataRepository.list(user, page, fromDate, toDate, false, tags);
   }
 
 

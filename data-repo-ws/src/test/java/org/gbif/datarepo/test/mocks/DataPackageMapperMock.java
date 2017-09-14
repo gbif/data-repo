@@ -68,13 +68,15 @@ public class DataPackageMapperMock implements DataPackageMapper {
 
   @Override
   public List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
-                                @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted) {
+                                @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted,
+                                @Nullable @Param("tags") List<String> tags) {
     return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.toList());
   }
 
   @Override
   public Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
-                    @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted) {
+                    @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted,
+                    @Nullable @Param("tags") List<String> tags) {
     return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.counting());
   }
 

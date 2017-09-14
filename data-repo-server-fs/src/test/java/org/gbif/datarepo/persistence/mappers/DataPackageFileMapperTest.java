@@ -9,6 +9,7 @@ import org.gbif.datarepo.api.model.Tag;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.google.common.hash.Hashing;
 import com.google.inject.Injector;
@@ -114,7 +115,23 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false);
+    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false, null);
+    Assert.assertTrue(dataPackages.size() >=  1);
+  }
+
+  /**
+   * Tests methods create and list.
+   */
+  @Test
+  public void testListByTags() {
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
+    TagMapper tagMapper = injector.getInstance(TagMapper.class);
+    DataPackage dataPackage = testDataPackage();
+    mapper.create(dataPackage);
+    dataPackage.getTags().forEach(tagMapper::create);
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null,
+                                                 dataPackage.getTags().stream()
+                                                   .map(tag -> tag.getValue()).collect(Collectors.toList()));
     Assert.assertTrue(dataPackages.size() >=  1);
   }
 
@@ -126,7 +143,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    Assert.assertTrue(mapper.count("testUser", null, null, null, false) >= 1);
+    Assert.assertTrue(mapper.count("testUser", null, null, null, false, null) >= 1);
   }
 
 

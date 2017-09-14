@@ -272,6 +272,17 @@ public class DataPackage {
     tags.add(tag);
   }
 
+  /**
+   * Adds a new Tag to the list of tags.
+   */
+  public void addTag(String tagValue) {
+    Tag tag = new Tag();
+    tag.setValue(tagValue);
+    tag.setDataPackageDoi(doi);
+    tag.setCreatedBy(createdBy);
+    tags.add(tag);
+  }
+
 
   @Override
   public boolean equals(Object obj) {
