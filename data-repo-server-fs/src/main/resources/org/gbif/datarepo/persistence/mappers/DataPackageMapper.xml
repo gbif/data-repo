@@ -44,7 +44,7 @@
         AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        AND dp.created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=OTHER}
       </if>
       <choose>
         <when test="deleted" >
@@ -78,7 +78,7 @@
         AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
       </if>
       <if test="toDate !=null" >
-        AND dp.created <![CDATA[ <= ]]>  #{toDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=OTHER}
       </if>
       <choose>
         <when test="deleted" >
