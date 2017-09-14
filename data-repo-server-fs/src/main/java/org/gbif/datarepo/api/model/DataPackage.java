@@ -66,6 +66,9 @@ public class DataPackage {
   @JsonProperty
   private List<AlternativeIdentifier> alternativeIdentifiers;
 
+  @JsonProperty
+  private List<Tag> tags;
+
   private final String baseUrl;
 
   /**
@@ -75,6 +78,7 @@ public class DataPackage {
   public DataPackage() {
     files = new ArrayList<>();
     alternativeIdentifiers = new ArrayList<>();
+    tags = new ArrayList<>();
     baseUrl = "";
   }
 
@@ -86,6 +90,7 @@ public class DataPackage {
   public DataPackage(String baseUrl) {
     files = new ArrayList<>();
     alternativeIdentifiers = new ArrayList<>();
+    tags = new ArrayList<>();
     this.baseUrl = baseUrl;
   }
 
@@ -224,6 +229,17 @@ public class DataPackage {
   }
 
   /**
+   * Tags associated to the DataPackage.
+   */
+  public List<Tag> getTags() {
+    return tags;
+  }
+
+  public void setTags(List<Tag> tags) {
+    this.tags = tags;
+  }
+
+  /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
@@ -248,6 +264,15 @@ public class DataPackage {
     alternativeIdentifiers.add(alternativeIdentifier);
   }
 
+  /**
+   * Adds a new Tag to the list of tags.
+   */
+  public void addTag(Tag tag) {
+    tag.setDataPackageDoi(doi);
+    tags.add(tag);
+  }
+
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -267,13 +292,15 @@ public class DataPackage {
            && Objects.equals(modified, other.modified)
            && Objects.equals(size, other.size)
            && Objects.equals(checksum, other.checksum)
-           && Objects.equals(alternativeIdentifiers, other.alternativeIdentifiers);
+           && Objects.equals(alternativeIdentifiers, other.alternativeIdentifiers)
+           && Objects.equals(tags, other.tags);
 
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(doi, metadata, files);
+    return Objects.hash(doi, metadata, files, createdBy, created, title, description, modified, size, checksum,
+                        alternativeIdentifiers, tags);
   }
 
   @Override
@@ -288,7 +315,8 @@ public class DataPackage {
             + "\", \"modified\": \"" + modified
             + "\", \"checksum\": \"" + checksum
             + "\", \"size\": \"" + size
-            + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers +"\"}";
+            + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers
+            + "\", \"tags\": \"" + tags +"\"}";
   }
 
   /**
@@ -308,6 +336,7 @@ public class DataPackage {
     dataPackage.setChecksum(checksum);
     dataPackage.setSize(size);
     dataPackage.setAlternativeIdentifiers(alternativeIdentifiers);
+    dataPackage.setTags(tags);
     return dataPackage;
   }
 

@@ -8,6 +8,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
+import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.datarepo.test.mocks.AlternativeIdentifierMapperMock;
 import org.gbif.datarepo.test.mocks.DataPackageFileMapperMock;
@@ -16,6 +17,7 @@ import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
 import org.gbif.datarepo.test.mocks.RepositoryStatsMapperMock;
+import org.gbif.datarepo.test.mocks.TagMapperMock;
 import org.gbif.doi.service.DoiException;
 
 import java.io.File;
@@ -95,6 +97,7 @@ public class DataPackageResourceTest {
   private static final DataPackageFileMapper DATA_PACKAGE_FILE_MAPPER = spy(new DataPackageFileMapperMock(configuration()));
   private static final RepositoryStatsMapper REPOSITORY_STATS_MAPPER = spy(new RepositoryStatsMapperMock(configuration()));
   private static final AlternativeIdentifierMapper ALTERNATIVE_IDENTIFIER_MAPPER = spy(new AlternativeIdentifierMapperMock());
+  private static final TagMapper TAG_MAPPER = spy(new TagMapperMock());
 
   private static final DataPackage TEST_DATA_PACKAGE = testDataPackage();
 
@@ -150,7 +153,8 @@ public class DataPackageResourceTest {
     //Test resource
     .addResource(new DataPackageResource(new FileSystemRepository(configuration(), new DoiRegistrationServiceMock(),
                                                                   DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER,
-                                                                  REPOSITORY_STATS_MAPPER, ALTERNATIVE_IDENTIFIER_MAPPER),
+                                                                  TAG_MAPPER, REPOSITORY_STATS_MAPPER,
+                                                                  ALTERNATIVE_IDENTIFIER_MAPPER),
                                          configuration()))
     .build();
 

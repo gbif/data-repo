@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.gbif.datarepo.persistence.mappers.TagMapper">
+
+  <resultMap id="TAG_MAP" type="Tag" autoMapping="true">
+    <id property="key" column="key"/>
+    <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
+    <result property="value" column="value"/>
+    <result property="created" column="created"/>
+    <result property="createdBy" column="created_by"/>
+  </resultMap>
+
+  <sql id="WRITABLE_TAG_FIELDS">
+    value,data_package_doi,created,created_by
+  </sql>
+
+  <sql id="TAG_FIELDS">
+    key,<include refid="org.gbif.datarepo.persistence.mappers.TagMapper.WRITABLE_TAG_FIELDS"/>
+  </sql>
+
+  <sql id="WRITABLE_TAG_FIELD_TYPES">
+    #{value,jdbcType=OTHER},
+    #{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler},
+    now(),<!-- created -->
+    #{createdBy,jdbcType=OTHER}
+  </sql>
+
+  <insert id="create" parameterType="Tag" useGeneratedKeys="true" keyProperty="key">
+    INSERT INTO tag(<include refid="WRITABLE_TAG_FIELDS"/>)
+    VALUES(<include refid="WRITABLE_TAG_FIELD_TYPES"/>)
+  </insert>
+
+  <delete id="delete" parameterType="Integer">
+    DELETE FROM tag WHERE key = #{tagKey}
+  </delete>
+
+  <select id="listByDoi" resultMap="TAG_MAP" parameterType="DOI">
+    SELECT <include refid="TAG_FIELDS"/> FROM tag WHERE
+    data_package_doi = #{dataPackageDoi, jdbcType=OTHER}
+  </select>
+</mapper>

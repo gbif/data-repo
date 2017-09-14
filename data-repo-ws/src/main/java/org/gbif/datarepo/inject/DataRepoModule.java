@@ -9,6 +9,7 @@ import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
+import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
@@ -73,11 +74,20 @@ public class DataRepoModule {
 
 
   /**
-   * Gets DataPackageMapper instance.
+   * Gets DataPackageDataPackageFileMapperMapper instance.
    */
   public DataPackageFileMapper dataPackageFileMapper() {
     return injector.getInstance(DataPackageFileMapper.class);
   }
+
+
+  /**
+   * Gets TagMapper instance.
+   */
+  public TagMapper tagMapper() {
+    return injector.getInstance(TagMapper.class);
+  }
+
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
@@ -102,7 +112,8 @@ public class DataRepoModule {
    */
   public DataRepository dataRepository() {
     return new FileSystemRepository(configuration, doiRegistrationService(), dataPackageMapper(),
-                                    dataPackageFileMapper(), repositoryStatsMapper(), alternativeIdentifierMapper());
+                                    dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
+                                    alternativeIdentifierMapper());
   }
 
 }

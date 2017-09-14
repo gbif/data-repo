@@ -17,6 +17,7 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
 import ru.yandex.qatools.embed.postgresql.distribution.Version;
@@ -41,6 +42,18 @@ public class BaseMapperTest {
     embeddedPostgres = new EmbeddedPostgres(Version.V9_4_10);
     jdbcUrl = embeddedPostgres.start("localhost", new ServerSocket(0).getLocalPort(), "testdb", "user", "password");
     runLiquibase();
+  }
+
+  @Before
+  public void clearDB() {
+    try {
+      Class.forName("org.postgresql.Driver");
+      try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
+        connection.prepareStatement("DELETE FROM data_package").execute();
+      }
+    } catch (ClassNotFoundException | SQLException ex) {
+      throw new IllegalStateException(ex);
+    }
   }
 
   /**

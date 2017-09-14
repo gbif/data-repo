@@ -7,35 +7,31 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-/**
- *
- */
-@JsonSerialize
-public class AlternativeIdentifier {
+public class Tag {
 
-  /**
-   * Types of supported identifiers.
-   */
-  public enum Type {
-    URL, LSID, DOI, UUID, URI, UNKNOWN;
-  }
+  @JsonProperty
+  private Integer key;
 
   @JsonIgnore
   private DOI dataPackageDoi;
 
   @JsonProperty
-  private String identifier;
-
-  @JsonProperty
-  private Type type;
+  private String value;
 
   @JsonProperty
   private String createdBy;
 
   @JsonProperty
   private Date created;
+
+  public Integer getKey() {
+    return key;
+  }
+
+  public void setKey(Integer key) {
+    this.key = key;
+  }
 
   public DOI getDataPackageDoi() {
     return dataPackageDoi;
@@ -45,20 +41,12 @@ public class AlternativeIdentifier {
     this.dataPackageDoi = dataPackageDoi;
   }
 
-  public String getIdentifier() {
-    return identifier;
+  public String getValue() {
+    return value;
   }
 
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
-  }
-
-  public Type getType() {
-    return type;
-  }
-
-  public void setType(Type type) {
-    this.type = type;
+  public void setValue(String value) {
+    this.value = value;
   }
 
   public String getCreatedBy() {
@@ -80,13 +68,13 @@ public class AlternativeIdentifier {
 
   @Override
   public int hashCode() {
-    return Objects.hash(identifier, type, dataPackageDoi, createdBy, created);
+    return Objects.hash(key, value, dataPackageDoi, createdBy, created);
   }
 
   @Override
   public String toString() {
-    return "{\"identifier\": \"" + identifier
-           + "\", \"type\": \"" + type
+    return "{\"key\": \"" + key
+           + "\", \"value\": \"" + value
            + "\", \"dataPackageDoi\": \"" + dataPackageDoi
            + "\", \"createdBy\": \"" + createdBy
            + "\", \"created\": \"" + created + "\"}";
@@ -101,9 +89,9 @@ public class AlternativeIdentifier {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    AlternativeIdentifier other = (AlternativeIdentifier) obj;
-    return Objects.equals(identifier, other.identifier)
-           && Objects.equals(type, other.type)
+    Tag other = (Tag) obj;
+    return Objects.equals(key, other.key)
+           && Objects.equals(value, other.value)
            && Objects.equals(dataPackageDoi, other.dataPackageDoi)
            && Objects.equals(createdBy, other.createdBy)
            && Objects.equals(created, other.created);

@@ -12,6 +12,7 @@ import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
+import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
@@ -61,6 +62,8 @@ public class FileSystemRepository implements DataRepository {
 
   private final RepositoryStatsMapper repositoryStatsMapper;
 
+  private final TagMapper tagMapper;
+
 
   /**
    * Paths where the files are stored.
@@ -75,6 +78,7 @@ public class FileSystemRepository implements DataRepository {
                               DoiRegistrationService doiRegistrationService,
                               DataPackageMapper dataPackageMapper,
                               DataPackageFileMapper dataPackageFileMapper,
+                              TagMapper tagMapper,
                               RepositoryStatsMapper repositoryStatsMapper,
                               AlternativeIdentifierMapper alternativeIdentifierMapper) {
     this.doiRegistrationService = doiRegistrationService;
@@ -89,6 +93,7 @@ public class FileSystemRepository implements DataRepository {
     this.dataPackageFileMapper = dataPackageFileMapper;
     this.repositoryStatsMapper = repositoryStatsMapper;
     this.alternativeIdentifierMapper = alternativeIdentifierMapper;
+    this.tagMapper = tagMapper;
   }
 
   /**
@@ -217,6 +222,7 @@ public class FileSystemRepository implements DataRepository {
                 newDataPackage.getFiles()
                   .forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
                 newDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+                newDataPackage.getTags().forEach(tagMapper::create);
                 return newDataPackage;
               } catch (Exception ex) {
                 LOG.error("Error registering a DOI", ex);
@@ -238,6 +244,7 @@ public class FileSystemRepository implements DataRepository {
     clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
     dataPackage.getFiles().clear();
   }
+
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
@@ -269,7 +276,7 @@ public class FileSystemRepository implements DataRepository {
     });
     existingDataPackage.getAlternativeIdentifiers()
       .forEach(alternativeIdentifier -> alternativeIdentifierMapper.delete(alternativeIdentifier.getIdentifier()));
-
+    existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
     DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getDoi());
     preparedDataPackage.getFiles().stream()
       .filter(dataPackageFile -> existingFiles.get(Boolean.FALSE)
@@ -280,6 +287,7 @@ public class FileSystemRepository implements DataRepository {
 
     dataPackageMapper.update(preparedDataPackage);
     preparedDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+    preparedDataPackage.getTags().forEach(tagMapper::create);
     handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)
                                                                                   .withMetadata(dataCiteMetadata)

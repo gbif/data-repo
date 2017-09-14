@@ -17,6 +17,8 @@
                 select="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.list"/>
     <collection property="alternativeIdentifiers" column="doi" ofType="AlternativeIdentifier"
                 select="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper.listByDoi"/>
+    <collection property="tags" column="doi" ofType="Tag"
+                select="org.gbif.datarepo.persistence.mappers.TagMapper.listByDoi"/>
   </resultMap>
 
   <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">

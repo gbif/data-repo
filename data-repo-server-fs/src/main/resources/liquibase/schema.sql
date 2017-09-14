@@ -32,3 +32,16 @@ CREATE TABLE alternative_identifier (
     created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3)
 );
 CREATE INDEX alternative_identifier_idx ON alternative_identifier(data_package_doi, created, created_by);
+
+
+CREATE TABLE tag (
+  key serial NOT NULL,
+  data_package_doi text NOT NULL REFERENCES data_package(doi) ON DELETE CASCADE,
+  value text NOT NULL,
+  created_by character varying(255) NOT NULL,
+  created timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT tag_pkey PRIMARY KEY (key),
+  CONSTRAINT tag_created_by_check CHECK (length(created_by) >= 3),
+  CONSTRAINT tag_value_check CHECK (length(created_by) >= 1)
+);
+CREATE INDEX tag_idx ON tag(data_package_doi, value, created_by);

@@ -6,10 +6,12 @@ import org.gbif.datarepo.api.model.AlternativeIdentifier;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.RepositoryStats;
+import org.gbif.datarepo.api.model.Tag;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
+import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.persistence.type.DoiTypeHandler;
 import org.gbif.mybatis.guice.MyBatisModule;
 
@@ -53,11 +55,13 @@ public class DataPackageMyBatisModule extends PrivateModule {
       addAlias("DOI").to(DOI.class);
       addAlias("Pageable").to(Pageable.class);
       addAlias("AlternativeIdentifier").to(AlternativeIdentifier.class);
+      addAlias("Tag").to(Tag.class);
       //Mappers
       addMapperClass(DataPackageMapper.class);
       addMapperClass(DataPackageFileMapper.class);
       addMapperClass(RepositoryStatsMapper.class);
       addMapperClass(AlternativeIdentifierMapper.class);
+      addMapperClass(TagMapper.class);
     }
 
     /**
@@ -93,5 +97,6 @@ public class DataPackageMyBatisModule extends PrivateModule {
     expose(DataPackageFileMapper.class);
     expose(RepositoryStatsMapper.class);
     expose(AlternativeIdentifierMapper.class);
+    expose(TagMapper.class);
   }
 }
