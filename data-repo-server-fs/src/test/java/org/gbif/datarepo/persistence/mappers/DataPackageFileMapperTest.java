@@ -131,7 +131,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     dataPackage.getTags().forEach(tagMapper::create);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null,
                                                  dataPackage.getTags().stream()
-                                                   .map(tag -> tag.getValue()).collect(Collectors.toList()));
+                                                   .map(Tag::getValue).collect(Collectors.toList()));
     Assert.assertTrue(dataPackages.size() >=  1);
   }
 
