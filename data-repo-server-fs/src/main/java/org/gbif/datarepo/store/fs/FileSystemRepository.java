@@ -194,6 +194,8 @@ public class FileSystemRepository implements DataRepository {
         alternativeIdentifier.setCreatedBy(dataPackage.getCreatedBy());
         newDataPackage.addAlternativeIdentifier(alternativeIdentifier);
       });
+    dataPackage.getTags().forEach(tag -> newDataPackage.addTag(tag.getValue()));
+
     return newDataPackage;
   }
 
