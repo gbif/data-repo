@@ -13,7 +13,6 @@ import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
@@ -74,7 +73,7 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Default constructor: requires a path to an existing directory.
    */
-  public FileSystemRepository(DataRepoConfiguration configuration,
+  public FileSystemRepository(String dataRepoPath,
                               DoiRegistrationService doiRegistrationService,
                               DataPackageMapper dataPackageMapper,
                               DataPackageFileMapper dataPackageFileMapper,
@@ -82,7 +81,7 @@ public class FileSystemRepository implements DataRepository {
                               RepositoryStatsMapper repositoryStatsMapper,
                               AlternativeIdentifierMapper alternativeIdentifierMapper) {
     this.doiRegistrationService = doiRegistrationService;
-    storePath = Paths.get(configuration.getDataRepoPath());
+    storePath = Paths.get(dataRepoPath);
     File file = storePath.toFile();
     //Create directory if it doesn't exist
     if (!file.exists()) {
@@ -168,6 +167,8 @@ public class FileSystemRepository implements DataRepository {
     newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
     newDataPackage.setTitle(dataPackage.getTitle());
     newDataPackage.setDescription(dataPackage.getDescription());
+    newDataPackage.setCreated(dataPackage.getCreated());
+    newDataPackage.setModified(dataPackage.getModified());
 
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
@@ -276,6 +277,7 @@ public class FileSystemRepository implements DataRepository {
       dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
       existingDataPackage.getFiles().remove(dataPackageFile);
     });
+    existingDataPackage.setModified(dataPackage.getModified());
     existingDataPackage.getAlternativeIdentifiers()
       .forEach(alternativeIdentifier -> alternativeIdentifierMapper.delete(alternativeIdentifier.getIdentifier()));
     existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
@@ -342,7 +344,7 @@ public class FileSystemRepository implements DataRepository {
   public PagingResponse<DataPackage> list(String user, @Nullable Pageable page,
                                           @Nullable Date fromDate, @Nullable Date toDate,
                                           @Nullable Boolean deleted, @Nullable List<String> tags) {
-    Long count = dataPackageMapper.count(user, page, fromDate, toDate, deleted, tags);
+    Long count = dataPackageMapper.count(user, fromDate, toDate, deleted, tags);
     List<DataPackage> packages = dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags);
     return new PagingResponse<>(page, count, packages);
   }

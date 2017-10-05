@@ -21,9 +21,19 @@ public final class PathsParams {
   public static final String METADATA_PARAM = "metadata";
 
   /**
+   * Metadata file URL parameter.
+   */
+  public static final String METADATA_URL_PARAM = "metadataUrl";
+
+  /**
    * DataPackage content file parameter.
    */
   public static final String FILE_PARAM = "file";
+
+  /**
+   * DataPackage content file URL parameter.
+   */
+  public static final String FILE_URL_PARAM = "fileUrl";
 
   /**
    * DataPackage form parameters.

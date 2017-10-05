@@ -87,7 +87,7 @@ public class DataRepoFsModule {
    */
   public DoiRegistrationService doiRegistrationService(ObjectMapper mapper) {
     if (doiRegistrationService == null) {
-      Client client = DoiRegistrationWsClient.buildClient(configuration, mapper);
+      Client client = DoiRegistrationWsClient.buildClient(configuration.getAppKey(), mapper);
       doiRegistrationService = new DoiRegistrationWsClient(buildWebTarget(client, configuration.getGbifApiUrl()));
     }
     return doiRegistrationService;
@@ -97,7 +97,8 @@ public class DataRepoFsModule {
    * Creates an instance of DataRepository that is backed by a file system.
    */
   public DataRepository dataRepository(ObjectMapper mapper) {
-    return new FileSystemRepository(configuration, doiRegistrationService(mapper), dataPackageMapper(),
+    return new FileSystemRepository(configuration.getDataRepoPath(), doiRegistrationService(mapper),
+                                    dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
                                     alternativeIdentifierMapper());
   }

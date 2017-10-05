@@ -11,14 +11,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * GBIF Jersey 2 client authentication filter.
  */
-public class HttpGbifAuthFilter implements ClientRequestFilter {
+public class HttpGbifClientAuthFilter implements ClientRequestFilter {
 
   private final GbifAuthService authService;
 
   /**
    * By default uses an application key and secret to sing requests.
    */
-  public HttpGbifAuthFilter(ApplicationKeyConfiguration appKeyConfiguration, ObjectMapper mapper) {
+  public HttpGbifClientAuthFilter(ApplicationKeyConfiguration appKeyConfiguration, ObjectMapper mapper) {
     authService = GbifAuthService.singleKeyAuthService(appKeyConfiguration.getAppKey(),
                                                        appKeyConfiguration.getAppSecretKey(),
                                                        mapper,

@@ -24,6 +24,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -302,6 +303,21 @@ public class GbifAuthService {
 
   private String getPrivateKey(String applicationKey) {
     return keyStore.get(applicationKey);
+  }
+
+  /**
+   * Tries to get the appkey from the request header.
+   * @param authorizationHeader lambda expression to access the headers of a request.
+   * @return the appkey found or null
+   */
+  public static String getAppKeyFromRequest(String authorizationHeader) {
+    if(StringUtils.startsWith(authorizationHeader, GBIF_SCHEME + " ")) {
+      String[] values = COLON_PATTERN.split(authorizationHeader.substring(5), 2);
+      if (values.length == 2) {
+        return values[0];
+      }
+    }
+    return null;
   }
 }
 

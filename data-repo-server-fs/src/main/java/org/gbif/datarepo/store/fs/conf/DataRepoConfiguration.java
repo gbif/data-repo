@@ -32,7 +32,6 @@ public class DataRepoConfiguration  {
   @NotNull
   private ApplicationKeyConfiguration appKey;
 
-
   /**
    * File system path where the archives are being stored.
    */
@@ -102,4 +101,5 @@ public class DataRepoConfiguration  {
   public void setAppKey(ApplicationKeyConfiguration appKey) {
     this.appKey = appKey;
   }
+
 }

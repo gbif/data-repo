@@ -148,7 +148,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"));
-    Long count = mapper.count(null, null, null, null, null, Collections.singletonList("NoATag"));
+    Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"));
     Assert.assertTrue(dataPackages.size() ==  0);
     Assert.assertTrue(count ==  0);
   }
@@ -161,7 +161,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    Assert.assertTrue(mapper.count("testUser", null, null, null, false, null) >= 1);
+    Assert.assertTrue(mapper.count("testUser", null, null, false, null) >= 1);
   }
 
 

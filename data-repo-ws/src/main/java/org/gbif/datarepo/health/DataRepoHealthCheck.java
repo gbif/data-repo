@@ -1,5 +1,6 @@
 package org.gbif.datarepo.health;
 
+import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
 import java.io.File;
@@ -12,12 +13,12 @@ import com.codahale.metrics.health.HealthCheck;
  */
 public class DataRepoHealthCheck extends HealthCheck {
 
-  private final DataRepoConfiguration configuration;
+  private final DataRepoConfigurationDW configuration;
 
   /**
    * Full constructor, requires configuration settings to access the data directory.
    */
-  public DataRepoHealthCheck(DataRepoConfiguration configuration) {
+  public DataRepoHealthCheck(DataRepoConfigurationDW configuration) {
     this.configuration = configuration;
   }
 
@@ -26,7 +27,7 @@ public class DataRepoHealthCheck extends HealthCheck {
    */
   @Override
   protected Result check() throws Exception {
-    File dataRepoDir = Paths.get(configuration.getDataRepoPath()).toFile();
+    File dataRepoDir = Paths.get(configuration.getDataRepoConfiguration().getDataRepoPath()).toFile();
 
     if (!dataRepoDir.exists()) {
       return Result.unhealthy(String.format("Data directory %s doesn't exists", dataRepoDir.getAbsolutePath()));

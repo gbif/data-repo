@@ -1,4 +1,4 @@
-package org.gbif.datarepo.auth;
+package org.gbif.datarepo.auth.basic;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
  * Authentication service.
  * Performs a basic authentication (user and password) against the GBUIF user service.
  */
-public class GbifAuthenticator implements Authenticator<BasicCredentials, GbifUserPrincipal> {
+public class GbifBasicAuthenticator implements Authenticator<BasicCredentials, GbifUserPrincipal> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthenticator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GbifBasicAuthenticator.class);
 
   //GBIF Security realm
   public static final String GBIF_REALM = "GBIF";
@@ -32,7 +32,7 @@ public class GbifAuthenticator implements Authenticator<BasicCredentials, GbifUs
    * Default constructor, requires a UserService instance.
    * @param identityAccessService GBIF user service
    */
-  public GbifAuthenticator(IdentityAccessService identityAccessService) {
+  public GbifBasicAuthenticator(IdentityAccessService identityAccessService) {
     this.identityAccessService = identityAccessService;
   }
 

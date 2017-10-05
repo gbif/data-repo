@@ -41,10 +41,10 @@
         AND dp.created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=TIMESTAMP}
       </if>
       <if test="toDate !=null" >
-        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=TIMESTAMP}
       </if>
       <choose>
         <when test="deleted" >
@@ -75,10 +75,10 @@
         AND dp.created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=TIMESTAMP}
       </if>
       <if test="toDate !=null" >
-        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=OTHER}
+        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=TIMESTAMP}
       </if>
       <choose>
         <when test="deleted" >
@@ -96,15 +96,13 @@
         #{item}
       </foreach>
     </if>
-    <if test="page != null" >
-      LIMIT #{page.limit} OFFSET #{page.offset}
-    </if>
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
     INSERT INTO data_package (doi, title, description, metadata, created, modified, created_by, modified_by, checksum, size)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
-    #{metadata, jdbcType=OTHER}, now(), now(),
+    #{metadata, jdbcType=OTHER}, <choose><when test="created !=null " >#{created, jdbcType=DATE}</when><otherwise>now()</otherwise></choose>,
+    <choose><when test="modified != null" >#{modified, jdbcType=DATE}</when><otherwise>now()</otherwise></choose>,
     #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
   </insert>
 

@@ -2,7 +2,8 @@ package org.gbif.datarepo.registry;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.DoiData;
-import org.gbif.datarepo.auth.HttpGbifAuthFilter;
+import org.gbif.datarepo.auth.HttpGbifClientAuthFilter;
+import org.gbif.datarepo.store.fs.conf.ApplicationKeyConfiguration;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
@@ -89,10 +90,10 @@ public class DoiRegistrationWsClient implements DoiRegistrationService {
   /**
    * Builds a Jersey Client that uses a custom JacksonObjectMapperProvider and the HttpGbifAuthFilter.
    */
-  public static Client buildClient(DataRepoConfiguration configuration, ObjectMapper mapper) {
+  public static Client buildClient(ApplicationKeyConfiguration applicationKeyConfiguration, ObjectMapper mapper) {
     ClientConfig clientConfig = new ClientConfig().register(JacksonObjectMapperProvider.class)
                                   .register(JacksonFeature.class)
-                                  .register(new HttpGbifAuthFilter(configuration.getAppKey(), mapper));
+                                  .register(new HttpGbifClientAuthFilter(applicationKeyConfiguration, mapper));
     return ClientBuilder.newClient(clientConfig);
   }
 

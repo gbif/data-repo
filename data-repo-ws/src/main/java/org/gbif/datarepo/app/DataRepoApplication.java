@@ -1,7 +1,8 @@
 package org.gbif.datarepo.app;
 
 import org.gbif.api.model.common.GbifUserPrincipal;
-import org.gbif.datarepo.auth.GbifAuthenticator;
+import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
+import org.gbif.datarepo.auth.jwt.GbifJwtCredentialsFilter;
 import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
@@ -21,12 +22,14 @@ import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PAR
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Lists;
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.auth.basic.BasicCredentials;
+import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -63,8 +66,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
    * Application entry point.
    */
   @Override
-  public void run(DataRepoConfigurationDW configurationDW, Environment environment) throws Exception {
-    DataRepoConfiguration configuration = configurationDW.getDataRepoConfiguration();
+  public void run(DataRepoConfigurationDW configuration, Environment environment) throws Exception {
     DataRepoModule dataRepoModule = new DataRepoModule(configuration, environment);
 
     //CORS Filter
@@ -85,19 +87,20 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     //Security configuration
-    Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = dataRepoModule.getAuthenticator();
+    Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = dataRepoModule.getBasicCredentialsAuthenticator();
     BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
-      new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>().setAuthenticator(dataRepoModule.getAuthenticator())
-        .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter();
-    environment.jersey().register(new AuthDynamicFeature(userBasicCredentialAuthFilter));
+      new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>().setAuthenticator(dataRepoModule.getBasicCredentialsAuthenticator())
+        .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
+    GbifJwtCredentialsFilter jwtCredentialsFilter = new GbifJwtCredentialsFilter.Builder().setAuthenticator(dataRepoModule.getJWTAuthenticator()).setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
+    environment.jersey().register(new AuthDynamicFeature(new ChainedAuthFilter(Lists.newArrayList(userBasicCredentialAuthFilter, jwtCredentialsFilter))));
     environment.jersey().register(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class));
 
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration));
     environment.jersey().register(new RepositoryStatsResource(dataRepoModule.dataRepository()));
-    if (configurationDW.getService().isDiscoverable()) {
-      environment.lifecycle().manage(new DiscoveryLifeCycle(configurationDW.getService()));
+    if (configuration.getService().isDiscoverable()) {
+      environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));
     }
 
     //Health checks

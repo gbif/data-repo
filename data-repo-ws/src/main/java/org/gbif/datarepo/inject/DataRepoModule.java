@@ -3,7 +3,9 @@ package org.gbif.datarepo.inject;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.datarepo.api.DataRepository;
-import org.gbif.datarepo.auth.GbifAuthenticator;
+import org.gbif.datarepo.app.DataRepoConfigurationDW;
+import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
+import org.gbif.datarepo.auth.jwt.GbifJwtAuthenticator;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -34,7 +36,7 @@ public class DataRepoModule {
   //Guice injector
   private final Injector injector;
 
-  private final DataRepoConfiguration configuration;
+  private final DataRepoConfigurationDW configuration;
   private final Environment environment;
 
   private DoiRegistrationService doiRegistrationService;
@@ -42,13 +44,16 @@ public class DataRepoModule {
   /**
    * Initializes mappers from the configuration settings and environment.
    */
-  public DataRepoModule(DataRepoConfiguration configuration, Environment environment) {
+  public DataRepoModule(DataRepoConfigurationDW configuration, Environment environment) {
     this.configuration = configuration;
     this.environment = environment;
-    DataPackageMyBatisModule dataPackageMyBatisModule = new DataPackageMyBatisModule(configuration.getDbConfig(),
+    DataPackageMyBatisModule dataPackageMyBatisModule = new DataPackageMyBatisModule(configuration
+                                                                                       .getDataRepoConfiguration()
+                                                                                       .getDbConfig(),
                                                                                      environment.metrics(),
                                                                                      environment.healthChecks());
-    injector = Guice.createInjector(new IdentityAccessModule(configuration.getUsersDb()), dataPackageMyBatisModule);
+    injector = Guice.createInjector(new IdentityAccessModule(this.configuration.getDataRepoConfiguration().getUsersDb()),
+                                    dataPackageMyBatisModule);
   }
 
   /**
@@ -91,8 +96,16 @@ public class DataRepoModule {
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
-  public Authenticator<BasicCredentials, GbifUserPrincipal> getAuthenticator() {
-    return new GbifAuthenticator(injector.getInstance(IdentityAccessService.class));
+  public Authenticator<BasicCredentials, GbifUserPrincipal> getBasicCredentialsAuthenticator() {
+    return new GbifBasicAuthenticator(injector.getInstance(IdentityAccessService.class));
+  }
+
+  /**
+   * Creates a new Authenticator instance using GBIF underlying services.
+   */
+  public Authenticator<String, GbifUserPrincipal> getJWTAuthenticator() {
+    return new GbifJwtAuthenticator(configuration.getJwtSigningKey(),
+                                    injector.getInstance(IdentityAccessService.class));
   }
 
   /**
@@ -101,8 +114,11 @@ public class DataRepoModule {
    */
   public DoiRegistrationService doiRegistrationService() {
     if (doiRegistrationService == null) {
-      Client client = DoiRegistrationWsClient.buildClient(configuration, environment.getObjectMapper());
-      doiRegistrationService = new DoiRegistrationWsClient(buildWebTarget(client, configuration.getGbifApiUrl()));
+      Client client = DoiRegistrationWsClient.buildClient(configuration.getDataRepoConfiguration().getAppKey(),
+                                                          environment.getObjectMapper());
+      doiRegistrationService = new DoiRegistrationWsClient(buildWebTarget(client,
+                                                                          configuration.getDataRepoConfiguration()
+                                                                            .getGbifApiUrl()));
     }
     return doiRegistrationService;
   }
@@ -111,7 +127,9 @@ public class DataRepoModule {
    * Creates an instance of DataRepository that is backed by a file system.
    */
   public DataRepository dataRepository() {
-    return new FileSystemRepository(configuration, doiRegistrationService(), dataPackageMapper(),
+    return new FileSystemRepository(configuration.getDataRepoConfiguration().getDataRepoPath(),
+                                    doiRegistrationService(),
+                                    dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
                                     alternativeIdentifierMapper());
   }

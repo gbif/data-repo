@@ -4,6 +4,7 @@ import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.discovery.conf.ServiceConfiguration;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
@@ -15,13 +16,16 @@ import io.dropwizard.Configuration;
  * Main service configuration, it contains: DOI settings, required urls and DB settings.
  */
 @JsonAutoDetect
-class DataRepoConfigurationDW extends Configuration {
+public class DataRepoConfigurationDW extends Configuration {
 
   @JsonProperty
   private DataRepoConfiguration dataRepoConfiguration;
 
   @Valid
   private ServiceConfiguration service;
+
+  @NotNull
+  private String jwtSigningKey;
 
   public DataRepoConfiguration getDataRepoConfiguration() {
     return dataRepoConfiguration;
@@ -38,5 +42,16 @@ class DataRepoConfigurationDW extends Configuration {
 
   public void setService(ServiceConfiguration service) {
     this.service = service;
+  }
+
+  /**
+   * Jason Web Token used to trust in externally authenticated users.
+   */
+  public String getJwtSigningKey() {
+    return jwtSigningKey;
+  }
+
+  public void setJwtSigningKey(String jwtSigningKey) {
+    this.jwtSigningKey = jwtSigningKey;
   }
 }

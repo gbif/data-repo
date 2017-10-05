@@ -3,7 +3,8 @@ package org.gbif.datarepo.resource;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.datarepo.auth.GbifAuthenticator;
+import org.gbif.datarepo.app.DataRepoConfigurationDW;
+import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -90,12 +91,14 @@ public class DataPackageResourceTest {
   private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE =
     new GenericType<PagingResponse<DataPackage>>(){};
 
-  private static final GbifAuthenticator AUTHENTICATOR = mock(GbifAuthenticator.class);
+  private static final GbifBasicAuthenticator AUTHENTICATOR = mock(GbifBasicAuthenticator.class);
 
-  private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration()));
+  private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration().getDataRepoConfiguration()));
 
-  private static final DataPackageFileMapper DATA_PACKAGE_FILE_MAPPER = spy(new DataPackageFileMapperMock(configuration()));
-  private static final RepositoryStatsMapper REPOSITORY_STATS_MAPPER = spy(new RepositoryStatsMapperMock(configuration()));
+  private static final DataPackageFileMapper DATA_PACKAGE_FILE_MAPPER = spy(new DataPackageFileMapperMock(configuration()
+                                                                                                            .getDataRepoConfiguration()));
+  private static final RepositoryStatsMapper REPOSITORY_STATS_MAPPER = spy(new RepositoryStatsMapperMock(configuration()
+                                                                                                           .getDataRepoConfiguration()));
   private static final AlternativeIdentifierMapper ALTERNATIVE_IDENTIFIER_MAPPER = spy(new AlternativeIdentifierMapperMock());
   private static final TagMapper TAG_MAPPER = spy(new TagMapperMock());
 
@@ -103,7 +106,7 @@ public class DataPackageResourceTest {
 
   private static Path temporaryFolder;
 
-  private static DataRepoConfiguration configuration;
+  private static DataRepoConfigurationDW configuration;
 
   private DataPackageUriBuilder uriBuilder;
 
@@ -126,14 +129,16 @@ public class DataPackageResourceTest {
    * Returns or creates a new configuration object instance.
    * The temporaryFolder field is used as the repository directory.
    */
-  private static DataRepoConfiguration configuration() {
+  private static DataRepoConfigurationDW configuration() {
     if (configuration == null) {
-      configuration = new DataRepoConfiguration();
-      configuration.setDoiCommonPrefix("10.5072");
-      configuration.setGbifApiUrl("http://localhost:8080/");
-      configuration.setDataPackageApiUrl("http://localhost:8080/data_packages/");
+      configuration = new DataRepoConfigurationDW();
+      DataRepoConfiguration dataRepoConfiguration = new DataRepoConfiguration();
+      dataRepoConfiguration.setDoiCommonPrefix("10.5072");
+      dataRepoConfiguration.setGbifApiUrl("http://localhost:8080/");
+      dataRepoConfiguration.setDataPackageApiUrl("http://localhost:8080/data_packages/");
       //Used the temporary folder as the data repo path
-      configuration.setDataRepoPath(temporaryFolder().toString());
+      dataRepoConfiguration.setDataRepoPath(temporaryFolder().toString());
+      configuration.setDataRepoConfiguration(dataRepoConfiguration);
     }
     return configuration;
   }
@@ -148,10 +153,12 @@ public class DataPackageResourceTest {
     //Authentication
     .addProvider(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>()
                                           .setAuthenticator(AUTHENTICATOR)
-                                          .setRealm(GbifAuthenticator.GBIF_REALM).buildAuthFilter()))
+                                          .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter()))
     .addProvider(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class))
     //Test resource
-    .addResource(new DataPackageResource(new FileSystemRepository(configuration(), new DoiRegistrationServiceMock(),
+    .addResource(new DataPackageResource(new FileSystemRepository(configuration().getDataRepoConfiguration()
+                                                                    .getDataRepoPath(),
+                                                                  new DoiRegistrationServiceMock(),
                                                                   DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER,
                                                                   TAG_MAPPER, REPOSITORY_STATS_MAPPER,
                                                                   ALTERNATIVE_IDENTIFIER_MAPPER),
@@ -183,7 +190,7 @@ public class DataPackageResourceTest {
   @Before
   public void setup() {
     try {
-      uriBuilder = new DataPackageUriBuilder(configuration.getDataPackageApiUrl());
+      uriBuilder = new DataPackageUriBuilder(configuration.getDataRepoConfiguration().getDataPackageApiUrl());
       //Copies all the content from  'testrepo/10.5072-dp.bvmv02' to the temporary directory
       //This is done to test service to retrieve DataPackages information and files
       FileUtils.copyDirectory(new File(TEST_REPO_PATH), temporaryFolder.toFile());

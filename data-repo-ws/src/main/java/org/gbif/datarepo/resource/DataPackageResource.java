@@ -7,6 +7,7 @@ import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
@@ -68,10 +69,10 @@ public class DataPackageResource {
   /**
    * Full constructor.
    */
-  public DataPackageResource(DataRepository dataRepository, DataRepoConfiguration configuration) {
+  public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration) {
     this.dataRepository = dataRepository;
-    this.configuration = configuration;
-    uriBuilder = new DataPackageUriBuilder(configuration.getDataPackageApiUrl());
+    this.configuration = configuration.getDataRepoConfiguration();
+    uriBuilder = new DataPackageUriBuilder(this.configuration.getDataPackageApiUrl());
   }
 
   /**
