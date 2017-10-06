@@ -3,9 +3,9 @@ package org.gbif.datarepo.test.resource;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
-import org.gbif.datarepo.auth.jwt.GbifJwtAuthenticator;
-import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
-import org.gbif.datarepo.auth.jwt.GbifJwtCredentialsFilter;
+import org.gbif.datarepo.auth.jwt.JwtAuthenticator;
+import org.gbif.datarepo.auth.jwt.JwtAuthConfiguration;
+import org.gbif.datarepo.auth.jwt.JwtCredentialsFilter;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -70,7 +70,7 @@ public class JwtAuthTest {
   private static String getJwtToken(String userName, byte[] signingKey) {
     return Jwts.builder()
       .signWith(SignatureAlgorithm.HS256, signingKey)
-      .claim(GbifAuthJwtConfiguration.DEFAULT_JWT_USER_NAME, userName)
+      .claim(JwtAuthConfiguration.DEFAULT_JWT_USER_NAME, userName)
       .compact();
   }
 
@@ -87,12 +87,12 @@ public class JwtAuthTest {
    * Builds a GbifJwtCredentialsFilter that returns testUser() for all authenticated users.
    */
   private static AuthFilter<String, GbifUserPrincipal> jwtAuthFilter() {
-    GbifAuthJwtConfiguration configuration = new GbifAuthJwtConfiguration();
+    JwtAuthConfiguration configuration = new JwtAuthConfiguration();
     configuration.setSigningKey(JWT_SIGNING_KEY);
     IdentityAccessService identityAccessService = Mockito.mock(IdentityAccessService.class);
     Mockito.when(identityAccessService.get(Matchers.matches(AUTHORIZED_USER_NAME))).thenReturn(testUser());
-    return new GbifJwtCredentialsFilter.Builder()
-      .setAuthenticator(new GbifJwtAuthenticator(configuration, identityAccessService))
+    return new JwtCredentialsFilter.Builder()
+      .setAuthenticator(new JwtAuthenticator(configuration, identityAccessService))
       .buildAuthFilter();
   }
 
@@ -104,7 +104,7 @@ public class JwtAuthTest {
     assertThat(resource.getJerseyTest()
                  .target(TEST_RESOURCE_PATH)
                  .request()
-                 .cookie(GbifAuthJwtConfiguration.DEFAULT_SECURITY_COOKIE,
+                 .cookie(JwtAuthConfiguration.DEFAULT_SECURITY_COOKIE,
                          getJwtToken(userName, jwtSigningKey.getBytes()))
                  .get(Response.class).getStatus())
       .isEqualTo(expectedStatus.getStatusCode());

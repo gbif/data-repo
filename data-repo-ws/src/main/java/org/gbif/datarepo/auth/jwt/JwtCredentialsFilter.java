@@ -18,11 +18,11 @@ import io.dropwizard.auth.Authenticator;
 /**
  * Authenticates an GBIF user from an encoded JWT token.
  */
-public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> {
+public class JwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> {
 
-  private final GbifAuthJwtConfiguration configuration;
+  private final JwtAuthConfiguration configuration;
 
-  public GbifJwtCredentialsFilter(GbifAuthJwtConfiguration configuration) {
+  public JwtCredentialsFilter(JwtAuthConfiguration configuration) {
     this.configuration = configuration;
   }
   /**
@@ -67,12 +67,12 @@ public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincip
   }
 
   /**
-   * Builder for {@link GbifJwtCredentialsFilter}.
+   * Builder for {@link JwtCredentialsFilter}.
    * <p>An {@link Authenticator} must be provided during the building process.</p>
    */
-  public static class Builder extends AuthFilterBuilder<String, GbifUserPrincipal, GbifJwtCredentialsFilter> {
+  public static class Builder extends AuthFilterBuilder<String, GbifUserPrincipal, JwtCredentialsFilter> {
 
-    private GbifAuthJwtConfiguration configuration;
+    private JwtAuthConfiguration configuration;
 
     /**
      * Sets the given configuration.
@@ -80,16 +80,16 @@ public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincip
      * @param configuration a configuration
      * @return the current builder
      */
-    public AuthFilterBuilder<String, GbifUserPrincipal, GbifJwtCredentialsFilter> setConfiguration(GbifAuthJwtConfiguration configuration) {
+    public AuthFilterBuilder<String, GbifUserPrincipal, JwtCredentialsFilter> setConfiguration(JwtAuthConfiguration configuration) {
       this.configuration = configuration;
       return this;
     }
 
 
     @Override
-    protected GbifJwtCredentialsFilter newInstance() {
+    protected JwtCredentialsFilter newInstance() {
       Preconditions.checkNotNull(configuration, "Configuration can't be null");
-      return new GbifJwtCredentialsFilter(configuration);
+      return new JwtCredentialsFilter(configuration);
     }
   }
 }

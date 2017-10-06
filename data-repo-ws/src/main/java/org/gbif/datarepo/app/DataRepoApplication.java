@@ -1,15 +1,14 @@
 package org.gbif.datarepo.app;
 
 import org.gbif.api.model.common.GbifUserPrincipal;
-import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
-import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
-import org.gbif.datarepo.auth.jwt.GbifJwtCredentialsFilter;
+import org.gbif.datarepo.auth.basic.BasicAuthenticator;
+import org.gbif.datarepo.auth.jwt.JwtAuthConfiguration;
+import org.gbif.datarepo.auth.jwt.JwtCredentialsFilter;
 import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
 import org.gbif.datarepo.resource.RepositoryStatsResource;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 
 import java.util.EnumSet;
@@ -67,17 +66,17 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
    * Registration of Authentication and authorization elements.
    */
   private static void registerSecurityComponents(DataRepoModule module, Environment environment,
-                                                 GbifAuthJwtConfiguration authJwtConfiguration) {
+                                                 JwtAuthConfiguration authJwtConfiguration) {
     //Security configuration
     Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = module.getBasicCredentialsAuthenticator();
     BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
       new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>()
         .setAuthenticator(module.getBasicCredentialsAuthenticator())
-        .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
-    GbifJwtCredentialsFilter jwtCredentialsFilter = new GbifJwtCredentialsFilter.Builder()
+        .setRealm(BasicAuthenticator.GBIF_REALM).buildAuthFilter();
+    JwtCredentialsFilter jwtCredentialsFilter = new JwtCredentialsFilter.Builder()
       .setConfiguration(authJwtConfiguration)
       .setAuthenticator(module.getJWTAuthenticator())
-      .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
+      .setRealm(BasicAuthenticator.GBIF_REALM).buildAuthFilter();
     environment.jersey().register(new AuthDynamicFeature(new ChainedAuthFilter(Lists.newArrayList(jwtCredentialsFilter,
                                                                                 userBasicCredentialAuthFilter))));
     environment.jersey().register(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class));

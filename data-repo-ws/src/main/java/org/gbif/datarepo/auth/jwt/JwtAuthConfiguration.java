@@ -5,7 +5,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Common constants used for GBIF JWT authentication.
  */
-public class GbifAuthJwtConfiguration {
+public class JwtAuthConfiguration {
 
   /**
    * Default user name filed in the JWT body.

@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
  * Authentication service.
  * Performs a basic authentication (user and password) against the GBUIF user service.
  */
-public class GbifBasicAuthenticator implements Authenticator<BasicCredentials, GbifUserPrincipal> {
+public class BasicAuthenticator implements Authenticator<BasicCredentials, GbifUserPrincipal> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(GbifBasicAuthenticator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BasicAuthenticator.class);
 
   //GBIF Security realm
   public static final String GBIF_REALM = "GBIF";
@@ -32,7 +32,7 @@ public class GbifBasicAuthenticator implements Authenticator<BasicCredentials, G
    * Default constructor, requires a UserService instance.
    * @param identityAccessService GBIF user service
    */
-  public GbifBasicAuthenticator(IdentityAccessService identityAccessService) {
+  public BasicAuthenticator(IdentityAccessService identityAccessService) {
     this.identityAccessService = identityAccessService;
   }
 

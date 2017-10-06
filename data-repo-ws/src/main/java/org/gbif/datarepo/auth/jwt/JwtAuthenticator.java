@@ -17,7 +17,7 @@ import io.jsonwebtoken.Jwts;
  * Dropwizard authenticator that validates if the user has been authenticated against a Jason Web Token.
  * Once the JWT is decoded and property 'userName' is examined to determine if it represents a valid user.
  */
-public class GbifJwtAuthenticator implements Authenticator<String, GbifUserPrincipal> {
+public class JwtAuthenticator implements Authenticator<String, GbifUserPrincipal> {
 
   //Private secure key used to encode/decode the JWT.
   private final byte[] jwtSigningKey;
@@ -25,14 +25,14 @@ public class GbifJwtAuthenticator implements Authenticator<String, GbifUserPrinc
   //GBIF users service
   private final IdentityAccessService identityAccessService;
 
-  private final GbifAuthJwtConfiguration configuration;
+  private final JwtAuthConfiguration configuration;
 
   /**
    * Default/Full constructor.
    * @param configuration JWT configuration
    * @param identityAccessService GBIF identity service
    */
-  public GbifJwtAuthenticator(GbifAuthJwtConfiguration configuration, IdentityAccessService identityAccessService) {
+  public JwtAuthenticator(JwtAuthConfiguration configuration, IdentityAccessService identityAccessService) {
     this.configuration= configuration;
     this.identityAccessService = identityAccessService;
     jwtSigningKey = configuration.getSigningKey().getBytes();

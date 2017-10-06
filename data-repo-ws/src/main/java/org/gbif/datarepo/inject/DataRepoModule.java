@@ -4,8 +4,8 @@ import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
-import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
-import org.gbif.datarepo.auth.jwt.GbifJwtAuthenticator;
+import org.gbif.datarepo.auth.basic.BasicAuthenticator;
+import org.gbif.datarepo.auth.jwt.JwtAuthenticator;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -14,7 +14,6 @@ import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.identity.inject.IdentityAccessModule;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
 
@@ -97,15 +96,15 @@ public class DataRepoModule {
    * Creates a new Authenticator instance using GBIF underlying services.
    */
   public Authenticator<BasicCredentials, GbifUserPrincipal> getBasicCredentialsAuthenticator() {
-    return new GbifBasicAuthenticator(injector.getInstance(IdentityAccessService.class));
+    return new BasicAuthenticator(injector.getInstance(IdentityAccessService.class));
   }
 
   /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
   public Authenticator<String, GbifUserPrincipal> getJWTAuthenticator() {
-    return new GbifJwtAuthenticator(configuration.getJwtAuthConfiguration(),
-                                    injector.getInstance(IdentityAccessService.class));
+    return new JwtAuthenticator(configuration.getJwtAuthConfiguration(),
+                                injector.getInstance(IdentityAccessService.class));
   }
 
   /**

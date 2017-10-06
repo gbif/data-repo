@@ -1,6 +1,6 @@
 package org.gbif.datarepo.app;
 
-import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
+import org.gbif.datarepo.auth.jwt.JwtAuthConfiguration;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.discovery.conf.ServiceConfiguration;
 
@@ -25,7 +25,7 @@ public class DataRepoConfigurationDW extends Configuration {
   private ServiceConfiguration service;
 
   @JsonProperty
-  private GbifAuthJwtConfiguration jwtAuthConfiguration;
+  private JwtAuthConfiguration jwtAuthConfiguration;
 
   public DataRepoConfiguration getDataRepoConfiguration() {
     return dataRepoConfiguration;
@@ -47,11 +47,11 @@ public class DataRepoConfigurationDW extends Configuration {
   /**
    * JWT authentication configs.
    */
-  public GbifAuthJwtConfiguration getJwtAuthConfiguration() {
+  public JwtAuthConfiguration getJwtAuthConfiguration() {
     return jwtAuthConfiguration;
   }
 
-  public void setJwtAuthConfiguration(GbifAuthJwtConfiguration jwtAuthConfiguration) {
+  public void setJwtAuthConfiguration(JwtAuthConfiguration jwtAuthConfiguration) {
     this.jwtAuthConfiguration = jwtAuthConfiguration;
   }
 }

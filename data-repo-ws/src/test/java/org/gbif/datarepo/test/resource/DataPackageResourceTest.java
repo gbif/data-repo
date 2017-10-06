@@ -4,7 +4,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
-import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
+import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -91,7 +91,7 @@ public class DataPackageResourceTest {
   private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE =
     new GenericType<PagingResponse<DataPackage>>(){};
 
-  private static final GbifBasicAuthenticator AUTHENTICATOR = mock(GbifBasicAuthenticator.class);
+  private static final BasicAuthenticator AUTHENTICATOR = mock(BasicAuthenticator.class);
 
   private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration().getDataRepoConfiguration()));
 
@@ -153,7 +153,7 @@ public class DataPackageResourceTest {
     //Authentication
     .addProvider(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>()
                                           .setAuthenticator(AUTHENTICATOR)
-                                          .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter()))
+                                          .setRealm(BasicAuthenticator.GBIF_REALM).buildAuthFilter()))
     .addProvider(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class))
     //Test resource
     .addResource(new DataPackageResource(new FileSystemRepository(configuration().getDataRepoConfiguration()
