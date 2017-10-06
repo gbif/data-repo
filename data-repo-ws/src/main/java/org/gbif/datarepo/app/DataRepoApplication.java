@@ -63,6 +63,27 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
   }
 
   /**
+   * Registration of Authentication and authorization elements.
+   */
+  private static void registerSecurityComponents(DataRepoModule module, Environment environment) {
+    //Security configuration
+    Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = module.getBasicCredentialsAuthenticator();
+    BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
+      new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>()
+        .setAuthenticator(module.getBasicCredentialsAuthenticator())
+        .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
+    GbifJwtCredentialsFilter jwtCredentialsFilter = new GbifJwtCredentialsFilter.Builder()
+      .setAuthenticator(module.getJWTAuthenticator())
+      .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
+    environment.jersey().register(new AuthDynamicFeature(new ChainedAuthFilter(Lists.newArrayList(jwtCredentialsFilter,
+                                                                                userBasicCredentialAuthFilter))));
+    environment.jersey().register(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class));
+
+    //Health check
+    environment.healthChecks().register("UserService", new AuthenticatorHealthCheck(authenticator));
+  }
+
+  /**
    * Application entry point.
    */
   @Override
@@ -86,14 +107,8 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     // Enforce use from ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
     environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-    //Security configuration
-    Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = dataRepoModule.getBasicCredentialsAuthenticator();
-    BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
-      new BasicCredentialAuthFilter.Builder<GbifUserPrincipal>().setAuthenticator(dataRepoModule.getBasicCredentialsAuthenticator())
-        .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
-    GbifJwtCredentialsFilter jwtCredentialsFilter = new GbifJwtCredentialsFilter.Builder().setAuthenticator(dataRepoModule.getJWTAuthenticator()).setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
-    environment.jersey().register(new AuthDynamicFeature(new ChainedAuthFilter(Lists.newArrayList(userBasicCredentialAuthFilter, jwtCredentialsFilter))));
-    environment.jersey().register(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class));
+    //Register authentication and access control components
+    registerSecurityComponents(dataRepoModule, environment);
 
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
@@ -105,7 +120,6 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
 
     //Health checks
     environment.healthChecks().register("DataRepo", new DataRepoHealthCheck(configuration));
-    environment.healthChecks().register("UserService", new AuthenticatorHealthCheck(authenticator));
 
   }
 

@@ -265,11 +265,11 @@ public class DataPackageResourceTest {
     try (InputStream downloadFile = resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH,
                                                                               TEST_DOI_SUFFIX,
                                                                               CONTENT_TEST_FILE).toString())
-      .request().get(InputStream.class); //download file
+        .request().get(InputStream.class); //download file
          //Read test file
-         InputStream contentFile = new FileInputStream(Paths.get(TEST_DATA_PACKAGE_DIR, CONTENT_TEST_FILE).toFile())) {
-      //compare file contents
-      assertThat(downloadFile).hasSameContentAs(contentFile);
+        InputStream contentFile = new FileInputStream(Paths.get(TEST_DATA_PACKAGE_DIR, CONTENT_TEST_FILE).toFile())) {
+        //compare file contents
+        assertThat(downloadFile).hasSameContentAs(contentFile);
     }
   }
 

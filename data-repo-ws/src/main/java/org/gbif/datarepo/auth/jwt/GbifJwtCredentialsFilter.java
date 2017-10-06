@@ -20,21 +20,11 @@ import io.dropwizard.auth.Authenticator;
 public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> {
 
   /**
-   * Security cookie name.
-   */
-  private static final String SECURITY_COOKIE = "token";
-
-  /**
-   * Security context name, used for informational purposes only.
-   */
-  private static final String JWT_SECURITY_CONTEXT = "JWT";
-
-  /**
    * If the cookie (SECURITY_COOKIE) is present, it is validated agains the provided authenticator.
    */
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    java.util.Optional.ofNullable(requestContext.getCookies().get(SECURITY_COOKIE))
+    java.util.Optional.ofNullable(requestContext.getCookies().get(GbifJwtConstants.SECURITY_COOKIE))
       .ifPresent(cookie -> {
                       try {
                         Optional<GbifUserPrincipal> principal = authenticator.authenticate(cookie.getValue());
@@ -57,7 +47,7 @@ public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincip
 
                             @Override
                             public String getAuthenticationScheme() {
-                              return JWT_SECURITY_CONTEXT;
+                              return GbifJwtConstants.JWT_SECURITY_CONTEXT;
                             }
                           });
                         } else {
