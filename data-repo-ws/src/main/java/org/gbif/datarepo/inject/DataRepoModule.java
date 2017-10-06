@@ -104,7 +104,7 @@ public class DataRepoModule {
    * Creates a new Authenticator instance using GBIF underlying services.
    */
   public Authenticator<String, GbifUserPrincipal> getJWTAuthenticator() {
-    return new GbifJwtAuthenticator(configuration.getJwtSigningKey(),
+    return new GbifJwtAuthenticator(configuration.getJwtAuthConfiguration(),
                                     injector.getInstance(IdentityAccessService.class));
   }
 

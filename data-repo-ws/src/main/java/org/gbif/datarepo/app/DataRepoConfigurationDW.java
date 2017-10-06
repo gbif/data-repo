@@ -1,10 +1,10 @@
 package org.gbif.datarepo.app;
 
+import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.discovery.conf.ServiceConfiguration;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
@@ -24,8 +24,8 @@ public class DataRepoConfigurationDW extends Configuration {
   @Valid
   private ServiceConfiguration service;
 
-  @NotNull
-  private String jwtSigningKey;
+  @JsonProperty
+  private GbifAuthJwtConfiguration jwtAuthConfiguration;
 
   public DataRepoConfiguration getDataRepoConfiguration() {
     return dataRepoConfiguration;
@@ -45,13 +45,13 @@ public class DataRepoConfigurationDW extends Configuration {
   }
 
   /**
-   * Jason Web Token used to trust in externally authenticated users.
+   * JWT authentication configs.
    */
-  public String getJwtSigningKey() {
-    return jwtSigningKey;
+  public GbifAuthJwtConfiguration getJwtAuthConfiguration() {
+    return jwtAuthConfiguration;
   }
 
-  public void setJwtSigningKey(String jwtSigningKey) {
-    this.jwtSigningKey = jwtSigningKey;
+  public void setJwtAuthConfiguration(GbifAuthJwtConfiguration jwtAuthConfiguration) {
+    this.jwtAuthConfiguration = jwtAuthConfiguration;
   }
 }

@@ -2,6 +2,7 @@ package org.gbif.datarepo.app;
 
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.datarepo.auth.basic.GbifBasicAuthenticator;
+import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
 import org.gbif.datarepo.auth.jwt.GbifJwtCredentialsFilter;
 import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
@@ -65,7 +66,8 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
   /**
    * Registration of Authentication and authorization elements.
    */
-  private static void registerSecurityComponents(DataRepoModule module, Environment environment) {
+  private static void registerSecurityComponents(DataRepoModule module, Environment environment,
+                                                 GbifAuthJwtConfiguration authJwtConfiguration) {
     //Security configuration
     Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = module.getBasicCredentialsAuthenticator();
     BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
@@ -73,6 +75,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
         .setAuthenticator(module.getBasicCredentialsAuthenticator())
         .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
     GbifJwtCredentialsFilter jwtCredentialsFilter = new GbifJwtCredentialsFilter.Builder()
+      .setConfiguration(authJwtConfiguration)
       .setAuthenticator(module.getJWTAuthenticator())
       .setRealm(GbifBasicAuthenticator.GBIF_REALM).buildAuthFilter();
     environment.jersey().register(new AuthDynamicFeature(new ChainedAuthFilter(Lists.newArrayList(jwtCredentialsFilter,
@@ -108,7 +111,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     //Register authentication and access control components
-    registerSecurityComponents(dataRepoModule, environment);
+    registerSecurityComponents(dataRepoModule, environment, configuration.getJwtAuthConfiguration());
 
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);

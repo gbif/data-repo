@@ -10,6 +10,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
@@ -19,12 +20,17 @@ import io.dropwizard.auth.Authenticator;
  */
 public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> {
 
+  private final GbifAuthJwtConfiguration configuration;
+
+  public GbifJwtCredentialsFilter(GbifAuthJwtConfiguration configuration) {
+    this.configuration = configuration;
+  }
   /**
    * If the cookie (SECURITY_COOKIE) is present, it is validated agains the provided authenticator.
    */
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    java.util.Optional.ofNullable(requestContext.getCookies().get(GbifJwtConstants.SECURITY_COOKIE))
+    java.util.Optional.ofNullable(requestContext.getCookies().get(configuration.getCookieName()))
       .ifPresent(cookie -> {
                       try {
                         Optional<GbifUserPrincipal> principal = authenticator.authenticate(cookie.getValue());
@@ -47,7 +53,7 @@ public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincip
 
                             @Override
                             public String getAuthenticationScheme() {
-                              return GbifJwtConstants.JWT_SECURITY_CONTEXT;
+                              return configuration.getSecurityContext();
                             }
                           });
                         } else {
@@ -64,12 +70,26 @@ public class GbifJwtCredentialsFilter extends AuthFilter<String, GbifUserPrincip
    * Builder for {@link GbifJwtCredentialsFilter}.
    * <p>An {@link Authenticator} must be provided during the building process.</p>
    */
-  public static class Builder extends
-    AuthFilterBuilder<String, GbifUserPrincipal, GbifJwtCredentialsFilter> {
+  public static class Builder extends AuthFilterBuilder<String, GbifUserPrincipal, GbifJwtCredentialsFilter> {
+
+    private GbifAuthJwtConfiguration configuration;
+
+    /**
+     * Sets the given configuration.
+     *
+     * @param configuration a configuration
+     * @return the current builder
+     */
+    public AuthFilterBuilder<String, GbifUserPrincipal, GbifJwtCredentialsFilter> setConfiguration(GbifAuthJwtConfiguration configuration) {
+      this.configuration = configuration;
+      return this;
+    }
+
 
     @Override
     protected GbifJwtCredentialsFilter newInstance() {
-      return new GbifJwtCredentialsFilter();
+      Preconditions.checkNotNull(configuration, "Configuration can't be null");
+      return new GbifJwtCredentialsFilter(configuration);
     }
   }
 }

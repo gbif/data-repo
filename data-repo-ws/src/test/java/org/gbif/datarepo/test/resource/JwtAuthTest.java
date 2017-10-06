@@ -4,7 +4,7 @@ import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.datarepo.auth.jwt.GbifJwtAuthenticator;
-import org.gbif.datarepo.auth.jwt.GbifJwtConstants;
+import org.gbif.datarepo.auth.jwt.GbifAuthJwtConfiguration;
 import org.gbif.datarepo.auth.jwt.GbifJwtCredentialsFilter;
 
 import javax.ws.rs.GET;
@@ -70,7 +70,7 @@ public class JwtAuthTest {
   private static String getJwtToken(String userName, byte[] signingKey) {
     return Jwts.builder()
       .signWith(SignatureAlgorithm.HS256, signingKey)
-      .claim(GbifJwtConstants.JWT_USER_NAME, userName)
+      .claim(GbifAuthJwtConfiguration.DEFAULT_JWT_USER_NAME, userName)
       .compact();
   }
 
@@ -87,10 +87,12 @@ public class JwtAuthTest {
    * Builds a GbifJwtCredentialsFilter that returns testUser() for all authenticated users.
    */
   private static AuthFilter<String, GbifUserPrincipal> jwtAuthFilter() {
+    GbifAuthJwtConfiguration configuration = new GbifAuthJwtConfiguration();
+    configuration.setSigningKey(JWT_SIGNING_KEY);
     IdentityAccessService identityAccessService = Mockito.mock(IdentityAccessService.class);
     Mockito.when(identityAccessService.get(Matchers.matches(AUTHORIZED_USER_NAME))).thenReturn(testUser());
     return new GbifJwtCredentialsFilter.Builder()
-      .setAuthenticator(new GbifJwtAuthenticator(JWT_SIGNING_KEY, identityAccessService))
+      .setAuthenticator(new GbifJwtAuthenticator(configuration, identityAccessService))
       .buildAuthFilter();
   }
 
@@ -102,7 +104,7 @@ public class JwtAuthTest {
     assertThat(resource.getJerseyTest()
                  .target(TEST_RESOURCE_PATH)
                  .request()
-                 .cookie(GbifJwtConstants.SECURITY_COOKIE,
+                 .cookie(GbifAuthJwtConfiguration.DEFAULT_SECURITY_COOKIE,
                          getJwtToken(userName, jwtSigningKey.getBytes()))
                  .get(Response.class).getStatus())
       .isEqualTo(expectedStatus.getStatusCode());

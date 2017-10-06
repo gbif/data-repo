@@ -25,14 +25,17 @@ public class GbifJwtAuthenticator implements Authenticator<String, GbifUserPrinc
   //GBIF users service
   private final IdentityAccessService identityAccessService;
 
+  private final GbifAuthJwtConfiguration configuration;
+
   /**
    * Default/Full constructor.
-   * @param jwtSigningKey key to encode and decode tokens
+   * @param configuration JWT configuration
    * @param identityAccessService GBIF identity service
    */
-  public GbifJwtAuthenticator(String jwtSigningKey, IdentityAccessService identityAccessService) {
-    this.jwtSigningKey= jwtSigningKey.getBytes();
+  public GbifJwtAuthenticator(GbifAuthJwtConfiguration configuration, IdentityAccessService identityAccessService) {
+    this.configuration= configuration;
     this.identityAccessService = identityAccessService;
+    jwtSigningKey = configuration.getSigningKey().getBytes();
   }
 
   /**
@@ -45,7 +48,7 @@ public class GbifJwtAuthenticator implements Authenticator<String, GbifUserPrinc
   public Optional<GbifUserPrincipal> authenticate(String credentials) throws AuthenticationException {
     try {
       Jws<Claims> jws = Jwts.parser().setSigningKey(jwtSigningKey).parseClaimsJws(credentials);
-      return Optional.fromNullable(jws.getBody().get(GbifJwtConstants.JWT_USER_NAME, String.class))
+      return Optional.fromNullable(jws.getBody().get(configuration.getUserFieldName(), String.class))
         .transform(identityAccessService::get)
         .transform(GbifUserPrincipal::new);
     } catch (JwtException | IllegalArgumentException ex) {
