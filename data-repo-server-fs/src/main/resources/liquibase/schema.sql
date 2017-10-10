@@ -9,9 +9,30 @@ CREATE TABLE data_package (
     created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3),
     modified_by varchar(255) NOT NULL CHECK (length(modified_by) >= 3),
     checksum varchar(32) NOT NULL CHECK (length(checksum) = 32),
-    size bigint
+    size bigint,
+    fulltext_search tsvector
 );
+
 CREATE INDEX data_package_idx ON data_package (doi, created, created_by);
+
+CREATE INDEX dp_fulltext_search_idx ON data_package USING gin(fulltext_search);
+
+CREATE OR REPLACE FUNCTION dp_change_trigger()
+RETURNS TRIGGER AS
+$dpchange$
+    BEGIN
+      NEW.fulltext_search :=
+        TO_TSVECTOR('pg_catalog.english', COALESCE(NEW.doi,'')) ||
+        TO_TSVECTOR('pg_catalog.english', COALESCE(NEW.title,'')) ||
+        TO_TSVECTOR('pg_catalog.english', COALESCE(NEW.description,''));
+      RETURN NEW;
+    END;
+$dpchange$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER dp_fulltext_update
+  BEFORE INSERT OR UPDATE ON data_package
+  FOR EACH ROW EXECUTE PROCEDURE dp_change_trigger();
 
 CREATE TABLE data_package_file (
     data_package_doi text NOT NULL REFERENCES data_package(doi) ON DELETE CASCADE,

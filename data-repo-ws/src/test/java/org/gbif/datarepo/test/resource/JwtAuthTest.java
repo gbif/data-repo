@@ -28,11 +28,15 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests cases for JWT based authentication.
+ * Contains cases for testing authorized and not authorized users, and usage of wrong signing keys.
+ */
 public class JwtAuthTest {
 
   static final String TEST_RESOURCE_PATH = "test";
   static final String AUTHORIZED_USER_NAME = "Testatarian";
-  static final String NOTAUTHORIZED_USER_NAME = "Cheater";
+  static final String NOT_AUTHORIZED_USER_NAME = "Cheater";
 
   @Produces(MediaType.APPLICATION_JSON)
   @Path(TEST_RESOURCE_PATH)
@@ -90,8 +94,9 @@ public class JwtAuthTest {
     JwtAuthConfiguration configuration = new JwtAuthConfiguration();
     configuration.setSigningKey(JWT_SIGNING_KEY);
     IdentityAccessService identityAccessService = Mockito.mock(IdentityAccessService.class);
-    Mockito.when(identityAccessService.get(Matchers.matches(AUTHORIZED_USER_NAME))).thenReturn(testUser());
+    Mockito.when(identityAccessService.get(Matchers.eq(AUTHORIZED_USER_NAME))).thenReturn(testUser());
     return new JwtCredentialsFilter.Builder()
+      .setConfiguration(configuration)
       .setAuthenticator(new JwtAuthenticator(configuration, identityAccessService))
       .buildAuthFilter();
   }
@@ -131,7 +136,7 @@ public class JwtAuthTest {
    */
   @Test
   public void testNotAuthorizedToken() {
-    secureResourceTest(NOTAUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
+    secureResourceTest(NOT_AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
   }
 
 }
