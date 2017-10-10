@@ -64,6 +64,7 @@
     <mybatis.version>3.2.8</mybatis.version>
     <javax.mail.version>1.4.7</javax.mail.version>
     <commons-codec.version>1.6</commons-codec.version>
+    <jjwt.version>0.7.0</jjwt.version>
 
     <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
@@ -87,6 +88,7 @@
     <curator.version>2.9.1</curator.version>
     <maven-core.version>3.3.9</maven-core.version>
     <maven-model.version>3.3.9</maven-model.version>
+    <hadoop.version>2.6.0-cdh5.12.0</hadoop.version>
 
     <!-- Plugins -->
     <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
@@ -102,6 +104,13 @@
     <repository>
       <id>gbif-thirdparty</id>
       <url>http://repository.gbif.org/content/repositories/thirdparty</url>
+    </repository>
+    <repository>
+      <id>cloudera-release</id>
+      <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
@@ -525,7 +534,12 @@
       <dependency>
         <groupId>io.jsonwebtoken</groupId>
         <artifactId>jjwt</artifactId>
-        <version>0.7.0</version>
+        <version>${jjwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
 
       <dependency>

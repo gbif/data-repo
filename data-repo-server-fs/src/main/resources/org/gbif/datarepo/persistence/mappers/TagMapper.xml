@@ -6,7 +6,7 @@
     <id property="key" column="key"/>
     <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
     <result property="value" column="value"/>
-    <result property="created" column="created"/>
+    <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
   </resultMap>
 

@@ -9,6 +9,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
+import org.gbif.datarepo.resource.download.FileDownload;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
 import com.codahale.metrics.annotation.Timed;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -28,17 +30,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateDoi;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
@@ -46,6 +52,7 @@ import static  org.gbif.datarepo.resource.validation.ResourceValidations.validat
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
+import static org.gbif.datarepo.resource.PathsParams.FILE_URL_PARAM;
 
 /**
  * Data packages resource.
@@ -66,6 +73,8 @@ public class DataPackageResource {
 
   private final DataPackageUriBuilder uriBuilder;
 
+  private final FileDownload downloadHandler;
+
   /**
    * Full constructor.
    */
@@ -73,6 +82,7 @@ public class DataPackageResource {
     this.dataRepository = dataRepository;
     this.configuration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(this.configuration.getDataPackageApiUrl());
+    downloadHandler = new FileDownload("");
   }
 
   /**
@@ -101,28 +111,70 @@ public class DataPackageResource {
   @Timed
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
-  public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal) throws IOException {
+  public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal,
+                            @Context HttpServletRequest request) throws IOException {
     //Validations
     validateFileSubmitted(multiPart, METADATA_PARAM);
-    List<FormDataBodyPart> files = validateFiles(multiPart);
+    List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
+    List<String> urlFiles = Arrays.asList(request.getParameterValues(FILE_URL_PARAM));
+    //check that files + urlFiles are not empty
+    validateFiles(files, urlFiles);
+    checkFileLocations(urlFiles);
     try {
-      DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER.
-                                  readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
-                                            DataPackage.class);
+      DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER
+                                  .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
+                                             DataPackage.class);
       dataPackage.setCreatedBy(principal.getName());
-      DataPackage newDataPackage =  dataRepository.create(dataPackage, //user
-                                    multiPart.getField(METADATA_PARAM).getValueAs(InputStream.class), //metadata file
-                                    //files
-                                    files.stream().map(bodyPart ->
-                                                         FileInputContent.from(bodyPart.getFormDataContentDisposition()
-                                                                               .getFileName(),
-                                                                               bodyPart.getValueAs(InputStream.class)))
-                                    .collect(Collectors.toList()));
+      DataPackage newDataPackage = dataRepository.create(dataPackage,
+                                                         multiPart.getField(METADATA_PARAM)
+                                                           .getValueAs(InputStream.class),
+                                                         streamFiles(files, urlFiles));
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getDoi()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
       throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
     }
+  }
+
+  /**
+   * Validates that the specified file locations are reachable form this service.
+   */
+  private void checkFileLocations(List<String> fileLocations) {
+    Optional.ofNullable(fileLocations).ifPresent(
+      locations -> locations.forEach(fileUri -> {
+        try {
+          if (!downloadHandler.exists(fileUri)) {
+            throw new IllegalArgumentException("File location is not reachable" + fileUri);
+          }
+        } catch (IOException ex){
+          LOG.error("Error checking file existence", ex);
+          throw new IllegalArgumentException("Error reading file " + fileUri);
+        }
+      })
+    );
+  }
+
+  /**
+   * Combines submitted files and urls in single list of input content.
+   */
+  private List<FileInputContent> streamFiles(List<FormDataBodyPart> files, List<String> urlFiles) {
+    List<FileInputContent> fileInputContents = new ArrayList<>();
+    Optional.ofNullable(files)
+      .ifPresent(streamFiles -> streamFiles
+                                  .forEach(bodyPart -> fileInputContents.add(FileInputContent
+                                                                               .from(bodyPart.getFormDataContentDisposition().getFileName(),
+                                                                                     bodyPart.getValueAs(InputStream.class)))
+    ));
+    Optional.ofNullable(urlFiles)
+      .ifPresent(streamUrlFiles -> streamUrlFiles.forEach(urlFile -> {
+        try {
+          fileInputContents.add(downloadHandler.open(urlFile));
+        } catch (IOException ex){
+          LOG.error("Error reading file", ex);
+          throw new ServerErrorException("Error opening file", Status.INTERNAL_SERVER_ERROR);
+        }
+      }));
+    return fileInputContents;
   }
 
   /**

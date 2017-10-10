@@ -7,9 +7,9 @@
     <result property="title" column="title"/>
     <result property="description" column="description"/>
     <result property="metadata" column="metadata"/>
-    <result property="created" column="created"/>
-    <result property="modified" column="modified"/>
-    <result property="deleted" column="deleted"/>
+    <result property="created" column="created" jdbcType="TIMESTAMP"/>
+    <result property="modified" column="modified" jdbcType="TIMESTAMP"/>
+    <result property="deleted" column="deleted" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
     <result property="checksum" column="checksum"/>
     <result property="size" column="size"/>
@@ -101,8 +101,8 @@
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
     INSERT INTO data_package (doi, title, description, metadata, created, modified, created_by, modified_by, checksum, size)
     VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
-    #{metadata, jdbcType=OTHER}, <choose><when test="created !=null " >#{created, jdbcType=DATE}</when><otherwise>now()</otherwise></choose>,
-    <choose><when test="modified != null" >#{modified, jdbcType=DATE}</when><otherwise>now()</otherwise></choose>,
+    #{metadata, jdbcType=OTHER}, <choose><when test="created !=null " >#{created, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
+    <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
   </insert>
 

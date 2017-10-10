@@ -7,7 +7,7 @@
     <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
     <result property="type" column="type"/>
     <result property="identifier" column="identifier"/>
-    <result property="created" column="created"/>
+    <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
   </resultMap>
 
@@ -34,7 +34,7 @@
         AND status=#{status, jdbcType=OTHER}
       </if>
       <if test="created != null" >
-        AND created=#{created, jdbcType=OTHER}
+        AND created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageDoi != null" >
         AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
@@ -59,7 +59,7 @@
         AND status=#{status, jdbcType=OTHER}
       </if>
       <if test="created != null" >
-        AND created=#{created, jdbcType=OTHER}
+        AND created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageDoi != null" >
         AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}

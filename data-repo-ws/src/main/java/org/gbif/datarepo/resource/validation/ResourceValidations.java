@@ -2,7 +2,9 @@ package org.gbif.datarepo.resource.validation;
 
 import org.gbif.api.model.common.DOI;
 
+import java.util.Collection;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -27,9 +29,9 @@ public class ResourceValidations {
   /**
    * Validate that the input list from file denoted by the Http form param 'file' is not empty.
    */
-  public static List<FormDataBodyPart> validateFiles(FormDataMultiPart multiPart) {
-    List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
-    if (files == null || files.isEmpty()) { //if list if files is empty throw a BadRequest response.
+  public static List<FormDataBodyPart> validateFiles(List<FormDataBodyPart> files, List<String> urlFiles) {
+    if ((files == null || files.isEmpty()) && (urlFiles == null || urlFiles.isEmpty())) {
+      //if list if files is empty throw a BadRequest response.
       throw buildWebException(Response.Status.BAD_REQUEST, "Data package must contain at least 1 file");
     }
     return files;

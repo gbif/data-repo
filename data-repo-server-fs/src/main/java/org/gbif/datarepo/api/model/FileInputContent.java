@@ -28,8 +28,6 @@ public class FileInputContent {
     return new FileInputContent(name, inputStream);
   }
 
-
-
   /**
    * Name from the InputStream, normally it's the file name.
    */
@@ -44,7 +42,6 @@ public class FileInputContent {
     return inputStream;
   }
 
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -56,7 +53,6 @@ public class FileInputContent {
     FileInputContent other = (FileInputContent) obj;
     return Objects.equals(name, other.name)
            && Objects.equals(inputStream, other.inputStream);
-
   }
 
   @Override
