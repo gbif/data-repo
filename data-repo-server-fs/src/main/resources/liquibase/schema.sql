@@ -1,3 +1,5 @@
+CREATE EXTENSION unaccent;
+
 CREATE TABLE data_package (
     doi text NOT NULL PRIMARY KEY,
     title text NOT NULL CHECK (length(created_by) >= 3),

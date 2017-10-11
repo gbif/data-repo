@@ -35,7 +35,7 @@
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
     SELECT dp.doi, dp.title, dp.description, dp.metadata, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
-    FROM data_package dp<if test="tags != null">, tag t</if>
+    FROM data_package dp<if test="tags != null">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -61,7 +61,11 @@
           #{item}
         </foreach>
       </if>
+      <if test="query !=null" >
+        AND query @@ dp.fulltext_search
+      </if>
     </where>
+    ORDER BY <if test="query != null" >ts_rank_cd(dp.fulltext_search, query) DESC, </if>dp.created DESC, dp.doi
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
     </if>
@@ -69,7 +73,7 @@
 
   <select id="count" resultType="Long" parameterType="map">
     SELECT count(*)
-    FROM data_package dp<if test="tags != null">, tag t</if>
+    FROM data_package dp<if test="tags != null">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -95,6 +99,9 @@
                open="(" separator="," close=")">
         #{item}
       </foreach>
+    </if>
+    <if test="query !=null" >
+      AND query @@ dp.fulltext_search
     </if>
   </select>
 

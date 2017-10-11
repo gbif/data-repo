@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import com.google.common.hash.Hashing;
@@ -57,7 +58,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     dataPackage.setChecksum(testChecksum);
     dataPackage.setCreated(new Date());
     dataPackage.setCreatedBy("testUser");
-    dataPackage.setDescription("test");
+    dataPackage.setDescription("test data package description");
     dataPackage.setMetadata("metadata.xml");
     dataPackage.setSize(1);
     dataPackage.setTitle("test");
@@ -65,6 +66,9 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     return dataPackage;
   }
 
+  /**
+   * Utility method that creates a test data package in the DB.
+   */
   private void insertDataPackage(DataPackage dataPackage) {
     DataPackageMapper dataPackageMapper = injector.getInstance(DataPackageMapper.class);
     dataPackageMapper.create(dataPackage);
@@ -74,6 +78,18 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
 
     TagMapper tagMapper = injector.getInstance(TagMapper.class);
     dataPackage.getTags().forEach(tagMapper::create);
+  }
+
+  /**
+   * Base method for full text search test cases.
+   */
+  private static void baseFullTextSearchTest(String query, BiFunction<List<DataPackage>, Long, Boolean> assertion) {
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
+    DataPackage dataPackage = testDataPackage();
+    mapper.create(dataPackage);
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, null, query);
+    Long count = mapper.count(null, null, null, null, null, query);
+    Assert.assertTrue(assertion.apply(dataPackages, count));
   }
 
   /**
@@ -120,7 +136,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false, null);
+    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false, null, null);
     Assert.assertTrue(dataPackages.size() >=  1);
   }
 
@@ -134,10 +150,10 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     insertDataPackage(dataPackage);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null,
                                                  dataPackage.getTags().stream()
-                                                   .map(Tag::getValue).collect(Collectors.toList()));
+                                                   .map(Tag::getValue).collect(Collectors.toList()),
+                                                 null);
     Assert.assertTrue(dataPackages.size() >=  1);
   }
-
 
   /**
    * Tests methods create and list.
@@ -147,8 +163,8 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
-    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"));
-    Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"));
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"), null);
+    Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"), null);
     Assert.assertTrue(dataPackages.size() ==  0);
     Assert.assertTrue(count ==  0);
   }
@@ -161,9 +177,8 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    Assert.assertTrue(mapper.count("testUser", null, null, false, null) >= 1);
+    Assert.assertTrue(mapper.count("testUser", null, null, false, null, null) >= 1);
   }
-
 
   /**
    * Tests methods create and update.
@@ -176,5 +191,23 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     dataPackage.setTitle("newTitle");
     mapper.update(dataPackage);
     Assert.assertEquals("newTitle", mapper.get(dataPackage.getDoi().getDoiName()).getTitle());
+  }
+
+  /**
+   * Tests full text search.
+   */
+  @Test
+  public void testFullTextSearch() {
+    baseFullTextSearchTest("description", (dataPackages, count) ->
+                                            dataPackages.size() == count.intValue() && count >= 1L);
+  }
+
+  /**
+   * Tests full text search with no matches.
+   */
+  @Test
+  public void testFullTextSearchNoMatches() {
+    baseFullTextSearchTest("ThisMustNoReturnAnything", (dataPackages, count) ->
+                                                          dataPackages.size() == count.intValue() && count >= 0L);
   }
 }
