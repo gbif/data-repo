@@ -111,7 +111,7 @@
       title = #{title, jdbcType=OTHER},
       description = #{description, jdbcType=OTHER},
       metadata = #{metadata, jdbcType=OTHER},
-      modified = now(),
+      modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
       modified_by = #{createdBy, jdbcType=OTHER},
       checksum = #{checksum, jdbcType=OTHER},
       size = #{size, jdbcType=OTHER}

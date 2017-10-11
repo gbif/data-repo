@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -116,7 +117,9 @@ public class DataPackageResource {
     //Validations
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
-    List<String> urlFiles = Arrays.asList(request.getParameterValues(FILE_URL_PARAM));
+
+    List<String> urlFiles = Optional.ofNullable(request.getParameterValues(FILE_URL_PARAM))
+                              .map(Arrays::asList).orElse(Collections.emptyList());
     //check that files + urlFiles are not empty
     validateFiles(files, urlFiles);
     checkFileLocations(urlFiles);

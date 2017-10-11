@@ -1,4 +1,4 @@
-package org.gbif.datarepo.test.resource;
+package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
