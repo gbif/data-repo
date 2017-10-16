@@ -10,6 +10,7 @@ import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -29,7 +30,7 @@ public class DataPackageMapperMock implements DataPackageMapper {
 
 
   public DataPackageMapperMock(DataRepoConfiguration configuration) {
-    storePath = Paths.get(configuration.getDataRepoPath());
+    storePath =  Paths.get(URI.create(configuration.getDataRepoPath()).getPath());
   }
 
   @Override
@@ -51,7 +52,8 @@ public class DataPackageMapperMock implements DataPackageMapper {
       dataPackage.setTitle("Test Title");
       dataPackage.setDescription("Test Description");
       Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
-        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file), file.length())); //metadata.xml is excluded from the list from files
+        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file),
+                                             file.length())); //metadata.xml is excluded from the list from files
       dataPackage.setSize(dataPackage.getFiles().stream().mapToLong(DataPackageFile::getSize).sum());
       dataPackage.setChecksum(dataPackage.getFiles().get(0).getChecksum());
       return dataPackage;
@@ -63,7 +65,7 @@ public class DataPackageMapperMock implements DataPackageMapper {
    * Resolves a path for a DOI.
    */
   private Path getDoiPath(DOI doi) {
-    return storePath.resolve(doi.getPrefix() + '-' + doi.getSuffix());
+    return Paths.get(storePath.toString(),  doi.getPrefix() + '-' + doi.getSuffix());
   }
 
   @Override

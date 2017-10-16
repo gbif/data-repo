@@ -9,7 +9,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
-import org.gbif.datarepo.resource.download.FileDownload;
+import org.gbif.datarepo.store.fs.download.FileDownload;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
 import com.codahale.metrics.annotation.Timed;
@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -38,6 +39,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,7 +86,7 @@ public class DataPackageResource {
     this.dataRepository = dataRepository;
     this.configuration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(this.configuration.getDataPackageApiUrl());
-    downloadHandler = new FileDownload("");
+    downloadHandler = new FileDownload(this.configuration.getFileSystem());
   }
 
   /**
@@ -148,11 +151,11 @@ public class DataPackageResource {
       locations -> locations.forEach(fileUri -> {
         try {
           if (!downloadHandler.exists(fileUri)) {
-            throw new IllegalArgumentException("File location is not reachable" + fileUri);
+            throw new BadRequestException("File location is not reachable " + fileUri);
           }
         } catch (IOException ex){
           LOG.error("Error checking file existence", ex);
-          throw new IllegalArgumentException("Error reading file " + fileUri);
+          throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error reading file " + fileUri);
         }
       })
     );
@@ -172,10 +175,14 @@ public class DataPackageResource {
     Optional.ofNullable(urlFiles)
       .ifPresent(streamUrlFiles -> streamUrlFiles.forEach(urlFile -> {
         try {
-          fileInputContents.add(downloadHandler.open(urlFile));
+          fileInputContents.add(downloadHandler.open(new URI(urlFile)));
         } catch (IOException ex){
           LOG.error("Error reading file", ex);
           throw new ServerErrorException("Error opening file", Status.INTERNAL_SERVER_ERROR);
+        } catch (URISyntaxException ex) {
+          String message = String.format("Wrong URI %s", urlFile);
+          LOG.error(message, ex);
+          throw new BadRequestException(message) ;
         }
       }));
     return fileInputContents;

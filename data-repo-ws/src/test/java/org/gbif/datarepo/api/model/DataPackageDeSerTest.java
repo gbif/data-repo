@@ -3,10 +3,14 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 
 import java.io.File;
+import java.io.IOException;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 import io.dropwizard.jackson.Jackson;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

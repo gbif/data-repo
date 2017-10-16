@@ -100,7 +100,8 @@ public class DataRepoFsModule {
     return new FileSystemRepository(configuration.getDataRepoPath(), doiRegistrationService(mapper),
                                     dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
-                                    alternativeIdentifierMapper());
+                                    alternativeIdentifierMapper(),
+                                    configuration.getFileSystem());
   }
 
 }

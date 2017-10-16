@@ -130,7 +130,8 @@ public class DataRepoModule {
                                     doiRegistrationService(),
                                     dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
-                                    alternativeIdentifierMapper());
+                                    alternativeIdentifierMapper(),
+                                    configuration.getDataRepoConfiguration().getFileSystem());
   }
 
 }

@@ -1,6 +1,7 @@
 package org.gbif.datarepo.test.mocks;
 
 import org.gbif.api.model.common.DOI;
+import org.gbif.datarepo.api.model.DataPackageDeSerTest;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
@@ -8,6 +9,7 @@ import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +29,7 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
 
 
   public DataPackageFileMapperMock(DataRepoConfiguration configuration) {
-    storePath = Paths.get(configuration.getDataRepoPath());
+    storePath = Paths.get(URI.create(configuration.getDataRepoPath()).getPath());
   }
 
   @Override
@@ -51,7 +53,8 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
         return Files.list(doiPath)
           .map(path -> {
             File dataFile = path.toFile();
-            return new DataPackageFile(path.toString(), FileSystemRepository.md5(dataFile), dataFile.length());
+            return new DataPackageFile(path.toString(), FileSystemRepository.md5(dataFile),
+                                       dataFile.length());
           })
           .collect(Collectors.toList());
       }

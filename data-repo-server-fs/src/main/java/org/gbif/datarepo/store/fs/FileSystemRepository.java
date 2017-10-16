@@ -13,21 +13,17 @@ import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
+import org.gbif.datarepo.store.fs.download.FileDownload;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +35,11 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
-import org.apache.commons.io.FileUtils;
+import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +69,10 @@ public class FileSystemRepository implements DataRepository {
   private final Path storePath;
 
 
+  private final FileSystem fileSystem;
+
+  private final FileDownload fileDownload;
+
   /**
    * Default constructor: requires a path to an existing directory.
    */
@@ -79,20 +82,28 @@ public class FileSystemRepository implements DataRepository {
                               DataPackageFileMapper dataPackageFileMapper,
                               TagMapper tagMapper,
                               RepositoryStatsMapper repositoryStatsMapper,
-                              AlternativeIdentifierMapper alternativeIdentifierMapper) {
-    this.doiRegistrationService = doiRegistrationService;
-    storePath = Paths.get(dataRepoPath);
-    File file = storePath.toFile();
-    //Create directory if it doesn't exist
-    if (!file.exists()) {
-      Preconditions.checkState(file.mkdirs(), "Error creating data directory");
+                              AlternativeIdentifierMapper alternativeIdentifierMapper,
+                              FileSystem fileSystem) {
+    try {
+      this.doiRegistrationService = doiRegistrationService;
+      this.fileSystem = fileSystem;
+      fileDownload = new FileDownload(fileSystem);
+      storePath = new Path(dataRepoPath);
+
+      //Create directory if it doesn't exist
+      if (!fileSystem.exists(storePath)) {
+        Preconditions.checkState(fileSystem.mkdirs(storePath), "Error creating data directory");
+      }
+      Preconditions.checkArgument(fileSystem.isDirectory(storePath), "Repository is not a directory");
+      this.dataPackageMapper = dataPackageMapper;
+      this.dataPackageFileMapper = dataPackageFileMapper;
+      this.repositoryStatsMapper = repositoryStatsMapper;
+      this.alternativeIdentifierMapper = alternativeIdentifierMapper;
+      this.tagMapper = tagMapper;
+    } catch (IOException ex) {
+      throw new IllegalStateException(ex);
     }
-    Preconditions.checkArgument(file.isDirectory(), "Repository is not a directory");
-    this.dataPackageMapper = dataPackageMapper;
-    this.dataPackageFileMapper = dataPackageFileMapper;
-    this.repositoryStatsMapper = repositoryStatsMapper;
-    this.alternativeIdentifierMapper = alternativeIdentifierMapper;
-    this.tagMapper = tagMapper;
+
   }
 
   /**
@@ -102,13 +113,11 @@ public class FileSystemRepository implements DataRepository {
   private Path store(DOI doi, FileInputContent fileInputContent) {
     try {
       Path doiPath = getDoiPath(doi);
-      if (!doiPath.toFile().exists()) {
-        Files.createDirectory(doiPath);
+      if (!fileSystem.exists(doiPath)) {
+        fileSystem.mkdirs(doiPath);
       }
-      Path newFilePath = doiPath.resolve(Paths.get(fileInputContent.getName()).getFileName());
-      Files.copy(fileInputContent.getInputStream(),
-                 newFilePath, //remove path from file name
-                 StandardCopyOption.REPLACE_EXISTING);
+      Path newFilePath = resolve(storePath, fileInputContent.getName());
+      fileDownload.copy(fileInputContent, newFilePath, fileSystem);
       return newFilePath;
     } catch (IOException ex) {
       LOG.error("Error storing file {}", fileInputContent.getName(), ex);
@@ -121,9 +130,10 @@ public class FileSystemRepository implements DataRepository {
    */
   private void clearDOIDir(DOI doi) {
     try {
-      File doiDir = getDoiPath(doi).toFile();
-      if (doiDir.exists()) {
-        FileUtils.cleanDirectory(doiDir);
+      Path doiDir = getDoiPath(doi);
+      if (fileSystem.exists(doiDir)) {
+        fileSystem.delete(doiDir, true);
+        fileSystem.mkdirs(doiDir);
       }
     } catch (IOException ex) {
       LOG.error("Error deleting datapackage content {}", ex);
@@ -146,7 +156,7 @@ public class FileSystemRepository implements DataRepository {
     dataPackageMapper.delete(doi);
     doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
     try {
-      FileUtils.deleteDirectory(getDoiPath(doi).toFile());
+      fileSystem.delete(getDoiPath(doi), true);
     } catch (IOException ex) {
       LOG.error("Error deleting DOI {} directory", doi);
     }
@@ -173,10 +183,9 @@ public class FileSystemRepository implements DataRepository {
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
       Path newFilePath = store(doi, fileInputContent);
-      File newFile = newFilePath.toFile();
-      long fileLength = newFile.length();
-      DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getFileName().toString(),
-                                                            md5(newFile), fileLength);
+      long fileLength = size(newFilePath);
+      DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName().toString(),
+                                                            md5(newFilePath), fileLength);
       newDataPackage.setSize(newDataPackage.getSize() + fileLength);
       newDataPackage.addFile(dataPackageFile);
     });
@@ -241,9 +250,8 @@ public class FileSystemRepository implements DataRepository {
    */
   private void clearDataPackageContent(DataPackage dataPackage) {
     dataPackage.getFiles()
-      .forEach(dataPackageFile -> {
-        dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
-      });
+      .forEach(dataPackageFile ->
+                 dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName()));
     clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
     dataPackage.getFiles().clear();
   }
@@ -254,7 +262,6 @@ public class FileSystemRepository implements DataRepository {
   @Override
   public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
                             UpdateMode mode) {
-
     DataPackage existingDataPackage =  get(dataPackage.getDoi())
                                         .orElseThrow(() -> new RuntimeException("DataPackage not found"));
     if (UpdateMode.OVERWRITE == mode) {
@@ -358,14 +365,19 @@ public class FileSystemRepository implements DataRepository {
   public Optional<DataPackageFile> getFile(DOI doi, String fileName) {
     DataPackageFile dataPackageFile =  dataPackageFileMapper.get(doi, fileName);
     Path doiPath = getDoiPath(doi);
-    if (doiPath.toFile().exists() && dataPackageFile != null) {
-      File packageFile = doiPath.resolve(fileName).toFile();
-      if (packageFile.exists()) {
-        dataPackageFile.setFileName(packageFile.getAbsolutePath());
-        return Optional.of(dataPackageFile);
+    try {
+      if (fileSystem.exists(doiPath) && dataPackageFile != null) {
+        Path packageFile =  resolve(doiPath, fileName);
+        if (fileSystem.exists(packageFile)) {
+          dataPackageFile.setFileName(Path.getPathWithoutSchemeAndAuthority(packageFile).getName());
+          return Optional.of(dataPackageFile);
+        }
       }
+      return Optional.empty();
+    } catch (IOException ex) {
+      throw new IllegalStateException(ex);
     }
-    return Optional.empty();
+
   }
 
   /**
@@ -376,12 +388,15 @@ public class FileSystemRepository implements DataRepository {
     try {
       Optional<DataPackageFile> packageFile = getFile(doi, fileName);
       if (packageFile.isPresent()) {
-        return Optional.of(new FileInputStream(packageFile.get().getFileName()));
+        return Optional.of(fileSystem.open(resolve(getDoiPath(doi),packageFile.get().getFileName())));
       } else if (DataPackage.METADATA_FILE.equalsIgnoreCase(fileName)) {
-        return Optional.of(new FileInputStream(getDoiPath(doi).resolve(DataPackage.METADATA_FILE).toFile()));
+        return Optional.of(fileSystem.open(resolve(getDoiPath(doi),DataPackage.METADATA_FILE)));
       }
     } catch (FileNotFoundException ex) {
       LOG.warn("Requested file {} not found", fileName, ex);
+    } catch (IOException ex) {
+      LOG.error("Error opening file {}", fileName, ex);
+      throw new IllegalStateException(ex);
     }
     return Optional.empty();
   }
@@ -395,7 +410,14 @@ public class FileSystemRepository implements DataRepository {
    * Resolves a path for a DOI.
    */
   private Path getDoiPath(DOI doi) {
-    return storePath.resolve(doi.getPrefix() + '-' + doi.getSuffix());
+    return new Path(storePath.toString() + '/' + doi.getPrefix() + '-' + doi.getSuffix() + '/');
+  }
+
+  /**
+   * Resolves a path for a DOI.
+   */
+  public static Path resolve(Path path, String extPath) {
+    return new Path(path.toString() + '/' + extPath);
   }
 
   /**
@@ -403,7 +425,32 @@ public class FileSystemRepository implements DataRepository {
    */
   public static String md5(File file) {
     try {
-      return com.google.common.io.Files.hash(file, Hashing.md5()).toString();
+      return Files.hash(file, Hashing.md5()).toString();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  /**
+   * Calculates the MD5 hash of File content.
+   */
+  public String md5(Path file) {
+    try {
+      if (fileSystem instanceof RawLocalFileSystem) {
+        return md5(new File(file.toUri().getPath()));
+      }
+      return String.valueOf(fileSystem.getFileChecksum(file).getBytes());
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  /**
+   * Calculates the MD5 hash of File content.
+   */
+  public long size(Path file) {
+    try {
+      return fileSystem.getFileStatus(file).getLen();
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }

@@ -1,6 +1,7 @@
 package org.gbif.datarepo.api.model;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -13,19 +14,22 @@ public class FileInputContent {
 
   private final InputStream inputStream;
 
+  private final URI fileLocation;
+
   /**
    * Full constructor, creates an instance using a name and inputStream objects.
    */
-  public FileInputContent(String name, InputStream inputStream) {
+  public FileInputContent(String name, InputStream inputStream, URI fileLocation) {
     this.name = name;
     this.inputStream = inputStream;
+    this.fileLocation = fileLocation;
   }
 
   /**
    * Factory method, creates an instance using the name and inputStream objects.
    */
   public static FileInputContent from(String name, InputStream inputStream) {
-    return new FileInputContent(name, inputStream);
+    return new FileInputContent(name, inputStream, null);
   }
 
   /**
@@ -42,6 +46,13 @@ public class FileInputContent {
     return inputStream;
   }
 
+  /**
+   * External location of the submitted file. This field can be null.
+   */
+  public URI getFileLocation() {
+    return fileLocation;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -52,17 +63,21 @@ public class FileInputContent {
     }
     FileInputContent other = (FileInputContent) obj;
     return Objects.equals(name, other.name)
-           && Objects.equals(inputStream, other.inputStream);
+           && Objects.equals(inputStream, other.inputStream)
+           && Objects.equals(fileLocation, other.fileLocation);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, inputStream);
+    return Objects.hash(name, inputStream, fileLocation);
   }
 
   @Override
   public String toString() {
-    return "{\"name\": \"" + name + "\", \"inpuStream\": \"" + Objects.toString(inputStream) + "\"}";
+    return "{\"name\": \"" + name
+           + "\", \"inpuStream\": \"" + Objects.toString(inputStream)
+           + "\", \"fileLocation\": \"" + Objects.toString(fileLocation)
+           + "\"}";
   }
 
 }

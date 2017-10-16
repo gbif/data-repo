@@ -108,8 +108,6 @@ public class DataPackageResourceTest {
 
   private static DataRepoConfigurationDW configuration;
 
-  private DataPackageUriBuilder uriBuilder;
-
   /**
    * Creates an temporary folder, the return instance is lazy evaluated into the field temporaryFolder.
    */
@@ -117,7 +115,7 @@ public class DataPackageResourceTest {
     try {
       if (temporaryFolder == null) {
         //Creates the temporary folder using a random prefix
-        temporaryFolder = Files.createTempDirectory(RandomStringUtils.random(3));
+        temporaryFolder = Files.createTempDirectory(RandomStringUtils.randomAlphanumeric(3));
       }
       return temporaryFolder;
     } catch (IOException ex) {
@@ -137,7 +135,7 @@ public class DataPackageResourceTest {
       dataRepoConfiguration.setGbifApiUrl("http://localhost:8080/");
       dataRepoConfiguration.setDataPackageApiUrl("http://localhost:8080/data_packages/");
       //Used the temporary folder as the data repo path
-      dataRepoConfiguration.setDataRepoPath(temporaryFolder().toString());
+      dataRepoConfiguration.setDataRepoPath("file://" + temporaryFolder() + '/');
       configuration.setDataRepoConfiguration(dataRepoConfiguration);
     }
     return configuration;
@@ -161,7 +159,9 @@ public class DataPackageResourceTest {
                                                                   new DoiRegistrationServiceMock(),
                                                                   DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER,
                                                                   TAG_MAPPER, REPOSITORY_STATS_MAPPER,
-                                                                  ALTERNATIVE_IDENTIFIER_MAPPER),
+                                                                  ALTERNATIVE_IDENTIFIER_MAPPER,
+                                                                  configuration().getDataRepoConfiguration()
+                                                                    .getFileSystem()),
                                          configuration()))
     .build();
 
@@ -190,7 +190,6 @@ public class DataPackageResourceTest {
   @Before
   public void setup() {
     try {
-      uriBuilder = new DataPackageUriBuilder(configuration.getDataRepoConfiguration().getDataPackageApiUrl());
       //Copies all the content from  'testrepo/10.5072-dp.bvmv02' to the temporary directory
       //This is done to test service to retrieve DataPackages information and files
       FileUtils.copyDirectory(new File(TEST_REPO_PATH), temporaryFolder.toFile());

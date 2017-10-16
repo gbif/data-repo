@@ -52,7 +52,7 @@ public interface DataRepository {
   void delete(DOI doi);
 
   /**
-   * Hides a data packagefrom search operations, effectively preventing its discovery during normal operations.
+   * Hides a data package from search operations, effectively preventing its discovery during normal operations.
    */
   void archive(DOI doi);
 

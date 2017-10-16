@@ -1,19 +1,26 @@
 package org.gbif.datarepo.store.fs.conf;
 
-
+import java.io.IOException;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.RawLocalFileSystem;
 
 /**
  * Main service configuration, it contains: DOI settings, required urls and DB settings.
  */
 public class DataRepoConfiguration  {
 
-
   @NotNull
   private String dataRepoPath;
+
+  @Nullable
+  private String hdfsNameNode;
 
   @NotNull
   private String doiCommonPrefix;
@@ -79,6 +86,7 @@ public class DataRepoConfiguration  {
   public Properties getUsersDb() {
     return usersDb;
   }
+
   public void setUsersDb(Properties usersDb) {
     this.usersDb = usersDb;
   }
@@ -102,4 +110,28 @@ public class DataRepoConfiguration  {
     this.appKey = appKey;
   }
 
+  @Nullable
+  public String getHdfsNameNode() {
+    return hdfsNameNode;
+  }
+
+  public void setHdfsNameNode(@Nullable String hdfsNameNode) {
+    this.hdfsNameNode = hdfsNameNode;
+  }
+
+  public FileSystem getFileSystem() {
+    try {
+      Configuration configuration = new Configuration();
+      if (hdfsNameNode != null) {
+        configuration.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY, hdfsNameNode);
+        return FileSystem.get(configuration);
+      }
+      RawLocalFileSystem localFileSystem = new RawLocalFileSystem();
+      localFileSystem.initialize(localFileSystem.getUri(), configuration);
+      return localFileSystem;
+    } catch (IOException ex) {
+      throw new IllegalStateException(ex);
+    }
+
+  }
 }
