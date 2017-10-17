@@ -38,6 +38,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.MD5MD5CRC32CastagnoliFileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
@@ -116,7 +117,7 @@ public class FileSystemRepository implements DataRepository {
       if (!fileSystem.exists(doiPath)) {
         fileSystem.mkdirs(doiPath);
       }
-      Path newFilePath = resolve(storePath, fileInputContent.getName());
+      Path newFilePath = resolve(doiPath, fileInputContent.getName());
       fileDownload.copy(fileInputContent, newFilePath, fileSystem);
       return newFilePath;
     } catch (IOException ex) {
@@ -439,7 +440,7 @@ public class FileSystemRepository implements DataRepository {
       if (fileSystem instanceof RawLocalFileSystem) {
         return md5(new File(file.toUri().getPath()));
       }
-      return String.valueOf(fileSystem.getFileChecksum(file).getBytes());
+      return fileSystem.getFileChecksum(file).toString().split(":")[1];
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }

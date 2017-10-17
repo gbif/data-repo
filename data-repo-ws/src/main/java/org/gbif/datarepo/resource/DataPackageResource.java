@@ -41,12 +41,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
@@ -122,8 +125,10 @@ public class DataPackageResource {
     validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
 
-    List<String> urlFiles = Optional.ofNullable(request.getParameterValues(FILE_URL_PARAM))
-                              .map(Arrays::asList).orElse(Collections.emptyList());
+    List<String> urlFiles = Optional.ofNullable(multiPart.getFields(FILE_URL_PARAM))
+                              .map(formDataBodyParts -> formDataBodyParts.stream().map(FormDataBodyPart::getValue)
+                                .collect(Collectors.toList()))
+                              .orElse(Collections.emptyList());
     //check that files + urlFiles are not empty
     validateFiles(files, urlFiles);
     checkFileLocations(urlFiles);
@@ -175,10 +180,8 @@ public class DataPackageResource {
     Optional.ofNullable(urlFiles)
       .ifPresent(streamUrlFiles -> streamUrlFiles.forEach(urlFile -> {
         try {
-          fileInputContents.add(downloadHandler.open(new URI(urlFile)));
-        } catch (IOException ex){
-          LOG.error("Error reading file", ex);
-          throw new ServerErrorException("Error opening file", Status.INTERNAL_SERVER_ERROR);
+          URI uri = new URI(urlFile);
+          fileInputContents.add(FileInputContent.from(Paths.get(uri.getPath()).getFileName().toString(), uri));
         } catch (URISyntaxException ex) {
           String message = String.format("Wrong URI %s", urlFile);
           LOG.error(message, ex);
@@ -195,12 +198,12 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{doi}")
-  public DataPackage get(@PathParam("doi") String doiSuffix)  {
+  public DataPackage get(@PathParam("doi") DOI doi)  {
     //Validates DOI structure
-    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
+    validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
-    return getOrNotFound(doi, doiSuffix);
+    return getOrNotFound(doi, doi.getDoiName());
 
   }
 
@@ -211,9 +214,9 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
   @Path("{doi}/{fileName}")
-  public Response getFile(@PathParam("doi") String doiRef, @PathParam("fileName") String fileName)  {
+  public Response getFile(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
     //Validation
-    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiRef);
+    validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Tries to get the file
     Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(doi, fileName);
@@ -232,9 +235,9 @@ public class DataPackageResource {
   @GET
   @Timed
   @Path("{doi}/{fileName}/data")
-  public Response getFileData(@PathParam("doi") String doiRef, @PathParam("fileName") String fileName)  {
+  public Response getFileData(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
     //Validation
-    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiRef);
+    validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Tries to get the file
     Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(doi, fileName);
@@ -251,12 +254,12 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{doi}")
-  public void delete(@PathParam("doi") String doiSuffix,  @Auth GbifUserPrincipal principal)  {
+  public void delete(@PathParam("doi") DOI doi,  @Auth GbifUserPrincipal principal)  {
     //Validates DOI structure
-    DOI doi = validateDoi(configuration.getDoiCommonPrefix(), doiSuffix);
+    validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Checks that the DataPackage exists
-    DataPackage dataPackage = getOrNotFound(doi, doiSuffix);
+    DataPackage dataPackage = getOrNotFound(doi, doi.getDoiName());
     if (!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
       throw buildWebException(Status.UNAUTHORIZED, "A Data Package can be deleted only by its creator");
     }

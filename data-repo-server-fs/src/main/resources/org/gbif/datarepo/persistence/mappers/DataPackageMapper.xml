@@ -35,7 +35,7 @@
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
     SELECT dp.doi, dp.title, dp.description, dp.metadata, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
-    FROM data_package dp<if test="tags != null">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
+    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -54,7 +54,7 @@
           AND dp.deleted IS NULL
         </otherwise>
       </choose>
-      <if test="tags != null">
+      <if test="tags != null and !tags.isEmpty()">
         AND t.data_package_doi = dp.doi AND t.value IN
         <foreach item="item" index="index" collection="tags"
                  open="(" separator="," close=")">
@@ -73,7 +73,7 @@
 
   <select id="count" resultType="Long" parameterType="map">
     SELECT count(*)
-    FROM data_package dp<if test="tags != null">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
+    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -93,7 +93,7 @@
         </otherwise>
       </choose>
     </where>
-    <if test="tags != null">
+    <if test="tags != null and !tags.isEmpty()">
       AND t.data_package_doi = dp.doi AND t.value IN
       <foreach item="item" index="index" collection="tags"
                open="(" separator="," close=")">

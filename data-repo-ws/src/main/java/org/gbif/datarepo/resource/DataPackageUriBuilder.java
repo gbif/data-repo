@@ -23,7 +23,7 @@ public class DataPackageUriBuilder {
    * Generates a DataPackage URL from the DOI.suffix.
    */
   public URI build(DOI doi) {
-    return uriBuilder.build(doi.getSuffix());
+    return uriBuilder.build(doi.getDoiName());
   }
 
   /**

@@ -33,6 +33,13 @@ public class FileInputContent {
   }
 
   /**
+   * Factory method, creates an instance using the name and inputStream objects.
+   */
+  public static FileInputContent from(String name, URI fileLocation) {
+    return new FileInputContent(name, null, fileLocation);
+  }
+
+  /**
    * Name from the InputStream, normally it's the file name.
    */
   public String getName() {

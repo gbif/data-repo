@@ -50,14 +50,13 @@ public class ResourceValidations {
   /**
    * Validates the DOI specified by its parts.
    */
-  public static DOI validateDoi(String doiPrefix, String doiSuffix) {
+  public static void validateDoi(String doiPrefix, String doiSuffix) {
     if (Strings.isNullOrEmpty(doiSuffix)) {
       throwBadRequest("A non-empty DOI must be provided");
     }
     if (doiSuffix.split("\\.").length != 2) { // Suffix/Shoulder must contain two sections divided by a .
       throwBadRequest(String.format("DOI format invalid %s, it must be in the format prefix-suffix", doiSuffix));
     }
-    return new DOI(doiPrefix, doiSuffix);
   }
 
   /**

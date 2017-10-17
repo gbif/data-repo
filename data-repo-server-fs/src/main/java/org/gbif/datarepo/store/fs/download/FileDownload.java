@@ -7,9 +7,11 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +22,7 @@ import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -38,6 +41,12 @@ public class FileDownload {
 
   //Hadoop HDFS scheme
   private static final String HDFS_SCHEME = "hdfs";
+
+  //FTP scheme
+  private static final String FTP_SCHEME = "ftp";
+
+  //HTTP schemes
+  private static final Set<String> HTTP_SCHEMES = Sets.newHashSet("http", "https");
 
   //HTTP HEAD request
   private static final String HTTP_HEAD_METHOD = "HEAD";
@@ -58,11 +67,19 @@ public class FileDownload {
   private static boolean ftpFileExists(URI uri) throws IOException {
     FTPClient ftpClient = new FTPClient();
     try {
-      ftpClient.connect(InetAddress.getByName(uri.getHost()), uri.getPort());
-      return ftpClient.listNames(uri.getPath()).length > 0;
+      if (uri.getPort() > 0) {
+        ftpClient.connect(InetAddress.getByName(uri.getHost()), uri.getPort());
+      } else {
+        ftpClient.connect(InetAddress.getByName(uri.getHost()));
+      }
+      return ftpClient.listFiles(uri.getPath()).length > 0;
+    } catch (Exception ex) {
+      LOG.error("Error connecting to {}", uri);
+      return false;
     } finally {
       ftpClient.disconnect();
     }
+
   }
 
   /**
@@ -75,13 +92,16 @@ public class FileDownload {
   /**
    * Does the file exists in the HTTP server?.
    */
-  private static boolean httpFileExist(HttpURLConnection httpConnection) throws IOException {
+  private static boolean httpFileExist(URI uri) {
     try {
+      HttpURLConnection httpConnection = (HttpURLConnection)uri.toURL().openConnection();
       httpConnection.setRequestMethod(HTTP_HEAD_METHOD);
       httpConnection.connect();
-      return HttpServletResponse.SC_OK == httpConnection.getResponseCode();
-    } finally {
       httpConnection.disconnect();
+      return HttpServletResponse.SC_OK == httpConnection.getResponseCode();
+    } catch (Exception ex){
+      LOG.error("Error connecting to {}", uri);
+      return false;
     }
   }
 
@@ -126,15 +146,19 @@ public class FileDownload {
   public boolean exists(String fileLocation) throws IOException {
     //Parse URI
     URI uri = URI.create(fileLocation);
-    if (uri.getScheme().equalsIgnoreCase(HDFS_SCHEME)) {
+    String scheme = uri.getScheme();
+
+    //it's an external URL
+    if (HTTP_SCHEMES.contains(scheme)) {
+      return httpFileExist(uri);
+    }
+    //HDFS
+    if (HDFS_SCHEME .equalsIgnoreCase(scheme)) {
       return hdfsFileExists(uri);
     }
-    //it's an external URL
-    URLConnection connection =  uri.toURL().openConnection();
-    if (HttpURLConnection.class.isInstance(connection)) {
-      return httpFileExist((HttpURLConnection) connection);
-    }
-    if (FtpURLConnection.class.isInstance(connection)) {
+
+    //FTP
+    if (FTP_SCHEME.equalsIgnoreCase(scheme)) {
       return ftpFileExists(uri);
     }
     throw new IllegalArgumentException("Scheme not supported");
