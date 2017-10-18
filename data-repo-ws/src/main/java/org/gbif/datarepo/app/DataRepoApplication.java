@@ -22,6 +22,7 @@ import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PAR
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.google.common.collect.Lists;
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
@@ -90,6 +91,12 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
    */
   @Override
   public void run(DataRepoConfigurationDW configuration, Environment environment) throws Exception {
+
+    // Enforce use from ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
+    environment.getObjectMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    environment.getObjectMapper().disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+    environment.getObjectMapper().setDateFormat(new ISO8601DateFormat());
+
     DataRepoModule dataRepoModule = new DataRepoModule(configuration, environment);
 
     //CORS Filter
@@ -105,9 +112,6 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     environment.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     // "any setter" or handler that can handle it) should result in a failure (throwing a JsonMappingException) or not.
     environment.getObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
-    // Enforce use from ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
-    environment.getObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     //Register authentication and access control components
     registerSecurityComponents(dataRepoModule, environment, configuration.getJwtAuthConfiguration());

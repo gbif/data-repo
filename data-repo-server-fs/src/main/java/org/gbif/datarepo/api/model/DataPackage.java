@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -28,6 +29,8 @@ public class DataPackage {
 
   public static final String METADATA_FILE = "metadata.xml";
 
+  public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
   @JsonProperty
   private String title;
 
@@ -46,12 +49,15 @@ public class DataPackage {
   private List<DataPackageFile> files;
 
   @JsonProperty
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=ISO_DATE_FORMAT)
   private Date created;
 
   @JsonProperty
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=ISO_DATE_FORMAT)
   private Date modified;
 
   @JsonIgnore
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=ISO_DATE_FORMAT)
   private Date deleted;
 
   @JsonIgnore
