@@ -25,6 +25,7 @@ import com.github.rholder.retry.WaitStrategies;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,7 +44,7 @@ public class FileDownload {
   private static final String HDFS_SCHEME = "hdfs";
 
   //FTP scheme
-  private static final String FTP_SCHEME = "ftp";
+  private static final Set<String> FTP_SCHEMES = Sets.newHashSet("ftp","ftps");
 
   //HTTP schemes
   private static final Set<String> HTTP_SCHEMES = Sets.newHashSet("http", "https");
@@ -67,11 +68,22 @@ public class FileDownload {
   private static boolean ftpFileExists(URI uri) throws IOException {
     FTPClient ftpClient = new FTPClient();
     try {
+      //Connect to the FTP server using a Port if it was specified
       if (uri.getPort() > 0) {
         ftpClient.connect(InetAddress.getByName(uri.getHost()), uri.getPort());
       } else {
         ftpClient.connect(InetAddress.getByName(uri.getHost()));
       }
+      //Use the user connections settings if present
+      if (uri.getUserInfo() != null){
+        String[] userData = uri.getUserInfo().split(":");
+        ftpClient.login(userData[0], userData.length > 1? userData[1]: "");
+      }
+      //Can connect?
+      if(!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
+        return false;
+      }
+      ftpClient.enterLocalPassiveMode();
       return ftpClient.listFiles(uri.getPath()).length > 0;
     } catch (Exception ex) {
       LOG.error("Error connecting to {}", uri);
@@ -103,16 +115,6 @@ public class FileDownload {
       LOG.error("Error connecting to {}", uri);
       return false;
     }
-  }
-
-  /**
-   * Opens a input stream to an external file, the supported protocols are: http, https, ftp and hdfs.
-   * All the streams returned by this method should be closed by consumers of it.
-   */
-  public FileInputContent open(URI fileLocation) throws IOException {
-    //Opens a stream to a reachable HDFS or external URL
-    return FileInputContent.from(Paths.get(fileLocation.getPath()).getFileName().toString(),
-                                 openStream(fileLocation));
   }
 
   /**
@@ -158,7 +160,7 @@ public class FileDownload {
     }
 
     //FTP
-    if (FTP_SCHEME.equalsIgnoreCase(scheme)) {
+    if (FTP_SCHEMES.contains(scheme)) {
       return ftpFileExists(uri);
     }
     throw new IllegalArgumentException("Scheme not supported");
