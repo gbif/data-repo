@@ -4,6 +4,8 @@ import org.gbif.datarepo.store.fs.FileSystemRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +29,7 @@ public class DataPackageDeSerTest {
   // Relative path to the json test file
   private static final String DP_JSON_TEST_FILE = "fixtures/datapackage.json";
 
-  public static final String TEST_DOI_SUFFIX = "dp.bvmv02";
+  public static final DOI TEST_DOI = new DOI(DOI.TEST_PREFIX,"dp.bvmv02");
 
   private static final DataPackageFile OCCURRENCE_TEST_FILE =
     new DataPackageFile("occurrence.txt",
@@ -58,22 +60,28 @@ public class DataPackageDeSerTest {
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
-    return  testDataPackage(TEST_DOI_SUFFIX);
+    return  testDataPackage(TEST_DOI);
   }
 
   /**
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
-  public static DataPackage testDataPackage(String doiSuffix) {
-    DataPackage dataPackage = new DataPackage("http://localhost:8080/data_packages/" + doiSuffix + '/');
-    dataPackage.setMetadata("metadata.xml");
-    dataPackage.addFile(OCCURRENCE_TEST_FILE);
-    dataPackage.setTitle("Test Title");
-    dataPackage.setDescription("Test Description");
-    dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, doiSuffix));
-    dataPackage.setChecksum("ae5e1348dd9f8e9ec1d6f1b14937a4d4");
-    dataPackage.setSize(18644);
-    return  dataPackage;
+  public static DataPackage testDataPackage(DOI doi) {
+    try {
+      //DOI.name nhas to be encoded
+      DataPackage dataPackage =
+        new DataPackage("http://localhost:8080/data_packages/" + URLEncoder.encode(doi.getDoiName(), "utf-8") + '/');
+      dataPackage.setMetadata("metadata.xml");
+      dataPackage.addFile(OCCURRENCE_TEST_FILE);
+      dataPackage.setTitle("Test Title");
+      dataPackage.setDescription("Test Description");
+      dataPackage.setDoi(doi);
+      dataPackage.setChecksum("ae5e1348dd9f8e9ec1d6f1b14937a4d4");
+      dataPackage.setSize(18644);
+      return dataPackage;
+    } catch (UnsupportedEncodingException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
 }

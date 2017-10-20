@@ -31,7 +31,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -41,10 +40,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -169,7 +166,7 @@ public class DataPackageResource {
   /**
    * Combines submitted files and urls in single list of input content.
    */
-  private List<FileInputContent> streamFiles(List<FormDataBodyPart> files, List<String> urlFiles) {
+  private static List<FileInputContent> streamFiles(List<FormDataBodyPart> files, List<String> urlFiles) {
     List<FileInputContent> fileInputContents = new ArrayList<>();
     Optional.ofNullable(files)
       .ifPresent(streamFiles -> streamFiles

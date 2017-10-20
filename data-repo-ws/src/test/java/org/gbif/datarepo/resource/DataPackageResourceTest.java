@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,6 +65,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
@@ -80,7 +82,6 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfContent;
 
 import static org.gbif.datarepo.api.model.DataPackageDeSerTest.testDataPackage;
-import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI_SUFFIX;
 
 /**
  * Test class for the DataPackageResource class.
@@ -108,6 +109,8 @@ public class DataPackageResourceTest {
 
   private static DataRepoConfigurationDW configuration;
 
+  private static final String ENCODED_DOI = toEncodedURL(TEST_DOI);
+
   /**
    * Creates an temporary folder, the return instance is lazy evaluated into the field temporaryFolder.
    */
@@ -120,6 +123,17 @@ public class DataPackageResourceTest {
       return temporaryFolder;
     } catch (IOException ex) {
       throw new IllegalStateException(ex);
+    }
+  }
+
+  /**
+   * Utility function to encode the doi.getDoiName.
+   */
+  private static String toEncodedURL(DOI doi) {
+    try {
+      return URLEncoder.encode(doi.getDoiName(), "UTF-8");
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
   }
 
@@ -215,7 +229,7 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testGetDataPackage() {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DOI_SUFFIX).toString())
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI).toString())
                  .request().get(DataPackage.class))
       .isEqualTo(TEST_DATA_PACKAGE);
   }
@@ -250,7 +264,7 @@ public class DataPackageResourceTest {
         .header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS)
         .post(Entity.entity(multiPart, multiPart.getMediaType()), DataPackage.class);
       //Test that both packages contains the same elements
-      assertThat(newDataPackage).isEqualTo(testDataPackage(newDataPackage.getDoi().getSuffix()));
+      assertThat(newDataPackage).isEqualTo(testDataPackage(newDataPackage.getDoi()));
       //verify that exists method was invoked
       verify(DATA_PACKAGE_MAPPER).create(any(DataPackage.class));
     }
@@ -261,10 +275,9 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testGetFile() throws IOException {
-    try (InputStream downloadFile = resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH,
-                                                                              TEST_DOI_SUFFIX,
-                                                                              CONTENT_TEST_FILE).toString())
-        .request().get(InputStream.class); //download file
+    try (InputStream downloadFile = resource.getJerseyTest()
+                                      .target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI, CONTENT_TEST_FILE).toString())
+                                      .request().get(InputStream.class); //download file
          //Read test file
         InputStream contentFile = new FileInputStream(Paths.get(TEST_DATA_PACKAGE_DIR, CONTENT_TEST_FILE).toFile())) {
         //compare file contents
@@ -272,13 +285,12 @@ public class DataPackageResourceTest {
     }
   }
 
-
   /**
    * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
   public void testDeleteDataPackage() throws DoiException {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DOI_SUFFIX).toString())
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI).toString())
                  .request().header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS).delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
     verify(DATA_PACKAGE_MAPPER).get(any(String.class));

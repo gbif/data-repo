@@ -2,12 +2,12 @@
   "doi":"10.5072/dp.bvmv02",
   "title":"Test Title",
   "description":"Test Description",
-  "metadata":"http://localhost:8080/data_packages/dp.bvmv02/metadata.xml",
+  "metadata":"http://localhost:8080/data_packages/10.5072%2Fdp.bvmv02/metadata.xml",
   "checksum": "ae5e1348dd9f8e9ec1d6f1b14937a4d4",
   "size": 18644,
   "files":[
     {
-      "fileName": "http://localhost:8080/data_packages/dp.bvmv02/occurrence.txt",
+      "fileName": "http://localhost:8080/data_packages/10.5072%2Fdp.bvmv02/occurrence.txt",
       "checksum": "ae5e1348dd9f8e9ec1d6f1b14937a4d4",
       "size": 18644
     }
