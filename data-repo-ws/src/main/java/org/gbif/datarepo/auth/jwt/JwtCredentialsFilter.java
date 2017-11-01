@@ -4,9 +4,11 @@ import org.gbif.api.model.common.GbifUserPrincipal;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.regex.Pattern;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Optional;
@@ -22,48 +24,74 @@ public class JwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> 
 
   private final JwtAuthConfiguration configuration;
 
+  //Patterns that catches case insensitive versions of word 'bearer'
+  private static final Pattern BEARER_PAT =  Pattern.compile("(?i)bearer");
+
   public JwtCredentialsFilter(JwtAuthConfiguration configuration) {
     this.configuration = configuration;
   }
+
   /**
    * If the cookie (SECURITY_COOKIE) is present, it is validated agains the provided authenticator.
    */
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    java.util.Optional.ofNullable(requestContext.getCookies().get(configuration.getCookieName()))
-      .ifPresent(cookie -> {
-                      try {
-                        Optional<GbifUserPrincipal> principal = authenticator.authenticate(cookie.getValue());
-                        if (principal.isPresent()) {
-                          requestContext.setSecurityContext(new SecurityContext() {
-                            @Override
-                            public Principal getUserPrincipal() {
-                              return principal.get();
-                            }
+    //Tries to read the authorization token form the header
+    java.util.Optional<String> authHeader = java.util.Optional
+      .ofNullable(requestContext.getHeaderString(HttpHeaders.AUTHORIZATION));
+    if (authHeader.isPresent()) {
+      authenticate(removeBearer(authHeader.get()), requestContext);
+    } else { //if the authorization header is not present it tries to read a cookie named 'token'
+      java.util.Optional.ofNullable(requestContext.getCookies().get(configuration.getCookieName()))
+        .ifPresent(cookie -> authenticate(cookie.getValue(), requestContext));
+    }
+  }
 
-                            @Override
-                            public boolean isUserInRole(String role) {
-                              return authorizer.authorize(principal.get(), role);
-                            }
+  /**
+   * Removes 'bearer' token, leading an trailing whitespaces.
+   * @param token to be clean
+   * @return a token without whitespaces and the word 'bearer'
+   */
+  private static String removeBearer(String token) {
+    return BEARER_PAT.matcher(token).replaceAll("").trim();
+  }
 
-                            @Override
-                            public boolean isSecure() {
-                              return requestContext.getSecurityContext().isSecure();
-                            }
+  /**
+   * Authenticates using the provided credentials.
+   * @param credentials user jwt credentials
+   * @param requestContext context being filtered
+   */
+  private void authenticate(String credentials, ContainerRequestContext requestContext) {
+    try {
+      Optional<GbifUserPrincipal> principal = authenticator.authenticate(credentials);
+      if (principal.isPresent()) {
+        requestContext.setSecurityContext(new SecurityContext() {
+          @Override
+          public Principal getUserPrincipal() {
+            return principal.get();
+          }
 
-                            @Override
-                            public String getAuthenticationScheme() {
-                              return configuration.getSecurityContext();
-                            }
-                          });
-                        } else {
-                          throw new NotAuthorizedException("Invalid UserName in JWT token");
-                        }
-                      } catch (AuthenticationException ex) {
-                        throw new InternalServerErrorException(ex);
-                      }
-                    }
-    );
+          @Override
+          public boolean isUserInRole(String role) {
+            return authorizer.authorize(principal.get(), role);
+          }
+
+          @Override
+          public boolean isSecure() {
+            return requestContext.getSecurityContext().isSecure();
+          }
+
+          @Override
+          public String getAuthenticationScheme() {
+            return configuration.getSecurityContext();
+          }
+        });
+      } else {
+        throw new NotAuthorizedException("Invalid UserName in JWT token");
+      }
+    } catch (AuthenticationException ex) {
+      throw new InternalServerErrorException(ex);
+    }
   }
 
   /**

@@ -10,6 +10,7 @@ import org.gbif.datarepo.auth.jwt.JwtCredentialsFilter;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -105,7 +106,7 @@ public class JwtAuthTest {
    * Base method to run JWT auth test using a userName, a jwtSigningKey and a expected result.
    * This test adds a cookie with the name GbifJwtCredentialsFilter.SECURITY_COOKIE containing the JWT token data.
    */
-  private static void secureResourceTest(String userName, String jwtSigningKey, Response.StatusType expectedStatus) {
+  private static void cookieSecureResourceTest(String userName, String jwtSigningKey, Response.StatusType expectedStatus) {
     assertThat(resource.getJerseyTest()
                  .target(TEST_RESOURCE_PATH)
                  .request()
@@ -116,27 +117,73 @@ public class JwtAuthTest {
   }
 
   /**
+   * Base method to run JWT auth test using a userName, a jwtSigningKey and a expected result.
+   * This test adds a cookie with the name GbifJwtCredentialsFilter.SECURITY_COOKIE containing the JWT token data.
+   */
+  private static void authHeaderSecureResourceTest(String userName, String jwtSigningKey, Response.StatusType expectedStatus) {
+    assertThat(resource.getJerseyTest()
+                 .target(TEST_RESOURCE_PATH)
+                 .request()
+                 .header(HttpHeaders.AUTHORIZATION,"Bearer " +
+                         getJwtToken(userName, jwtSigningKey.getBytes()))
+                 .get(Response.class).getStatus())
+      .isEqualTo(expectedStatus.getStatusCode());
+  }
+
+  /**
    * Tests that resource can be called using an authorized user name.
    */
   @Test
-  public void testAuthorizedToken() {
-    secureResourceTest(AUTHORIZED_USER_NAME, JWT_SIGNING_KEY, Response.Status.OK);
+  public void testCookieAuthorizedToken() {
+    cookieSecureResourceTest(AUTHORIZED_USER_NAME, JWT_SIGNING_KEY, Response.Status.OK);
+  }
+
+  /**
+   * Tests that resource can be called using an authorized user name.
+   */
+  @Test
+  public void testAuthHeaderAuthorizedToken() {
+    authHeaderSecureResourceTest(AUTHORIZED_USER_NAME, JWT_SIGNING_KEY, Response.Status.OK);
+  }
+
+  /**
+   * Tests that resource can be called using an authorized user name.
+   */
+  @Test
+  public void testHeaderAuthorizedToken() {
+    authHeaderSecureResourceTest(AUTHORIZED_USER_NAME, JWT_SIGNING_KEY, Response.Status.OK);
   }
 
   /**
    * Tests that resource can NOT be called using an unauthorized user name.
    */
   @Test
-  public void testBadSigningKey() {
-    secureResourceTest(AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
+  public void testBadCookieSigningKey() {
+    cookieSecureResourceTest(AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
+  }
+
+  /**
+   * Tests that resource can NOT be called using an unauthorized user name.
+   */
+  @Test
+  public void testBadHeaderSigningKey() {
+    authHeaderSecureResourceTest(AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
   }
 
   /**
    * Tests with a valid signing key but using an NON-existent user.
    */
   @Test
-  public void testNotAuthorizedToken() {
-    secureResourceTest(NOT_AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
+  public void testNotAuthorizedCookieToken() {
+    cookieSecureResourceTest(NOT_AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
+  }
+
+  /**
+   * Tests with a valid signing key but using an NON-existent user.
+   */
+  @Test
+  public void testNotAuthorizedHeaderToken() {
+    authHeaderSecureResourceTest(NOT_AUTHORIZED_USER_NAME, JWT_BAD_SIGNING_KEY, Response.Status.UNAUTHORIZED);
   }
 
 }
