@@ -106,7 +106,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     corsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false,
                                     environment.getApplicationContext().getContextPath() + "*");
     corsFilter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
-    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
+    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization");
     corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
     corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
     corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
