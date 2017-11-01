@@ -18,6 +18,8 @@ import javax.servlet.FilterRegistration;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_METHODS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_HEADERS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_ORIGINS_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.CHAIN_PREFLIGHT_PARAM;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -100,12 +102,14 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     DataRepoModule dataRepoModule = new DataRepoModule(configuration, environment);
 
     //CORS Filter
-    FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
-    filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false,
+    FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
+    corsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false,
                                     environment.getApplicationContext().getContextPath() + "*");
-    filter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
-    filter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
-    filter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
+    corsFilter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
+    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
+    corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
+    corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
+    corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
 
 
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
