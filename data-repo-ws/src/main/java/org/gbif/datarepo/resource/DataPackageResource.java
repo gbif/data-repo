@@ -265,7 +265,6 @@ public class DataPackageResource {
     dataRepository.delete(doi);
   }
 
-
   /**
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */

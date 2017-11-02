@@ -3,6 +3,9 @@ package org.gbif.datarepo.auth.jwt;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import javax.ws.rs.NotAuthorizedException;
 
 import com.google.common.base.Optional;
@@ -47,7 +50,8 @@ public class JwtAuthenticator implements Authenticator<String, GbifUserPrincipal
   @Override
   public Optional<GbifUserPrincipal> authenticate(String credentials) throws AuthenticationException {
     try {
-      Jws<Claims> jws = Jwts.parser().setSigningKey(jwtSigningKey).parseClaimsJws(credentials);
+      Jws<Claims> jws = Jwts.parser().setSigningKey(jwtSigningKey)
+        .parseClaimsJws(credentials);
       return Optional.fromNullable(jws.getBody().get(configuration.getUserFieldName(), String.class))
         .transform(identityAccessService::get)
         .transform(GbifUserPrincipal::new);

@@ -10,7 +10,7 @@ public class JwtAuthConfiguration {
   /**
    * Default user name filed in the JWT body.
    */
-  public static final String DEFAULT_JWT_USER_NAME = "userFieldName";
+  public static final String DEFAULT_JWT_USER_NAME = "userName";
 
   /**
    * Default security cookie name.
