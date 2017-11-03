@@ -68,12 +68,10 @@ import static org.mockito.Mockito.spy;
 import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
-import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_REPO_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
-import static org.gbif.datarepo.test.utils.ResourceTestUtils.METADATA_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
@@ -255,8 +253,7 @@ public class DataPackageResourceTest {
   @Test
   public void testCreateDataPackage() throws Exception {
     try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM))
-      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))
-      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + METADATA_TEST_FILE, METADATA_PARAM))) {
+      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
       DataPackage newDataPackage = resource.getJerseyTest()
         .target(DATA_PACKAGES_PATH)
         .register(MultiPartFeature.class)

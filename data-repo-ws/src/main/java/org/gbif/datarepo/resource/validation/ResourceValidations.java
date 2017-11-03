@@ -1,10 +1,6 @@
 package org.gbif.datarepo.resource.validation;
 
-import org.gbif.api.model.common.DOI;
-
-import java.util.Collection;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -12,7 +8,6 @@ import org.assertj.core.util.Strings;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
-import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 
 /**
  * Utility class to process common validation across Data packages resources/web services.

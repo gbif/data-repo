@@ -41,6 +41,11 @@ public interface DataRepository {
   DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files);
 
   /**
+   * Creates a DataPackage and store metadata and input content in the data repository.
+   */
+  DataPackage create(DataPackage dataPackage, List<FileInputContent> files);
+
+  /**
    * Updates/replaces all the contect of a DataPackage.
    */
   DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files, UpdateMode mode);

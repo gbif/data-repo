@@ -3,6 +3,7 @@ package org.gbif.datarepo.store.fs;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.RepositoryStats;
@@ -14,6 +15,11 @@ import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.store.fs.download.FileDownload;
+import org.gbif.doi.metadata.datacite.DataCiteMetadata;
+import org.gbif.doi.metadata.datacite.DateType;
+import org.gbif.doi.metadata.datacite.DescriptionType;
+import org.gbif.doi.service.InvalidMetadataException;
+import org.gbif.doi.service.datacite.DataCiteValidator;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
@@ -24,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +40,12 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.MD5MD5CRC32CastagnoliFileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
@@ -208,6 +215,51 @@ public class FileSystemRepository implements DataRepository {
     dataPackage.getTags().forEach(tag -> newDataPackage.addTag(tag.getValue()));
 
     return newDataPackage;
+  }
+
+  private static DataCiteMetadata toDataCiteMetadata(DataPackage dataPackage) {
+    Date metadataCreationDate = Optional.ofNullable(dataPackage.getCreated()).orElse(new Date());
+    return
+      DataCiteMetadata.builder()
+      .withCreators(DataCiteMetadata.Creators.builder()
+                      .withCreator(DataCiteMetadata.Creators.Creator.builder()
+                                     .withCreatorName(dataPackage.getCreatedBy())
+                                     .build())
+                      .build())
+      .withTitles(DataCiteMetadata.Titles.builder()
+                    .withTitle(DataCiteMetadata.Titles.Title.builder()
+                                 .withValue(dataPackage.getTitle())
+                                 .build())
+                    .build())
+      .withDates(DataCiteMetadata.Dates.builder()
+                   .withDate(DataCiteMetadata.Dates.Date.builder()
+                               .withDateType(DateType.CREATED)
+                               .withValue(ISO8601Utils.format(metadataCreationDate))
+                               .build())
+                   .build())
+      .withPublisher(dataPackage.getCreatedBy())
+      .withPublicationYear(String.valueOf(metadataCreationDate.toInstant()
+                                            .atZone(ZoneId.systemDefault()).getYear()))
+      .withDescriptions(DataCiteMetadata.Descriptions.builder()
+                          .withDescription(DataCiteMetadata.Descriptions.Description
+                                             .builder()
+                                             .withContent(dataPackage.getDescription())
+                                             .withDescriptionType(DescriptionType.ABSTRACT)
+                                             .build())
+                          .build())
+      .build();
+  }
+
+  /**
+   * Creates a new DataPackage containing the metadata and files specified.
+   */
+  @Override
+  public DataPackage create(DataPackage dataPackage, List<FileInputContent> files) {
+    try (InputStream xmlMetadata = new ByteArrayInputStream(DataCiteValidator.toXml(toDataCiteMetadata(dataPackage), false).getBytes())) {
+      return create(dataPackage, xmlMetadata, files);
+    } catch (InvalidMetadataException | IOException  ex) {
+      throw new IllegalStateException(ex);
+    }
   }
 
   /**

@@ -53,9 +53,7 @@ import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateDoi;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
-import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFileSubmitted;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
-import static org.gbif.datarepo.resource.PathsParams.METADATA_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.FILE_URL_PARAM;
 
@@ -123,7 +121,6 @@ public class DataPackageResource {
   public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal,
                             @Context HttpServletRequest request) throws IOException {
     //Validations
-    validateFileSubmitted(multiPart, METADATA_PARAM);
     List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
 
     List<String> urlFiles = Optional.ofNullable(multiPart.getFields(FILE_URL_PARAM))
@@ -138,10 +135,7 @@ public class DataPackageResource {
                                   .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
                                              DataPackage.class);
       dataPackage.setCreatedBy(principal.getName());
-      DataPackage newDataPackage = dataRepository.create(dataPackage,
-                                                         multiPart.getField(METADATA_PARAM)
-                                                           .getValueAs(InputStream.class),
-                                                         streamFiles(files, urlFiles));
+      DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles));
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getDoi()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
