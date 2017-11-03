@@ -65,15 +65,16 @@ public class JwtCredentialsFilter extends AuthFilter<String, GbifUserPrincipal> 
     try {
       Optional<GbifUserPrincipal> principal = authenticator.authenticate(credentials);
       if (principal.isPresent()) {
+        GbifUserPrincipal gbifPrincipal = principal.get();
         requestContext.setSecurityContext(new SecurityContext() {
           @Override
           public Principal getUserPrincipal() {
-            return principal.get();
+            return gbifPrincipal;
           }
 
           @Override
           public boolean isUserInRole(String role) {
-            return authorizer.authorize(principal.get(), role);
+            return gbifPrincipal.hasRole(role);
           }
 
           @Override

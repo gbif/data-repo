@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
@@ -70,10 +71,12 @@ public class DataPackageResource {
 
   // low quality from source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
+
   private static final String FILE_ATTACHMENT = "attachment; filename=";
 
+  private static final String DATA_REPO_ACCESS_ROLE = "REGISTRY_ADMIN";
+
   private final DataRepository dataRepository;
-  private final DataRepoConfiguration configuration;
 
   private final DataPackageUriBuilder uriBuilder;
 
@@ -84,9 +87,9 @@ public class DataPackageResource {
    */
   public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration) {
     this.dataRepository = dataRepository;
-    this.configuration = configuration.getDataRepoConfiguration();
-    uriBuilder = new DataPackageUriBuilder(this.configuration.getDataPackageApiUrl());
-    downloadHandler = new FileDownload(this.configuration.getFileSystem());
+    DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
+    uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
+    downloadHandler = new FileDownload(dataRepoConfiguration.getFileSystem());
   }
 
   /**
@@ -116,6 +119,7 @@ public class DataPackageResource {
   @Timed
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
+  @RolesAllowed(DATA_REPO_ACCESS_ROLE)
   public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal,
                             @Context HttpServletRequest request) throws IOException {
     //Validations
@@ -251,7 +255,8 @@ public class DataPackageResource {
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{doi}")
-  public void delete(@PathParam("doi") DOI doi,  @Auth GbifUserPrincipal principal)  {
+  @RolesAllowed(DATA_REPO_ACCESS_ROLE)
+  public void delete(@PathParam("doi") DOI doi, @Auth GbifUserPrincipal principal)  {
     //Validates DOI structure
     validateDoi(doi.getPrefix(), doi.getSuffix());
 

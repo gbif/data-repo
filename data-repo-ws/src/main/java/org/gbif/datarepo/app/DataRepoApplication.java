@@ -37,6 +37,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +71,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
    */
   private static void registerSecurityComponents(DataRepoModule module, Environment environment,
                                                  JwtAuthConfiguration authJwtConfiguration) {
+    environment.jersey().register(RolesAllowedDynamicFeature.class);
     //Security configuration
     Authenticator<BasicCredentials, GbifUserPrincipal> authenticator = module.getBasicCredentialsAuthenticator();
     BasicCredentialAuthFilter<GbifUserPrincipal> userBasicCredentialAuthFilter =
