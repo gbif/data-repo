@@ -198,8 +198,7 @@ public class DataPackageResource {
     validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
-    return getOrNotFound(doi, doi.getDoiName());
-
+    return getOrNotFound(doi);
   }
 
   /**
@@ -212,9 +211,9 @@ public class DataPackageResource {
   public Response getFile(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
     //Validation
     validateDoi(doi.getPrefix(), doi.getSuffix());
-
+    DataPackage dataPackage = getOrNotFound(doi);
     //Tries to get the file
-    Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(doi, fileName);
+    Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(dataPackage.getKey(), fileName);
 
     //Check file existence before send it in the Response
     return fileInputStream.isPresent() ? Response.ok(fileInputStream.get())
@@ -233,9 +232,10 @@ public class DataPackageResource {
   public Response getFileData(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
     //Validation
     validateDoi(doi.getPrefix(), doi.getSuffix());
+    DataPackage dataPackage = getOrNotFound(doi);
 
     //Tries to get the file
-    Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(doi, fileName);
+    Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(dataPackage.getKey(), fileName);
 
     //Check file existence before send it in the Response
     return dataPackageFile.isPresent() ? Response.ok(dataPackageFile.get()).build()
@@ -255,22 +255,22 @@ public class DataPackageResource {
     validateDoi(doi.getPrefix(), doi.getSuffix());
 
     //Checks that the DataPackage exists
-    DataPackage dataPackage = getOrNotFound(doi, doi.getDoiName());
+    DataPackage dataPackage = getOrNotFound(doi);
     if (!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
       throw buildWebException(Status.UNAUTHORIZED, "A Data Package can be deleted only by its creator");
     }
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
-    dataRepository.delete(doi);
+    dataRepository.delete(dataPackage.getKey());
   }
 
   /**
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */
-  private DataPackage getOrNotFound(DOI doi, String doiSuffix) {
+  private DataPackage getOrNotFound(DOI doi) {
     return dataRepository.get(doi)
       .orElseThrow(() -> buildWebException(Status.NOT_FOUND,
-                                           String.format("DOI %s not found in repository", doiSuffix)))
+                                           String.format("DOI %s not found in repository", doi.getSuffix())))
       .inUrl(uriBuilder.build(doi));
   }
 

@@ -1,7 +1,6 @@
 package org.gbif.datarepo.test.mocks;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.datarepo.api.model.DataPackageDeSerTest;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
@@ -15,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -33,8 +33,8 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
   }
 
   @Override
-  public DataPackageFile get(@Param("doi") DOI doi, @Param("fileName") String fileName) {
-    Path doiPath = getDoiPath(doi);
+  public DataPackageFile get(@Param("dataPackageKey") UUID dataPackageKey, @Param("fileName") String fileName) {
+    Path doiPath = getDataPackagePath(dataPackageKey);
     if (doiPath.toFile().exists()) {
       File packageFile = doiPath.resolve(fileName).toFile();
       if (packageFile.exists()) {
@@ -46,9 +46,9 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
   }
 
   @Override
-  public List<DataPackageFile> list(@Nullable @Param("doi") DOI doi) {
+  public List<DataPackageFile> list(@Nullable @Param("dataPackageKey") UUID dataPackageKey) {
     try {
-      Path doiPath = getDoiPath(doi);
+      Path doiPath = getDataPackagePath(dataPackageKey);
       if (doiPath.toFile().exists() && doiPath.toFile().isDirectory()) {
         return Files.list(doiPath)
           .map(path -> {
@@ -65,29 +65,29 @@ public class DataPackageFileMapperMock implements DataPackageFileMapper {
   }
 
   @Override
-  public void create(@Param("doi") DOI doi, @Param("dpf") DataPackageFile dataPackageFile) {
+  public void create(@Param("dataPackageKey") UUID dataPackageKey, @Param("dpf") DataPackageFile dataPackageFile) {
     //NOP
   }
 
   @Override
-  public void update(@Param("doi") String doiName, @Param("dpf") DataPackageFile dataPackageFile) {
+  public void update(@Param("dataPackageKey") UUID dataPackageKey, @Param("dpf") DataPackageFile dataPackageFile) {
     //NOP
   }
 
   @Override
-  public void delete(@Param("doi") DOI doi, @Param("fileName") String fileName) {
+  public void delete(@Param("dataPackageKey") UUID dataPackageKey, @Param("fileName") String fileName) {
     // NOP
   }
 
   @Override
-  public void archive(@Param("doi") DOI doi) {
+  public void archive(@Param("dataPackageKey") UUID dataPackageKey) {
     // NOP
   }
 
   /**
-   * Resolves a path for a DOI.
+   * Resolves a path for a UUID.
    */
-  private Path getDoiPath(DOI doi) {
-    return storePath.resolve(doi.getPrefix() + '-' + doi.getSuffix());
+  private Path getDataPackagePath(UUID dataPackageKey) {
+    return storePath.resolve(dataPackageKey.toString());
   }
 }

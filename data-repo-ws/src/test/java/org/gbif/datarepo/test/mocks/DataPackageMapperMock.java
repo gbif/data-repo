@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -35,11 +36,31 @@ public class DataPackageMapperMock implements DataPackageMapper {
 
   @Override
   public DataPackage getByAlternativeIdentifier(@Param("identifier") String identifier) {
-   return get(identifier);
+   return getByDOI(new DOI(identifier).getDoiName());
   }
 
   @Override
-  public DataPackage get(@Param("doi") String doiName) {
+  public DataPackage getByKey(@Param("dataPackageKey") UUID dataPackageKey) {
+    File doiPath = getDataPackagePath(dataPackageKey).toFile();
+    if (doiPath.exists()) {
+      //Assemble a new DataPackage instance containing all the information
+      DataPackage dataPackage = new DataPackage();
+      dataPackage.setMetadata(DataPackage.METADATA_FILE);
+      dataPackage.setCreatedBy(ResourceTestUtils.TEST_USER.getName());
+      dataPackage.setTitle("Test Title");
+      dataPackage.setDescription("Test Description");
+      Arrays.stream(doiPath.listFiles(pathname -> !pathname.getName().equals(DataPackage.METADATA_FILE)))
+        .forEach(file -> dataPackage.addFile(file.getName(), FileSystemRepository.md5(file),
+                                             file.length())); //metadata.xml is excluded from the list from files
+      dataPackage.setSize(dataPackage.getFiles().stream().mapToLong(DataPackageFile::getSize).sum());
+      dataPackage.setChecksum(dataPackage.getFiles().get(0).getChecksum());
+      return dataPackage;
+    }
+    return null;
+  }
+
+  @Override
+  public DataPackage getByDOI(@Param("doi") String doiName) {
     String[] doiNameParts = doiName.indexOf('-') > 0 ? doiName.split("-") : doiName.split("\\/");
     DOI doi = new DOI(doiNameParts[0], doiNameParts[1]);
     File doiPath = getDoiPath(doi).toFile();
@@ -68,12 +89,21 @@ public class DataPackageMapperMock implements DataPackageMapper {
     return Paths.get(storePath.toString(),  doi.getPrefix() + '-' + doi.getSuffix());
   }
 
+  /**
+   * Resolves a path for a DOI.
+   */
+  private Path getDataPackagePath(UUID dataPackageKey) {
+    return Paths.get(storePath.toString(),  dataPackageKey.toString());
+  }
+
   @Override
   public List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
                                 @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted,
                                 @Nullable @Param("tags") List<String> tags,
                                 @Nullable @Param("query") String q) {
-    return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.toList());
+    return Arrays.stream(storePath.toFile().list())
+      .map(UUID::fromString)
+      .map(this::getByKey).collect(Collectors.toList());
   }
 
   @Override
@@ -81,7 +111,9 @@ public class DataPackageMapperMock implements DataPackageMapper {
                     @Nullable Date fromDate, @Nullable Date toDate, Boolean deleted,
                     @Nullable @Param("tags") List<String> tags,
                     @Nullable @Param("query") String q) {
-    return Arrays.stream(storePath.toFile().list()).map(this::get).collect(Collectors.counting());
+    return Arrays.stream(storePath.toFile().list())
+      .map(UUID::fromString)
+      .map(this::getByKey).collect(Collectors.counting());
   }
 
   @Override
@@ -95,12 +127,12 @@ public class DataPackageMapperMock implements DataPackageMapper {
   }
 
   @Override
-  public void delete(@Param("doi") DOI doi) {
+  public void delete(@Param("dataPackageKey") UUID dataPackageKey) {
     //NOP;
   }
 
   @Override
-  public void archive(@Param("doi") DOI doi) {
+  public void archive(@Param("dataPackageKey") UUID dataPackageKey) {
     //NOP;
   }
 }

@@ -6,6 +6,7 @@ import org.gbif.datarepo.api.model.AlternativeIdentifier;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.apache.ibatis.annotations.Param;
@@ -23,7 +24,7 @@ public interface AlternativeIdentifierMapper {
   /**
    * List AlternativeIdentifier by a data package DOI.
    */
-  List<AlternativeIdentifier> listByDataPackageDoi(@Nullable @Param("doi") DOI doi);
+  List<AlternativeIdentifier> listByDataPackageKey(@Nullable @Param("dataPackageKey") UUID dataPackageKey);
 
   /**
    * Page through AlternativeIdentifiers, optionally filtered by user and dates.

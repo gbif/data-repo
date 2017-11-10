@@ -7,6 +7,7 @@ import org.gbif.datarepo.persistence.mappers.TagMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -30,7 +31,7 @@ public class TagMapperMock implements TagMapper {
     Tag tag = new Tag();
     tag.setCreated(new Date());
     tag.setCreatedBy("testUser");
-    tag.setDataPackageDoi(dataPackageDoi);
+    tag.setDataPackageKey(UUID.randomUUID());
     tag.setValue("TagValue");
     return Collections.singletonList(tag);
   }

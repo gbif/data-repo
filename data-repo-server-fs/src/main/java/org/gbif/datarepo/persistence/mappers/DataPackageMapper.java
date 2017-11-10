@@ -1,11 +1,11 @@
 package org.gbif.datarepo.persistence.mappers;
 
-import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.DataPackage;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.apache.ibatis.annotations.Param;
@@ -18,7 +18,12 @@ public interface DataPackageMapper {
   /**
    * Retrieves a DataPackage by its doi name, i.e.: prefix/suffix.
    */
-  DataPackage get(@Param("doi") String doiName);
+  DataPackage getByDOI(@Param("doi") String doiName);
+
+  /**
+   * Retrieves a DataPackage by its key.
+   */
+  DataPackage getByKey(@Param("dataPackageKey") UUID dataPackageKey);
 
   DataPackage getByAlternativeIdentifier(@Param("identifier") String identifier);
 
@@ -50,10 +55,10 @@ public interface DataPackageMapper {
   /**
    * Deletes a data package by its doi value.
    */
-  void delete(@Param("doi") DOI doi);
+  void delete(@Param("dataPackageKey") UUID dataPackageKey);
 
   /**
    * Deletes a data package by its doi value.
    */
-  void archive(@Param("doi") DOI doi);
+  void archive(@Param("dataPackageKey") UUID dataPackageKey);
 }

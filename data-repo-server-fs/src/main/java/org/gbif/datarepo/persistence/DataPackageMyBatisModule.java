@@ -3,19 +3,24 @@ package org.gbif.datarepo.persistence;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.AlternativeIdentifier;
+import org.gbif.datarepo.api.model.Creator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.api.model.Tag;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
+import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.persistence.type.DoiTypeHandler;
+import org.gbif.datarepo.persistence.type.TextArrayToListTypeHandler;
 import org.gbif.mybatis.guice.MyBatisModule;
+import org.gbif.mybatis.type.UuidTypeHandler;
 
 import java.util.Properties;
+import java.util.UUID;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -56,12 +61,15 @@ public class DataPackageMyBatisModule extends PrivateModule {
       addAlias("Pageable").to(Pageable.class);
       addAlias("AlternativeIdentifier").to(AlternativeIdentifier.class);
       addAlias("Tag").to(Tag.class);
+      addAlias("Creator").to(Creator.class);
+      addAlias("uuid").to(UUID.class);
       //Mappers
       addMapperClass(DataPackageMapper.class);
       addMapperClass(DataPackageFileMapper.class);
       addMapperClass(RepositoryStatsMapper.class);
       addMapperClass(AlternativeIdentifierMapper.class);
       addMapperClass(TagMapper.class);
+      addMapperClass(CreatorMapper.class);
     }
 
     /**
@@ -70,6 +78,8 @@ public class DataPackageMyBatisModule extends PrivateModule {
     @Override
     protected void bindTypeHandlers() {
       addAlias("DoiTypeHandler").to(DoiTypeHandler.class);
+      addAlias("UuidTypeHandler").to(UuidTypeHandler.class);
+      addAlias("TextArrayToListTypeHandler").to(TextArrayToListTypeHandler.class);
     }
 
     @Override
@@ -98,5 +108,6 @@ public class DataPackageMyBatisModule extends PrivateModule {
     expose(RepositoryStatsMapper.class);
     expose(AlternativeIdentifierMapper.class);
     expose(TagMapper.class);
+    expose(CreatorMapper.class);
   }
 }

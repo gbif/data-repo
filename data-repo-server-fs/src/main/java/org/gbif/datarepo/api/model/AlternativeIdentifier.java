@@ -1,9 +1,9 @@
 package org.gbif.datarepo.api.model;
 
-import org.gbif.api.model.common.DOI;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +23,7 @@ public class AlternativeIdentifier {
   }
 
   @JsonIgnore
-  private DOI dataPackageDoi;
+  private UUID dataPackageKey;
 
   @JsonProperty
   private String identifier;
@@ -37,12 +37,12 @@ public class AlternativeIdentifier {
   @JsonProperty
   private Date created;
 
-  public DOI getDataPackageDoi() {
-    return dataPackageDoi;
+  public UUID getDataPackageKey() {
+    return dataPackageKey;
   }
 
-  public void setDataPackageDoi(DOI dataPackageDoi) {
-    this.dataPackageDoi = dataPackageDoi;
+  public void setDataPackageKey(UUID dataPackageKey) {
+    this.dataPackageKey = dataPackageKey;
   }
 
   public String getIdentifier() {
@@ -80,14 +80,14 @@ public class AlternativeIdentifier {
 
   @Override
   public int hashCode() {
-    return Objects.hash(identifier, type, dataPackageDoi, createdBy, created);
+    return Objects.hash(identifier, type, dataPackageKey, createdBy, created);
   }
 
   @Override
   public String toString() {
     return "{\"identifier\": \"" + identifier
            + "\", \"type\": \"" + type
-           + "\", \"dataPackageDoi\": \"" + dataPackageDoi
+           + "\", \"dataPackageKey\": \"" + dataPackageKey
            + "\", \"createdBy\": \"" + createdBy
            + "\", \"created\": \"" + created + "\"}";
   }
@@ -104,7 +104,7 @@ public class AlternativeIdentifier {
     AlternativeIdentifier other = (AlternativeIdentifier) obj;
     return Objects.equals(identifier, other.identifier)
            && Objects.equals(type, other.type)
-           && Objects.equals(dataPackageDoi, other.dataPackageDoi)
+           && Objects.equals(dataPackageKey, other.dataPackageKey)
            && Objects.equals(createdBy, other.createdBy)
            && Objects.equals(created, other.created);
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.gbif.datarepo.persistence.mappers.CreatorMapper">
+
+  <resultMap id="CREATOR_MAP" type="Creator" autoMapping="true">
+    <id property="key" column="key"/>
+    <result property="dataPackageKey" column="data_package_key" typeHandler="UuidTypeHandler"/>
+    <result property="name" column="name"/>
+    <result property="affiliation" column="affiliation" typeHandler="TextArrayToListTypeHandler"/>
+    <result property="identifier" column="identifier"/>
+    <result property="identifierScheme" column="identifier_scheme"/>
+    <result property="schemeURI" column="scheme_uri"/>
+    <result property="created" column="created" jdbcType="TIMESTAMP"/>
+    <result property="createdBy" column="created_by"/>
+  </resultMap>
+
+  <sql id="WRITABLE_CREATOR_FIELDS">
+    data_package_key, name, affiliation, identifier, identifier_scheme, scheme_uri, created, created_by
+  </sql>
+
+  <sql id="CREATOR_FIELDS">
+    key,<include refid="org.gbif.datarepo.persistence.mappers.CreatorMapper.WRITABLE_CREATOR_FIELDS"/>
+  </sql>
+
+  <sql id="WRITABLE_CREATOR_FIELD_TYPES">
+    #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler},
+    #{name, jdbcType=OTHER},
+    #{affiliation, jdbcType=OTHER, typeHandler=TextArrayToListTypeHandler},
+    #{identifier, jdbcType=OTHER},
+    #{identifier_scheme, jdbcType=OTHER},
+    #{scheme_uri, jdbcType=OTHER},
+    now(),<!-- created -->
+    #{createdBy,jdbcType=OTHER}
+  </sql>
+
+  <insert id="create" parameterType="Creator" useGeneratedKeys="true" keyProperty="key">
+    INSERT INTO creator(<include refid="WRITABLE_CREATOR_FIELDS"/>)
+    VALUES(<include refid="WRITABLE_CREATOR_FIELD_TYPES"/>)
+  </insert>
+
+  <delete id="delete" parameterType="Integer">
+    DELETE FROM creator WHERE key = #{creatorKey}
+  </delete>
+
+  <select id="listByDataPackageKey" resultMap="CREATOR_MAP">
+    SELECT <include refid="CREATOR_FIELDS"/> FROM creator
+    WHERE data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+  </select>
+</mapper>

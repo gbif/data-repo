@@ -4,14 +4,14 @@
 
   <resultMap id="TAG_MAP" type="Tag" autoMapping="true">
     <id property="key" column="key"/>
-    <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
+    <result property="dataPackageKey" column="data_package_key" typeHandler="UuidTypeHandler"/>
     <result property="value" column="value"/>
     <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
   </resultMap>
 
   <sql id="WRITABLE_TAG_FIELDS">
-    value,data_package_doi,created,created_by
+    value,data_package_key,created,created_by
   </sql>
 
   <sql id="TAG_FIELDS">
@@ -20,7 +20,7 @@
 
   <sql id="WRITABLE_TAG_FIELD_TYPES">
     #{value,jdbcType=OTHER},
-    #{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler},
+    #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler},
     now(),<!-- created -->
     #{createdBy,jdbcType=OTHER}
   </sql>
@@ -34,8 +34,8 @@
     DELETE FROM tag WHERE key = #{tagKey}
   </delete>
 
-  <select id="listByDoi" resultMap="TAG_MAP" parameterType="DOI">
+  <select id="listByDataPackageKey" resultMap="TAG_MAP">
     SELECT <include refid="TAG_FIELDS"/> FROM tag WHERE
-    data_package_doi = #{dataPackageDoi, jdbcType=OTHER}
+    data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
   </select>
 </mapper>

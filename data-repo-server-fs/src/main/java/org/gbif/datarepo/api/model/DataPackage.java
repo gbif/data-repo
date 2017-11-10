@@ -1,6 +1,7 @@
 package org.gbif.datarepo.api.model;
 
 import org.gbif.api.model.common.DOI;
+import org.gbif.api.vocabulary.License;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,6 +32,9 @@ public class DataPackage {
   public static final String METADATA_FILE = "metadata.xml";
 
   public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
+  @JsonIgnore
+  private UUID key;
 
   @JsonProperty
   private String title;
@@ -75,6 +80,15 @@ public class DataPackage {
   @JsonProperty
   private List<Tag> tags;
 
+  @JsonProperty
+  private List<Creator> creators;
+
+  @JsonProperty
+  private License license;
+
+  @JsonProperty
+  private String citation;
+
   private final String baseUrl;
 
   /**
@@ -85,6 +99,7 @@ public class DataPackage {
     files = new ArrayList<>();
     alternativeIdentifiers = new ArrayList<>();
     tags = new ArrayList<>();
+    creators = new ArrayList<>();
     baseUrl = "";
   }
 
@@ -98,6 +113,17 @@ public class DataPackage {
     alternativeIdentifiers = new ArrayList<>();
     tags = new ArrayList<>();
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Data base key.
+   */
+  public UUID getKey() {
+    return key;
+  }
+
+  public void setKey(UUID key) {
+    this.key = key;
   }
 
   /**
@@ -246,6 +272,48 @@ public class DataPackage {
   }
 
   /**
+   * DataPackage authors.
+   */
+  public List<Creator> getCreators() {
+    return creators;
+  }
+
+  public void setCreators(List<Creator> creators) {
+    this.creators = creators;
+  }
+
+  /**
+   * Licensed applied to the DataPackage.
+   */
+  public License getLicense() {
+    return license;
+  }
+
+  /**
+   * <pre>
+   * {@code
+   * <intellectualRights>
+   *   <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+   * </intellectualRights>
+   * }
+   * </pre>
+   */
+  public void setLicense(License license) {
+    this.license = license;
+  }
+
+  /**
+   * The exact form of how to cite this DataPackage.
+   */
+  public String getCitation() {
+    return citation;
+  }
+
+  public void setCitation(String citation) {
+    this.citation = citation;
+  }
+
+  /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
    */
@@ -266,7 +334,7 @@ public class DataPackage {
    * Adds a new AlternativeIdentifier to the list of identifiers.
    */
   public void addAlternativeIdentifier(AlternativeIdentifier alternativeIdentifier) {
-    alternativeIdentifier.setDataPackageDoi(doi);
+    alternativeIdentifier.setDataPackageKey(key);
     alternativeIdentifiers.add(alternativeIdentifier);
   }
 
@@ -274,7 +342,7 @@ public class DataPackage {
    * Adds a new Tag to the list of tags.
    */
   public void addTag(Tag tag) {
-    tag.setDataPackageDoi(doi);
+    tag.setDataPackageKey(key);
     tags.add(tag);
   }
 
@@ -284,7 +352,7 @@ public class DataPackage {
   public void addTag(String tagValue) {
     Tag tag = new Tag();
     tag.setValue(tagValue);
-    tag.setDataPackageDoi(doi);
+    tag.setDataPackageKey(key);
     tag.setCreatedBy(createdBy);
     tags.add(tag);
   }
@@ -310,30 +378,36 @@ public class DataPackage {
            && Objects.equals(size, other.size)
            && Objects.equals(checksum, other.checksum)
            && Objects.equals(alternativeIdentifiers, other.alternativeIdentifiers)
-           && Objects.equals(tags, other.tags);
+           && Objects.equals(tags, other.tags)
+           && Objects.equals(creators, other.creators)
+           && Objects.equals(citation, other.citation)
+           && Objects.equals(license, other.license);
 
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(doi, metadata, files, createdBy, created, title, description, modified, size, checksum,
-                        alternativeIdentifiers, tags);
+                        alternativeIdentifiers, tags, creators, citation, license);
   }
 
   @Override
   public String toString() {
     return "{\"doi\": \"" + Objects.toString(doi)
-            + "\", \"metadata\": \"" + metadata
-            + "\", \"files\": \"" + Objects.toString(files)
-            + "\", \"createdBy\": \"" + createdBy
-            + "\", \"title\": \"" + title
-            + "\", \"description\": \"" + description
-            + "\", \"created\": \"" + created
-            + "\", \"modified\": \"" + modified
-            + "\", \"checksum\": \"" + checksum
-            + "\", \"size\": \"" + size
-            + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers
-            + "\", \"tags\": \"" + tags +"\"}";
+           + "\", \"metadata\": \"" + metadata
+           + "\", \"files\": \"" + Objects.toString(files)
+           + "\", \"createdBy\": \"" + createdBy
+           + "\", \"title\": \"" + title
+           + "\", \"description\": \"" + description
+           + "\", \"created\": \"" + created
+           + "\", \"modified\": \"" + modified
+           + "\", \"checksum\": \"" + checksum
+           + "\", \"size\": \"" + size
+           + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers
+           + "\", \"authors\": \"" + creators
+           + "\", \"citation\": \"" + citation
+           + "\", \"license\": \"" + license
+           + "\", \"tags\": \"" + tags + "\"}";
   }
 
   /**
@@ -354,6 +428,9 @@ public class DataPackage {
     dataPackage.setSize(size);
     dataPackage.setAlternativeIdentifiers(alternativeIdentifiers);
     dataPackage.setTags(tags);
+    dataPackage.setCreators(creators);
+    dataPackage.setCitation(citation);
+    dataPackage.setLicense(license);
     return dataPackage;
   }
 

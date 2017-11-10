@@ -8,27 +8,27 @@
     <result property="size" column="size"/>
   </resultMap>
 
-  <select id="get" resultType="DataPackage" resultMap="DATA_PACKAGE_FILE_DATA_MAP">
+  <select id="get" resultType="DataPackageFile" resultMap="DATA_PACKAGE_FILE_DATA_MAP">
     SELECT file_name, checksum, size
     FROM data_package_file
-    WHERE data_package_doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
-    AND file_name = #{fileName,jdbcType=OTHER}
+    WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+    AND file_name = #{fileName, jdbcType=OTHER}
   </select>
 
-  <select id="list" resultType="DataPackageFile" parameterType="String">
+  <select id="list" resultType="DataPackageFile">
     SELECT file_name, checksum, size
     FROM data_package_file
     <where>
     <if test="_parameter != null" >
-      data_package_doi=#{_parameter}
+      data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
     </if>
     </where>
   </select>
 
 
   <insert id="create" parameterType="map" useGeneratedKeys="false">
-    INSERT INTO data_package_file (data_package_doi, file_name, checksum, size)
-    VALUES(#{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{dpf.fileName, jdbcType=OTHER},
+    INSERT INTO data_package_file (data_package_key, file_name, checksum, size)
+    VALUES(#{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}, #{dpf.fileName, jdbcType=OTHER},
     #{dpf.checksum, jdbcType=OTHER}, #{dpf.size, jdbcType=OTHER})
   </insert>
 
@@ -37,13 +37,13 @@
       file_name = #{dpf.fileName, jdbcType=OTHER},
       checksum = #{dpf.checksum, jdbcType=OTHER},
       size = #{dpf.size, jdbcType=OTHER}
-    WHERE data_package_doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+    WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
     AND file_name = #{dpf.fileName,jdbcType=OTHER}
   </update>
 
   <delete id="delete" parameterType="map">
     DELETE FROM data_package_file
-    WHERE data_package_doi = #{doi,jdbcType=OTHER, typeHandler=DoiTypeHandler}
+    WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
     AND file_name = #{fileName,jdbcType=OTHER}
   </delete>
 

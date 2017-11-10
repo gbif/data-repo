@@ -1,9 +1,9 @@
 package org.gbif.datarepo.api.model;
 
-import org.gbif.api.model.common.DOI;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +14,7 @@ public class Tag {
   private Integer key;
 
   @JsonIgnore
-  private DOI dataPackageDoi;
+  private UUID dataPackageKey;
 
   @JsonProperty
   private String value;
@@ -33,12 +33,12 @@ public class Tag {
     this.key = key;
   }
 
-  public DOI getDataPackageDoi() {
-    return dataPackageDoi;
+  public UUID getDataPackageKey() {
+    return dataPackageKey;
   }
 
-  public void setDataPackageDoi(DOI dataPackageDoi) {
-    this.dataPackageDoi = dataPackageDoi;
+  public void setDataPackageKey(UUID dataPackageKey) {
+    this.dataPackageKey = dataPackageKey;
   }
 
   public String getValue() {
@@ -68,14 +68,14 @@ public class Tag {
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, value, dataPackageDoi, createdBy, created);
+    return Objects.hash(key, value, dataPackageKey, createdBy, created);
   }
 
   @Override
   public String toString() {
     return "{\"key\": \"" + key
            + "\", \"value\": \"" + value
-           + "\", \"dataPackageDoi\": \"" + dataPackageDoi
+           + "\", \"dataPackageKey\": \"" + dataPackageKey
            + "\", \"createdBy\": \"" + createdBy
            + "\", \"created\": \"" + created + "\"}";
   }
@@ -92,7 +92,7 @@ public class Tag {
     Tag other = (Tag) obj;
     return Objects.equals(key, other.key)
            && Objects.equals(value, other.value)
-           && Objects.equals(dataPackageDoi, other.dataPackageDoi)
+           && Objects.equals(dataPackageKey, other.dataPackageKey)
            && Objects.equals(createdBy, other.createdBy)
            && Objects.equals(created, other.created);
 

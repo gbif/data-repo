@@ -3,7 +3,6 @@ package org.gbif.datarepo.store.fs;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.RepositoryStats;
@@ -35,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -118,9 +118,9 @@ public class FileSystemRepository implements DataRepository {
    * Stores an input stream as the specified file name under the directory assigned to the DOI parameter.
    * Returns the new path where the file is stored.
    */
-  private Path store(DOI doi, FileInputContent fileInputContent) {
+  private Path store(UUID dataPackageKey, FileInputContent fileInputContent) {
     try {
-      Path doiPath = getDoiPath(doi);
+      Path doiPath = getPath(dataPackageKey);
       if (!fileSystem.exists(doiPath)) {
         fileSystem.mkdirs(doiPath);
       }
@@ -136,9 +136,9 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Removes all files and directories of a data package.
    */
-  private void clearDOIDir(DOI doi) {
+  private void clearDataPackageDir(UUID dataPackageKey) {
     try {
-      Path doiDir = getDoiPath(doi);
+      Path doiDir = getPath(dataPackageKey);
       if (fileSystem.exists(doiDir)) {
         fileSystem.delete(doiDir, true);
         fileSystem.mkdirs(doiDir);
@@ -152,21 +152,23 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Store metadata file.
    */
-  private void storeMetadata(DOI doi, InputStream file) {
-    store(doi, FileInputContent.from(DataPackage.METADATA_FILE, file));
+  private void storeMetadata(UUID dataPackageKey, InputStream file) {
+    store(dataPackageKey, FileInputContent.from(DataPackage.METADATA_FILE, file));
   }
 
   /**
    * Deletes the entire directory and its contents from a DOI.
    */
   @Override
-  public void delete(DOI doi) {
-    dataPackageMapper.delete(doi);
-    doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix());
+  public void delete(UUID dataPackageKey) {
+    DataPackage dataPackage = dataPackageMapper.getByKey(dataPackageKey);
+    dataPackageMapper.delete(dataPackageKey);
+    Optional.ofNullable(dataPackage.getDoi())
+      .ifPresent(doi ->  doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix()));
     try {
-      fileSystem.delete(getDoiPath(doi), true);
+      fileSystem.delete(getPath(dataPackageKey), true);
     } catch (IOException ex) {
-      LOG.error("Error deleting DOI {} directory", doi);
+      LOG.error("Error deleting DataPackage {} directory", dataPackageKey);
     }
   }
 
@@ -174,13 +176,14 @@ public class FileSystemRepository implements DataRepository {
    * Marks the DataPackage as deleted.
    */
   @Override
-  public void archive(DOI doi) {
-    dataPackageMapper.archive(doi);
+  public void archive(UUID dataPackageKey) {
+    dataPackageMapper.archive(dataPackageKey);
   }
 
-  private DataPackage prePersist(DataPackage dataPackage, List<FileInputContent> newFiles, DOI doi) {
+  private DataPackage prePersist(DataPackage dataPackage, List<FileInputContent> newFiles, UUID dataPackageKey) {
     DataPackage newDataPackage = new DataPackage();
-    newDataPackage.setDoi(doi);
+    newDataPackage.setDoi(dataPackage.getDoi());
+    newDataPackage.setKey(dataPackageKey);
     newDataPackage.setMetadata(DataPackage.METADATA_FILE);
     newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
     newDataPackage.setTitle(dataPackage.getTitle());
@@ -190,9 +193,9 @@ public class FileSystemRepository implements DataRepository {
 
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
-      Path newFilePath = store(doi, fileInputContent);
+      Path newFilePath = store(dataPackageKey, fileInputContent);
       long fileLength = size(newFilePath);
-      DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName().toString(),
+      DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName(),
                                                             md5(newFilePath), fileLength);
       newDataPackage.setSize(newDataPackage.getSize() + fileLength);
       newDataPackage.addFile(dataPackageFile);
@@ -208,7 +211,7 @@ public class FileSystemRepository implements DataRepository {
 
     dataPackage.getAlternativeIdentifiers()
       .forEach(alternativeIdentifier -> {
-        alternativeIdentifier.setDataPackageDoi(doi);
+        alternativeIdentifier.setDataPackageKey(dataPackageKey);
         alternativeIdentifier.setCreatedBy(dataPackage.getCreatedBy());
         newDataPackage.addAlternativeIdentifier(alternativeIdentifier);
       });
@@ -267,6 +270,7 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
+    UUID dataPackageKey  = UUID.randomUUID();
     //Generates a DataCiteMetadata object for further validation/manipulation
     return Optional.ofNullable(handleMetadata(metadata, dataCiteMetadata ->
                                                           Optional.ofNullable(dataPackage.getDoi())
@@ -278,21 +282,22 @@ public class FileSystemRepository implements DataRepository {
                                                                                         .withUser(dataPackage
                                                                                                     .getCreatedBy())
                                                                                         .withDoi(dataPackage.getDoi())
-                                                                                        .build()))))
+                                                                                        .build())),
+                                              dataPackageKey))
             .map(doi -> {
               try {
-                DataPackage newDataPackage = prePersist(dataPackage, files, doi);
+                DataPackage newDataPackage = prePersist(dataPackage, files, dataPackageKey);
                 //Persist data package info
                 dataPackageMapper.create(newDataPackage);
                 newDataPackage.getFiles()
-                  .forEach(dataPackageFile -> dataPackageFileMapper.create(doi, dataPackageFile));
+                  .forEach(dataPackageFile -> dataPackageFileMapper.create(newDataPackage.getKey(), dataPackageFile));
                 newDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
                 newDataPackage.getTags().forEach(tagMapper::create);
                 return newDataPackage;
               } catch (Exception ex) {
                 LOG.error("Error registering a DOI", ex);
                 //Deletes all data created to this DOI in case from error
-                delete(doi);
+                delete(dataPackageKey);
                 throw new RuntimeException(ex);
               }
             }).orElseThrow(() -> new IllegalStateException("DataPackage couldn't be created"));
@@ -304,8 +309,8 @@ public class FileSystemRepository implements DataRepository {
   private void clearDataPackageContent(DataPackage dataPackage) {
     dataPackage.getFiles()
       .forEach(dataPackageFile ->
-                 dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName()));
-    clearDOIDir(Optional.ofNullable(dataPackage.getDoi()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+                 dataPackageFileMapper.delete(dataPackage.getKey(), dataPackageFile.getFileName()));
+    clearDataPackageDir(Optional.ofNullable(dataPackage.getKey()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
     dataPackage.getFiles().clear();
   }
 
@@ -315,7 +320,7 @@ public class FileSystemRepository implements DataRepository {
   @Override
   public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
                             UpdateMode mode) {
-    DataPackage existingDataPackage =  get(dataPackage.getDoi())
+    DataPackage existingDataPackage =  get(dataPackage.getKey())
                                         .orElseThrow(() -> new RuntimeException("DataPackage not found"));
     if (UpdateMode.OVERWRITE == mode) {
       clearDataPackageContent(dataPackage);
@@ -334,20 +339,20 @@ public class FileSystemRepository implements DataRepository {
                                                               Collectors.toList()
                                                             ));
     existingFiles.get(Boolean.TRUE).forEach(dataPackageFile -> {
-      dataPackageFileMapper.delete(dataPackage.getDoi(), dataPackageFile.getFileName());
+      dataPackageFileMapper.delete(existingDataPackage.getKey(), dataPackageFile.getFileName());
       existingDataPackage.getFiles().remove(dataPackageFile);
     });
     existingDataPackage.setModified(dataPackage.getModified());
     existingDataPackage.getAlternativeIdentifiers()
       .forEach(alternativeIdentifier -> alternativeIdentifierMapper.delete(alternativeIdentifier.getIdentifier()));
     existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
-    DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getDoi());
+    DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getKey());
     preparedDataPackage.getFiles().stream()
       .filter(dataPackageFile -> existingFiles.get(Boolean.FALSE)
                                   .stream()
                                   .noneMatch(extDp -> extDp.getFileName()
                                                        .equalsIgnoreCase(dataPackageFile.getFileName())))
-      .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getDoi(), dataPackageFile));
+      .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getKey(), dataPackageFile));
 
     dataPackageMapper.update(preparedDataPackage);
     preparedDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
@@ -359,21 +364,23 @@ public class FileSystemRepository implements DataRepository {
                                                                                               .getCreatedBy())
                                                                                   .withDoi(preparedDataPackage
                                                                                              .getDoi())
-                                                                                  .build()));
+                                                                                  .build()),
+                   existingDataPackage.getKey());
     return preparedDataPackage;
   }
 
   /**
    * Read, store and a register the supplied metadata.
    */
-  private DOI handleMetadata(InputStream metadata, Function<String, DOI> registrationHandler) {
+  private DOI handleMetadata(InputStream metadata, Function<String, DOI> registrationHandler,
+                             UUID dataPackageKey) {
     try (ByteArrayInputStream  metadataInputStream = new ByteArrayInputStream(IOUtils.toByteArray(metadata))) {
       metadataInputStream.mark(0);
       String dataCiteMetadata = IOUtils.toString(metadataInputStream);
       DOI doi = registrationHandler.apply(dataCiteMetadata);
       //Store metadata.xml file
       metadataInputStream.reset(); //reset the input stream
-      storeMetadata(doi, metadataInputStream);
+      storeMetadata(dataPackageKey, metadataInputStream);
       return doi;
     } catch (IOException ex) {
       LOG.error("Error reading data package metadata", ex);
@@ -382,11 +389,19 @@ public class FileSystemRepository implements DataRepository {
   }
 
   /**
+   * Retrieves the DataPackage content stored for the UUID.
+   */
+  @Override
+  public Optional<DataPackage> get(UUID dataPackageKey) {
+    return Optional.ofNullable(dataPackageMapper.getByKey(dataPackageKey));
+  }
+
+  /**
    * Retrieves the DataPackage content stored for the DOI.
    */
   @Override
   public Optional<DataPackage> get(DOI doi) {
-    return Optional.ofNullable(dataPackageMapper.get(doi.getDoiName()));
+    return Optional.ofNullable(dataPackageMapper.getByDOI(doi.getDoiName()));
   }
 
   /**
@@ -415,9 +430,9 @@ public class FileSystemRepository implements DataRepository {
    * Gets the file, if it exists, stored in the directory assigned to a DOI.
    */
   @Override
-  public Optional<DataPackageFile> getFile(DOI doi, String fileName) {
-    DataPackageFile dataPackageFile =  dataPackageFileMapper.get(doi, fileName);
-    Path doiPath = getDoiPath(doi);
+  public Optional<DataPackageFile> getFile(UUID dataPackageKey, String fileName) {
+    DataPackageFile dataPackageFile =  dataPackageFileMapper.get(dataPackageKey, fileName);
+    Path doiPath = getPath(dataPackageKey);
     try {
       if (fileSystem.exists(doiPath) && dataPackageFile != null) {
         Path packageFile =  resolve(doiPath, fileName);
@@ -437,13 +452,13 @@ public class FileSystemRepository implements DataRepository {
    * Gets the file stream, if exists, from file stored in the directory assigned to a DOI.
    */
   @Override
-  public Optional<InputStream> getFileInputStream(DOI doi, String fileName) {
+  public Optional<InputStream> getFileInputStream(UUID dataPackageKey, String fileName) {
     try {
-      Optional<DataPackageFile> packageFile = getFile(doi, fileName);
+      Optional<DataPackageFile> packageFile = getFile(dataPackageKey, fileName);
       if (packageFile.isPresent()) {
-        return Optional.of(fileSystem.open(resolve(getDoiPath(doi),packageFile.get().getFileName())));
+        return Optional.of(fileSystem.open(resolve(getPath(dataPackageKey),packageFile.get().getFileName())));
       } else if (DataPackage.METADATA_FILE.equalsIgnoreCase(fileName)) {
-        return Optional.of(fileSystem.open(resolve(getDoiPath(doi),DataPackage.METADATA_FILE)));
+        return Optional.of(fileSystem.open(resolve(getPath(dataPackageKey),DataPackage.METADATA_FILE)));
       }
     } catch (FileNotFoundException ex) {
       LOG.warn("Requested file {} not found", fileName, ex);
@@ -462,8 +477,8 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Resolves a path for a DOI.
    */
-  private Path getDoiPath(DOI doi) {
-    return new Path(storePath.toString() + '/' + doi.getPrefix() + '-' + doi.getSuffix() + '/');
+  private Path getPath(UUID dataPackageKey) {
+    return new Path(storePath.toString() + '/' + dataPackageKey + '/');
   }
 
   /**

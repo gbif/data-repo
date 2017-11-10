@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
@@ -290,8 +291,8 @@ public class DataPackageResourceTest {
     assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI).toString())
                  .request().header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS).delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-    verify(DATA_PACKAGE_MAPPER).get(any(String.class));
-    verify(DATA_PACKAGE_MAPPER).delete(any(DOI.class));
+    verify(DATA_PACKAGE_MAPPER).getByKey(any(UUID.class));
+    verify(DATA_PACKAGE_MAPPER).delete(any(UUID.class));
   }
 
 }

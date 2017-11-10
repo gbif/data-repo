@@ -29,6 +29,8 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
 
   private static final String ALTERNATIVE_ID_TEST = UUID.randomUUID().toString();
 
+  public static final UUID DATA_PACKAGE_KEY_TEST = UUID.fromString("85fc0ce8-f762-11e1-a439-00145eb45e9a");
+
   /**
    * Initializes the MyBatis module.
    */
@@ -52,6 +54,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     tag.setCreatedBy("testUser");
     tag.setValue("DataOne");
     String testChecksum = Hashing.md5().newHasher(32).hash().toString();
+    dataPackage.setKey(DATA_PACKAGE_KEY_TEST);
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, Long.toString(new Date().getTime())));
     dataPackage.addAlternativeIdentifier(alternativeIdentifier);
     dataPackage.addTag(tag);
@@ -101,7 +104,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     insertDataPackage(dataPackage);
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
 
-    DataPackage justCreated = mapper.get(dataPackage.getDoi().getDoiName());
+    DataPackage justCreated = mapper.getByKey(DATA_PACKAGE_KEY_TEST);
     Assert.assertEquals(justCreated.getDoi(), dataPackage.getDoi());
   }
 
@@ -125,7 +128,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
-    mapper.delete(dataPackage.getDoi());
+    mapper.delete(dataPackage.getKey());
   }
 
   /**
@@ -190,7 +193,7 @@ public class DataPackageFileMapperTest  extends BaseMapperTest {
     mapper.create(dataPackage);
     dataPackage.setTitle("newTitle");
     mapper.update(dataPackage);
-    Assert.assertEquals("newTitle", mapper.get(dataPackage.getDoi().getDoiName()).getTitle());
+    Assert.assertEquals("newTitle", mapper.getByKey(dataPackage.getKey()).getTitle());
   }
 
   /**

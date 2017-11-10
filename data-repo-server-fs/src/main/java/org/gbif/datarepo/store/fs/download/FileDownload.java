@@ -7,9 +7,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -31,12 +28,14 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.net.www.protocol.ftp.FtpURLConnection;
 
 /**
  * Utility class to read files form external sources: http, https, ftp and hdfs.
  */
 public class FileDownload {
+
+  //Default timeout for HTTP and FTP connections
+  private static final int DEFAULT_TO =  60;
 
   private static final Logger LOG = LoggerFactory.getLogger(FileDownload.class);
 
@@ -67,6 +66,7 @@ public class FileDownload {
    */
   private static boolean ftpFileExists(URI uri) throws IOException {
     FTPClient ftpClient = new FTPClient();
+    ftpClient.setDefaultTimeout(DEFAULT_TO);
     try {
       //Connect to the FTP server using a Port if it was specified
       if (uri.getPort() > 0) {
@@ -107,6 +107,7 @@ public class FileDownload {
   private static boolean httpFileExist(URI uri) {
     try {
       HttpURLConnection httpConnection = (HttpURLConnection)uri.toURL().openConnection();
+      httpConnection.setReadTimeout(DEFAULT_TO);
       httpConnection.setRequestMethod(HTTP_HEAD_METHOD);
       httpConnection.connect();
       httpConnection.disconnect();

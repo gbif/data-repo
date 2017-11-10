@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 /**
@@ -54,15 +55,20 @@ public interface DataRepository {
   /**
    * Deletes an archive associated to the input DOI.
    */
-  void delete(DOI doi);
+  void delete(UUID key);
 
   /**
    * Hides a data package from search operations, effectively preventing its discovery during normal operations.
    */
-  void archive(DOI doi);
+  void archive(UUID key);
 
   /**
-   * Gets the path location from an archive associated to a DOI.
+   * Gets a DataPackage by its associated key.
+   */
+  Optional<DataPackage> get(UUID dataPackageKey);
+
+  /**
+   * Gets a DataPackage by its associated DOI.
    */
   Optional<DataPackage> get(DOI doi);
 
@@ -81,12 +87,12 @@ public interface DataRepository {
   /**
    * Gets a file contained in a data package referenced by a DOI.
    */
-  Optional<DataPackageFile> getFile(DOI doi, String fileName);
+  Optional<DataPackageFile> getFile(UUID dataPackageKey, String fileName);
 
   /**
    * Gets the file content by a DOI and fileName.
    */
-  Optional<InputStream> getFileInputStream(DOI doi, String fileName);
+  Optional<InputStream> getFileInputStream(UUID dataPackageKey, String fileName);
 
   /**
    * Provides general statistics about the data repo usage.

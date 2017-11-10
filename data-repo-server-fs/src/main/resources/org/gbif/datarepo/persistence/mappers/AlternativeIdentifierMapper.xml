@@ -4,7 +4,7 @@
 
   <resultMap id="ALTERNATIVE_IDENTIFIER_MAP" type="AlternativeIdentifier" autoMapping="true">
     <id property="identifier" column="identifier"/>
-    <result property="dataPackageDoi" column="data_package_doi" typeHandler="DoiTypeHandler"/>
+    <result property="dataPackageKey" column="data_package_key" typeHandler="UuidTypeHandler"/>
     <result property="type" column="type"/>
     <result property="identifier" column="identifier"/>
     <result property="created" column="created" jdbcType="TIMESTAMP"/>
@@ -12,19 +12,19 @@
   </resultMap>
 
   <select id="get" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP">
-    SELECT identifier, data_package_doi, type, created, created_by
+    SELECT identifier, data_package_key, type, created, created_by
     FROM alternative_identifier
-    WHERE identifier = #{identifier,jdbcType=OTHER}
+    WHERE identifier = #{identifier, jdbcType=OTHER}
   </select>
 
-  <select id="listByDoi" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP" parameterType="DOI">
-    SELECT identifier, data_package_doi, type, created, created_by
+  <select id="listByDataPackageKey" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP">
+    SELECT identifier, data_package_key, type, created, created_by
     FROM alternative_identifier
-    WHERE data_package_doi = #{doi, jdbcType=OTHER}
+    WHERE data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
   </select>
 
   <select id="list" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP" parameterType="map">
-    SELECT identifier, data_package_doi, type, created, created_by
+    SELECT identifier, data_package_key, type, created, created_by
     FROM alternative_identifier
     <where>
       <if test="user != null" >
@@ -36,8 +36,8 @@
       <if test="created != null" >
         AND created=#{created, jdbcType=TIMESTAMP}
       </if>
-      <if test="dataPackageDoi != null" >
-        AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+      <if test="dataPackageKey != null" >
+        AND data_package_key=#{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
       </if>
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
@@ -61,8 +61,8 @@
       <if test="created != null" >
         AND created=#{created, jdbcType=TIMESTAMP}
       </if>
-      <if test="dataPackageDoi != null" >
-        AND data_package_doi=#{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+      <if test="dataPackageKey != null" >
+        AND data_package_key=#{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
       </if>
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
@@ -74,8 +74,8 @@
   </select>
 
   <insert id="create" parameterType="AlternativeIdentifier" useGeneratedKeys="false">
-    INSERT INTO alternative_identifier (identifier, data_package_doi, type, created, created_by)
-    VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageDoi, jdbcType=OTHER, typeHandler=DoiTypeHandler},
+    INSERT INTO alternative_identifier (identifier, data_package_key, type, created, created_by)
+    VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler},
     #{type, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
   </insert>
 
