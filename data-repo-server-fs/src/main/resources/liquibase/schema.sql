@@ -2,6 +2,12 @@ CREATE EXTENSION unaccent;
 
 CREATE TYPE datapackage_license AS ENUM ('CC0_1_0', 'CC_BY_4_0', 'CC_BY_NC_4_0', 'UNSPECIFIED', 'UNSUPPORTED');
 CREATE TYPE identifier_type AS ENUM ('URL', 'LSID', 'HANDLER', 'DOI', 'UUID', 'FTP', 'URI', 'UNKNOWN');
+CREATE TYPE identifier_relation_type AS ENUM('IsAlternativeOf' ,'IsCitedBy', 'Cites', 'IsSupplementTo', 'IsSupplementedBy',
+                                              'IsContinuedBy', 'Continues', 'HasMetadata', 'IsMetadataFor',
+                                              'IsNewVersionOf', 'IsPreviousVersionOf', 'IsPartOf', 'HasPart',
+                                              'IsReferencedBy', 'References', 'IsDocumentedBy', 'Documents',
+                                              'IsCompiledBy', 'Compiles', 'IsVariantFormOf', 'IsOriginalFormOf',
+                                              'IsIdenticalTo', 'IsReviewedBy', 'Reviews', 'IsDerivedFrom', 'IsSourceOf');
 CREATE TYPE identifier_scheme AS ENUM ('ORCID', 'ISNI', 'FUND_REF', 'OTHER');
 
 CREATE TABLE data_package (
@@ -85,14 +91,17 @@ CREATE TABLE data_package_file (
 );
 CREATE INDEX data_package_file_idx ON data_package_file (data_package_key, file_name, checksum);
 
-CREATE TABLE alternative_identifier (
-    identifier varchar(800) UNIQUE NOT NULL PRIMARY KEY,
+CREATE TABLE identifier (
+    key serial UNIQUE NOT NULL PRIMARY KEY,
+    identifier varchar(800) NOT NULL,
     data_package_key uuid NOT NULL REFERENCES data_package(key) ON DELETE CASCADE,
     type identifier_type NOT NULL,
+    relation_type identifier_relation_type NOT NULL,
     created timestamp with time zone NOT NULL DEFAULT now(),
-    created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3)
+    created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3),
+    UNIQUE (identifier, data_package_key, relation_type)
 );
-CREATE INDEX alternative_identifier_idx ON alternative_identifier(data_package_key, created, created_by);
+CREATE INDEX identifier_idx ON identifier(data_package_key, created, created_by, relation_type);
 
 
 CREATE TABLE tag (

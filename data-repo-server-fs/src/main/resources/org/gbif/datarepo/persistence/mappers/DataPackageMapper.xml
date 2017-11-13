@@ -35,8 +35,8 @@
   </select>
 
   <select id="getByAlternativeIdentifier" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="String">
-    SELECT key, doi, title, description, dp.created, modified, deleted, dp.created_by, checksum, size
-    FROM data_package dp JOIN alternative_identifier ai ON ai.data_package_key = dp.key
+    SELECT dp.key, doi, title, description, dp.created, modified, deleted, dp.created_by, checksum, size
+    FROM data_package dp JOIN identifier ai ON ai.data_package_key = dp.key AND ai.relation_type = 'IsAlternativeOf'
     WHERE ai.identifier = #{identifier, jdbcType=OTHER}
   </select>
 
@@ -46,9 +46,9 @@
     WHERE  data_package_key = #{dataPackageKey, jdbcType=OTHER}
   </select>
 
-  <select id="listAlternativeIdentifiers" resultMap="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper.ALTERNATIVE_IDENTIFIER_MAP">
+  <select id="listAlternativeIdentifiers" resultMap="org.gbif.datarepo.persistence.mappers.IdentifierMapper.IDENTIFIER_MAP">
     SELECT identifier, data_package_key, type, created, created_by
-    FROM alternative_identifier
+    FROM identifier
     WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER}
   </select>
 

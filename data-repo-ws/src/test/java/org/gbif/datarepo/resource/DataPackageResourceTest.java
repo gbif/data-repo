@@ -5,7 +5,7 @@ import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
-import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
+import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
@@ -153,7 +153,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                   mappersInjector().getInstance(DataPackageFileMapper.class),
                                                                   mappersInjector().getInstance(TagMapper.class),
                                                                   mappersInjector().getInstance(RepositoryStatsMapper.class),
-                                                                  mappersInjector().getInstance(AlternativeIdentifierMapper.class),
+                                                                  mappersInjector().getInstance(IdentifierMapper.class),
                                                                   configuration().getDataRepoConfiguration()
                                                                     .getFileSystem()),
                                          configuration()))

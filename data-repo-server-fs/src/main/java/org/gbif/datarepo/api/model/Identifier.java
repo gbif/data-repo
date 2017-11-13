@@ -1,21 +1,91 @@
 package org.gbif.datarepo.api.model;
 
-import org.gbif.api.vocabulary.IdentifierType;
-
+import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
- * DataPackage identifier.
+ *
  */
+@JsonSerialize
 public class Identifier {
+
+  /**
+   * Types of supported identifiers.
+   */
+  public enum Type {
+    URL, LSID, DOI, UUID, URI, UNKNOWN;
+  }
+
+  public enum RelationType {
+    IsAlternativeOf,
+    IsCitedBy,
+    Cites,
+    IsSupplementTo,
+    IsSupplementedBy,
+    IsContinuedBy,
+    Continues,
+    HasMetadata,
+    IsMetadataFor,
+    IsNewVersionOf,
+    IsPreviousVersionOf,
+    IsPartOf,
+    HasPart,
+    IsReferencedBy,
+    References,
+    IsDocumentedBy,
+    Documents,
+    IsCompiledBy,
+    Compiles,
+    IsVariantFormOf,
+    IsOriginalFormOf,
+    IsIdenticalTo,
+    IsReviewedBy,
+    Reviews,
+    IsDerivedFrom,
+    IsSourceOf,
+  }
+
+  @JsonIgnore
+  private UUID dataPackageKey;
+
+  @JsonProperty
+  private Integer key;
 
   @JsonProperty
   private String identifier;
 
   @JsonProperty
-  private IdentifierType type;
+  private Type type;
+
+  @JsonProperty
+  private String createdBy;
+
+  @JsonProperty
+  private Date created;
+
+  @JsonProperty
+  private RelationType relationType = RelationType.IsAlternativeOf;
+
+  public Integer getKey() {
+    return key;
+  }
+
+  public void setKey(Integer key) {
+    this.key = key;
+  }
+
+  public UUID getDataPackageKey() {
+    return dataPackageKey;
+  }
+
+  public void setDataPackageKey(UUID dataPackageKey) {
+    this.dataPackageKey = dataPackageKey;
+  }
 
   public String getIdentifier() {
     return identifier;
@@ -25,32 +95,75 @@ public class Identifier {
     this.identifier = identifier;
   }
 
-  public IdentifierType getType() {
+  public Type getType() {
     return type;
   }
 
-  public void setType(IdentifierType type) {
+  public void setType(Type type) {
     this.type = type;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    Identifier that = (Identifier) o;
-    return Objects.equals(identifier, that.identifier) && type == that.type;
+  public String getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(String createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  public RelationType getRelationType() {
+    return relationType;
+  }
+
+  public void setRelationType(RelationType relationType) {
+    this.relationType = relationType;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(identifier, type);
+    return Objects.hash(key, identifier, type, dataPackageKey, createdBy, created, relationType);
   }
 
   @Override
   public String toString() {
-    return "Identifier{" +
-           "identifier='" + identifier + '\'' +
-           ", type=" + type +
-           '}';
+    return "{\"key\": \""
+           + key
+           +"\"identifier\": \""
+           + identifier
+           + "\", \"type\": \""
+           + type
+           + "\", \"dataPackageKey\": \""
+           + dataPackageKey
+           + "\", \"createdBy\": \""
+           + createdBy
+           + "\", \"created\": \""
+           + created
+           + "\", \"relationType\": \""
+           + relationType
+           + "\"}";
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Identifier other = (Identifier) obj;
+    return Objects.equals(key, other.key) &&
+           Objects.equals(identifier, other.identifier) && Objects.equals(type, other.type)
+           && Objects.equals(dataPackageKey,other.dataPackageKey) && Objects.equals(createdBy, other.createdBy)
+           && Objects.equals(created, other.created) && Objects.equals(relationType, other.relationType);
+
   }
 }

@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper">
+<mapper namespace="org.gbif.datarepo.persistence.mappers.IdentifierMapper">
 
-  <resultMap id="ALTERNATIVE_IDENTIFIER_MAP" type="AlternativeIdentifier" autoMapping="true">
-    <id property="identifier" column="identifier"/>
+  <resultMap id="IDENTIFIER_MAP" type="Identifier" autoMapping="true">
+    <id property="key" column="key"/>
+    <result property="identifier" column="identifier"/>
     <result property="dataPackageKey" column="data_package_key" typeHandler="UuidTypeHandler"/>
     <result property="type" column="type"/>
+    <result property="relationType" column="relation_type"/>
     <result property="identifier" column="identifier"/>
     <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
   </resultMap>
 
-  <select id="get" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP">
-    SELECT identifier, data_package_key, type, created, created_by
-    FROM alternative_identifier
-    WHERE identifier = #{identifier, jdbcType=OTHER}
+  <select id="get" resultType="Identifier" resultMap="IDENTIFIER_MAP">
+    SELECT key, identifier, data_package_key, type, created, created_by
+    FROM identifier
+    WHERE key = #{key, jdbcType=OTHER}
   </select>
 
-  <select id="listByDataPackageKey" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP">
-    SELECT identifier, data_package_key, type, created, created_by
-    FROM alternative_identifier
+  <select id="listByDataPackageKey" resultType="Identifier" resultMap="IDENTIFIER_MAP">
+    SELECT key, identifier, data_package_key, type, created, created_by
+    FROM identifier
     WHERE data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
   </select>
 
-  <select id="list" resultType="AlternativeIdentifier" resultMap="ALTERNATIVE_IDENTIFIER_MAP" parameterType="map">
-    SELECT identifier, data_package_key, type, created, created_by
-    FROM alternative_identifier
+  <select id="list" resultType="Identifier" resultMap="IDENTIFIER_MAP" parameterType="map">
+    SELECT key, identifier, data_package_key, type, created, created_by
+    FROM identifier
     <where>
       <if test="user != null" >
         AND created_by=#{user, jdbcType=OTHER}
@@ -41,6 +43,9 @@
       </if>
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
+      </if>
+      <if test="relationType != null" >
+        AND relation_type=#{relationType, jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
@@ -50,7 +55,7 @@
 
   <select id="count" resultType="Long" parameterType="map">
     SELECT count(*)
-    FROM alternative_identifier
+    FROM identifier
     <where>
       <if test="user != null" >
         AND created_by=#{user, jdbcType=OTHER}
@@ -67,20 +72,23 @@
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
       </if>
+      <if test="relationType != null" >
+        AND relation_type=#{relationType, jdbcType=OTHER}
+      </if>
     </where>
     <if test="page != null" >
       LIMIT #{page.limit} OFFSET #{page.offset}
     </if>
   </select>
 
-  <insert id="create" parameterType="AlternativeIdentifier" useGeneratedKeys="false">
-    INSERT INTO alternative_identifier (identifier, data_package_key, type, created, created_by)
+  <insert id="create" parameterType="Identifier" useGeneratedKeys="false">
+    INSERT INTO identifier (identifier, data_package_key, type, relation_type, created, created_by)
     VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler},
-    #{type, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
+    #{type, jdbcType=OTHER}, #{relationType, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
   </insert>
 
   <delete id="delete" parameterType="String">
-    DELETE FROM alternative_identifier WHERE identifier = #{identifier, jdbcType=OTHER}
+    DELETE FROM identifier WHERE identifier = #{identifier, jdbcType=OTHER}
   </delete>
 
 </mapper>

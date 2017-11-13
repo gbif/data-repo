@@ -8,7 +8,7 @@ import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
-import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
+import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
@@ -64,7 +64,7 @@ public class FileSystemRepository implements DataRepository {
 
   private final DataPackageFileMapper dataPackageFileMapper;
 
-  private final AlternativeIdentifierMapper alternativeIdentifierMapper;
+  private final IdentifierMapper identifierMapper;
 
   private final RepositoryStatsMapper repositoryStatsMapper;
 
@@ -90,7 +90,7 @@ public class FileSystemRepository implements DataRepository {
                               DataPackageFileMapper dataPackageFileMapper,
                               TagMapper tagMapper,
                               RepositoryStatsMapper repositoryStatsMapper,
-                              AlternativeIdentifierMapper alternativeIdentifierMapper,
+                              IdentifierMapper identifierMapper,
                               FileSystem fileSystem) {
     try {
       this.doiRegistrationService = doiRegistrationService;
@@ -106,7 +106,7 @@ public class FileSystemRepository implements DataRepository {
       this.dataPackageMapper = dataPackageMapper;
       this.dataPackageFileMapper = dataPackageFileMapper;
       this.repositoryStatsMapper = repositoryStatsMapper;
-      this.alternativeIdentifierMapper = alternativeIdentifierMapper;
+      this.identifierMapper = identifierMapper;
       this.tagMapper = tagMapper;
     } catch (IOException ex) {
       throw new IllegalStateException(ex);
@@ -291,7 +291,7 @@ public class FileSystemRepository implements DataRepository {
                 dataPackageMapper.create(newDataPackage);
                 newDataPackage.getFiles()
                   .forEach(dataPackageFile -> dataPackageFileMapper.create(newDataPackage.getKey(), dataPackageFile));
-                newDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+                newDataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
                 newDataPackage.getTags().forEach(tagMapper::create);
                 return newDataPackage;
               } catch (Exception ex) {
@@ -344,7 +344,7 @@ public class FileSystemRepository implements DataRepository {
     });
     existingDataPackage.setModified(dataPackage.getModified());
     existingDataPackage.getAlternativeIdentifiers()
-      .forEach(alternativeIdentifier -> alternativeIdentifierMapper.delete(alternativeIdentifier.getIdentifier()));
+      .forEach(alternativeIdentifier -> identifierMapper.delete(alternativeIdentifier.getKey()));
     existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
     DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getKey());
     preparedDataPackage.getFiles().stream()
@@ -355,7 +355,7 @@ public class FileSystemRepository implements DataRepository {
       .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getKey(), dataPackageFile));
 
     dataPackageMapper.update(preparedDataPackage);
-    preparedDataPackage.getAlternativeIdentifiers().forEach(alternativeIdentifierMapper::create);
+    preparedDataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
     preparedDataPackage.getTags().forEach(tagMapper::create);
     handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)

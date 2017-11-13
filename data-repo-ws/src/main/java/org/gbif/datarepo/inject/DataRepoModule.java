@@ -7,7 +7,7 @@ import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.auth.jwt.JwtAuthenticator;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
-import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
+import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
@@ -65,8 +65,8 @@ public class DataRepoModule {
   /**
    * Gets AlternativeIdentifierMapper instance.
    */
-  public AlternativeIdentifierMapper alternativeIdentifierMapper() {
-    return injector.getInstance(AlternativeIdentifierMapper.class);
+  public IdentifierMapper alternativeIdentifierMapper() {
+    return injector.getInstance(IdentifierMapper.class);
   }
 
   /**

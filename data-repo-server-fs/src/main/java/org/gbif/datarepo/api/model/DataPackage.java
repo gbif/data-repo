@@ -75,7 +75,7 @@ public class DataPackage {
   private long size;
 
   @JsonProperty
-  private List<AlternativeIdentifier> alternativeIdentifiers;
+  private List<Identifier> alternativeIdentifiers;
 
   @JsonProperty
   private List<Tag> tags;
@@ -253,11 +253,11 @@ public class DataPackage {
   /**
    * External and alternative identifier that uniquely identify this data package.
    */
-  public List<AlternativeIdentifier> getAlternativeIdentifiers() {
+  public List<Identifier> getAlternativeIdentifiers() {
     return alternativeIdentifiers;
   }
 
-  public void setAlternativeIdentifiers(List<AlternativeIdentifier> alternativeIdentifiers) {
+  public void setAlternativeIdentifiers(List<Identifier> alternativeIdentifiers) {
     this.alternativeIdentifiers = alternativeIdentifiers;
   }
 
@@ -334,7 +334,7 @@ public class DataPackage {
   /**
    * Adds a new AlternativeIdentifier to the list of identifiers.
    */
-  public void addAlternativeIdentifier(AlternativeIdentifier alternativeIdentifier) {
+  public void addAlternativeIdentifier(Identifier alternativeIdentifier) {
     alternativeIdentifier.setDataPackageKey(key);
     alternativeIdentifiers.add(alternativeIdentifier);
   }

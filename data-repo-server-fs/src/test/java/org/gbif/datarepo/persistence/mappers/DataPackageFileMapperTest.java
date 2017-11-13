@@ -1,7 +1,7 @@
 package org.gbif.datarepo.persistence.mappers;
 
 import org.gbif.api.model.common.DOI;
-import org.gbif.datarepo.api.model.AlternativeIdentifier;
+import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.Tag;
@@ -44,10 +44,10 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
    */
   private static DataPackage testDataPackage() {
     DataPackage dataPackage = new DataPackage();
-    AlternativeIdentifier alternativeIdentifier = new AlternativeIdentifier();
+    Identifier alternativeIdentifier = new Identifier();
     alternativeIdentifier.setCreated(new Date());
     alternativeIdentifier.setCreatedBy("testUser");
-    alternativeIdentifier.setType(AlternativeIdentifier.Type.UUID);
+    alternativeIdentifier.setType(Identifier.Type.UUID);
     alternativeIdentifier.setIdentifier(ALTERNATIVE_ID_TEST);
     Tag tag = new Tag();
     tag.setCreated(new Date());
@@ -76,8 +76,8 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackageMapper dataPackageMapper = injector.getInstance(DataPackageMapper.class);
     dataPackageMapper.create(dataPackage);
 
-    AlternativeIdentifierMapper alternativeIdentifierMapper = injector.getInstance(AlternativeIdentifierMapper.class);
-    dataPackage.getAlternativeIdentifiers().forEach( alternativeIdentifierMapper::create);
+    IdentifierMapper identifierMapper = injector.getInstance(IdentifierMapper.class);
+    dataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
 
     TagMapper tagMapper = injector.getInstance(TagMapper.class);
     dataPackage.getTags().forEach(tagMapper::create);
