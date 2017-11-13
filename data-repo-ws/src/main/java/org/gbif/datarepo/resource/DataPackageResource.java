@@ -47,11 +47,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
-import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateDoi;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
@@ -136,7 +136,7 @@ public class DataPackageResource {
                                              DataPackage.class);
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles));
-      return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getDoi()));
+      return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
       throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
@@ -192,13 +192,10 @@ public class DataPackageResource {
   @GET
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
-  @Path("{doi}")
-  public DataPackage get(@PathParam("doi") DOI doi)  {
-    //Validates DOI structure
-    validateDoi(doi.getPrefix(), doi.getSuffix());
-
+  @Path("{identifier}")
+  public DataPackage get(@PathParam("identifier") String identifier)  {
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
-    return getOrNotFound(doi);
+    return getOrNotFound(identifier);
   }
 
   /**
@@ -207,11 +204,9 @@ public class DataPackageResource {
   @GET
   @Timed
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
-  @Path("{doi}/{fileName}")
-  public Response getFile(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
-    //Validation
-    validateDoi(doi.getPrefix(), doi.getSuffix());
-    DataPackage dataPackage = getOrNotFound(doi);
+  @Path("{identifier}/{fileName}")
+  public Response getFile(@PathParam("identifier") String identifier, @PathParam("fileName") String fileName)  {
+    DataPackage dataPackage = getOrNotFound(identifier);
     //Tries to get the file
     Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(dataPackage.getKey(), fileName);
 
@@ -228,11 +223,9 @@ public class DataPackageResource {
    */
   @GET
   @Timed
-  @Path("{doi}/{fileName}/data")
-  public Response getFileData(@PathParam("doi") DOI doi, @PathParam("fileName") String fileName)  {
-    //Validation
-    validateDoi(doi.getPrefix(), doi.getSuffix());
-    DataPackage dataPackage = getOrNotFound(doi);
+  @Path("{identifier}/{fileName}/data")
+  public Response getFileData(@PathParam("identifier") String identifier, @PathParam("fileName") String fileName)  {
+    DataPackage dataPackage = getOrNotFound(identifier);
 
     //Tries to get the file
     Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(dataPackage.getKey(), fileName);
@@ -248,14 +241,12 @@ public class DataPackageResource {
   @DELETE
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
-  @Path("{doi}")
+  @Path("{identifier}")
   @RolesAllowed(DATA_REPO_ACCESS_ROLE)
-  public void delete(@PathParam("doi") DOI doi, @Auth GbifUserPrincipal principal)  {
-    //Validates DOI structure
-    validateDoi(doi.getPrefix(), doi.getSuffix());
+  public void delete(@PathParam("identifier") String identifier, @Auth GbifUserPrincipal principal)  {
 
     //Checks that the DataPackage exists
-    DataPackage dataPackage = getOrNotFound(doi);
+    DataPackage dataPackage = getOrNotFound(identifier);
     if (!dataPackage.getCreatedBy().equals(principal.getUser().getUserName())) {
       throw buildWebException(Status.UNAUTHORIZED, "A Data Package can be deleted only by its creator");
     }
@@ -267,13 +258,40 @@ public class DataPackageResource {
   /**
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */
-  private DataPackage getOrNotFound(DOI doi) {
-    return dataRepository.get(doi)
-      .orElseThrow(() -> buildWebException(Status.NOT_FOUND,
-                                           String.format("DOI %s not found in repository", doi.getSuffix())))
-      .inUrl(uriBuilder.build(doi));
+  private DataPackage getOrNotFound(String identifier) {
+
+    Optional<DataPackage> dataPackage = getByUUID(identifier);
+    if (!dataPackage.isPresent()) {
+      dataPackage = getByDOI(identifier);
+      if (!dataPackage.isPresent()) {
+        dataPackage = getByAlternativeIdentifier(identifier);
+      }
+    }
+    return dataPackage.orElseThrow(() -> buildWebException(Status.NOT_FOUND,
+                                           String.format("Identifier %s not found in repository", identifier)))
+      .inUrl(uriBuilder.build(identifier));
   }
 
+   private Optional<DataPackage> getByUUID(String identifier) {
+     try {
+       UUID dataPackageKey = UUID.fromString(identifier);
+       return dataRepository.get(dataPackageKey);
+     } catch (Exception ex) {
+       return Optional.empty();
+     }
+   }
 
+  private Optional<DataPackage> getByDOI(String identifier) {
+    try {
+      DOI doi = new DOI(identifier);
+      return dataRepository.get(doi);
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  private Optional<DataPackage> getByAlternativeIdentifier(String identifier) {
+      return dataRepository.getByAlternativeIdentifier(identifier);
+  }
 
 }

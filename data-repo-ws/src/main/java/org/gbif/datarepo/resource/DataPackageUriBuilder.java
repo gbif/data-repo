@@ -3,6 +3,7 @@ package org.gbif.datarepo.resource;
 import org.gbif.api.model.common.DOI;
 
 import java.net.URI;
+import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -24,6 +25,13 @@ public class DataPackageUriBuilder {
    */
   public URI build(DOI doi) {
     return uriBuilder.build(doi.getDoiName());
+  }
+
+  /**
+   * Generates a DataPackage URL from the DOI.suffix.
+   */
+  public URI build(UUID key) {
+    return uriBuilder.build(key);
   }
 
   /**

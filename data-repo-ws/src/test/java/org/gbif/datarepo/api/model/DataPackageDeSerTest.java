@@ -1,23 +1,22 @@
 package org.gbif.datarepo.api.model;
 import org.gbif.api.model.common.DOI;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.UUID;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 import io.dropwizard.jackson.Jackson;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_UUID;
 
 /**
  * Tests serialization and deserialization from DataPackage instances.
@@ -60,24 +59,26 @@ public class DataPackageDeSerTest {
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
-    return  testDataPackage(TEST_DOI);
+    return  testDataPackage(UUID.fromString(TEST_UUID));
   }
 
   /**
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
-  public static DataPackage testDataPackage(DOI doi) {
+  public static DataPackage testDataPackage(UUID key) {
     try {
       //DOI.name nhas to be encoded
       DataPackage dataPackage =
-        new DataPackage("http://localhost:8080/data_packages/" + URLEncoder.encode(doi.getDoiName(), "utf-8") + '/');
+        new DataPackage("http://localhost:8080/data_packages/" + URLEncoder.encode(key.toString(), "utf-8") + '/');
       dataPackage.setMetadata("metadata.xml");
       dataPackage.addFile(OCCURRENCE_TEST_FILE);
       dataPackage.setTitle("Test Title");
       dataPackage.setDescription("Test Description");
-      dataPackage.setDoi(doi);
+      dataPackage.setKey(key);
       dataPackage.setChecksum("ae5e1348dd9f8e9ec1d6f1b14937a4d4");
       dataPackage.setSize(18644);
+      dataPackage.setCreatedBy(ResourceTestUtils.TEST_USER.getUser().getUserName());
+      dataPackage.setDoi(TEST_DOI);
       return dataPackage;
     } catch (UnsupportedEncodingException ex) {
       throw new RuntimeException(ex);

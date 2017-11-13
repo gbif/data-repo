@@ -33,7 +33,7 @@ public class DataPackage {
 
   public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
-  @JsonIgnore
+  @JsonProperty
   private UUID key;
 
   @JsonProperty
@@ -65,7 +65,7 @@ public class DataPackage {
   @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=ISO_DATE_FORMAT)
   private Date deleted;
 
-  @JsonIgnore
+  @JsonProperty
   private String createdBy;
 
   @JsonProperty
@@ -112,6 +112,7 @@ public class DataPackage {
     files = new ArrayList<>();
     alternativeIdentifiers = new ArrayList<>();
     tags = new ArrayList<>();
+    creators = new ArrayList<>();
     this.baseUrl = baseUrl;
   }
 
@@ -404,7 +405,7 @@ public class DataPackage {
            + "\", \"checksum\": \"" + checksum
            + "\", \"size\": \"" + size
            + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers
-           + "\", \"authors\": \"" + creators
+           + "\", \"creators\": \"" + creators
            + "\", \"citation\": \"" + citation
            + "\", \"license\": \"" + license
            + "\", \"tags\": \"" + tags + "\"}";
@@ -416,6 +417,7 @@ public class DataPackage {
   public DataPackage inUrl(String url) {
     DataPackage dataPackage = new DataPackage(url);
     dataPackage.setDoi(doi);
+    dataPackage.setKey(key);
     files.stream().forEach(dataPackage::addFile);
     dataPackage.setMetadata(metadata);
     dataPackage.setCreatedBy(createdBy);

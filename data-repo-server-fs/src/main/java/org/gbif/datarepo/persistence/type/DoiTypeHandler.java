@@ -39,7 +39,10 @@ public class DoiTypeHandler extends BaseTypeHandler<DOI> {
    * Transforms a String in the form "10.5072/dp.sbrfjh" in to instance DOI(10.5072,dp.sbrfjh).
    */
   private static DOI toDoi(String value) {
-    String[] doi = value.split("\\/");
-    return new DOI(doi[0], doi[1]);
+    if (value != null) {
+      String[] doi = value.split("\\/");
+      return new DOI(doi[0], doi[1]);
+    }
+    return null;
   }
 }

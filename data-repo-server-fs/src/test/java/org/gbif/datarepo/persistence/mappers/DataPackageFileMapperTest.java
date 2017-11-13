@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Integration tests of DataPackageMapper.
  */
-public class DataPackageFileMapperTest  extends BaseMapperTest {
+public class DataPackageFileMapperTest extends BaseMapperTest {
 
   //Guice injector used to instantiate Mappers.
   private static Injector injector;

@@ -1,36 +1,28 @@
 package org.gbif.datarepo.resource;
 
-import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper;
+import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
-import org.gbif.datarepo.test.mocks.AlternativeIdentifierMapperMock;
-import org.gbif.datarepo.test.mocks.DataPackageFileMapperMock;
-import org.gbif.datarepo.test.mocks.DataPackageMapperMock;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
 import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
-import org.gbif.datarepo.test.mocks.RepositoryStatsMapperMock;
-import org.gbif.datarepo.test.mocks.TagMapperMock;
 import org.gbif.doi.service.DoiException;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
@@ -38,9 +30,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Optional;
+import com.google.inject.Injector;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
-import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.apache.commons.io.FileUtils;
@@ -61,17 +53,12 @@ import org.mockito.Matchers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
-import static org.gbif.datarepo.api.model.DataPackageDeSerTest.TEST_DOI;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
-import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_REPO_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
@@ -80,36 +67,38 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTI
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfContent;
 
-import static org.gbif.datarepo.api.model.DataPackageDeSerTest.testDataPackage;
-
 /**
  * Test class for the DataPackageResource class.
  * Implements test cases for: data packages creation, retrieval and deletion.
  */
-public class DataPackageResourceTest {
+public class DataPackageResourceTest extends BaseMapperTest {
 
   private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE =
     new GenericType<PagingResponse<DataPackage>>(){};
 
   private static final BasicAuthenticator AUTHENTICATOR = mock(BasicAuthenticator.class);
 
-  private static final DataPackageMapper DATA_PACKAGE_MAPPER = spy(new DataPackageMapperMock(configuration().getDataRepoConfiguration()));
-
-  private static final DataPackageFileMapper DATA_PACKAGE_FILE_MAPPER = spy(new DataPackageFileMapperMock(configuration()
-                                                                                                            .getDataRepoConfiguration()));
-  private static final RepositoryStatsMapper REPOSITORY_STATS_MAPPER = spy(new RepositoryStatsMapperMock(configuration()
-                                                                                                           .getDataRepoConfiguration()));
-  private static final AlternativeIdentifierMapper ALTERNATIVE_IDENTIFIER_MAPPER = spy(new AlternativeIdentifierMapperMock());
-  private static final TagMapper TAG_MAPPER = spy(new TagMapperMock());
-
-  private static final DataPackage TEST_DATA_PACKAGE = testDataPackage();
+  private static DataPackage TEST_DATA_PACKAGE;
 
   private static Path temporaryFolder;
 
   private static DataRepoConfigurationDW configuration;
 
-  private static final String ENCODED_DOI = toEncodedURL(TEST_DOI);
+  private static Injector mappersInjector;
 
+  private static Injector mappersInjector() {
+    try {
+      if (jdbcUrl == null) {
+        initDB();
+      }
+      if (mappersInjector == null) {
+        mappersInjector = buildInjector();
+      }
+      return mappersInjector;
+    } catch (IOException ex) {
+      throw new IllegalStateException(ex);
+    }
+  }
   /**
    * Creates an temporary folder, the return instance is lazy evaluated into the field temporaryFolder.
    */
@@ -125,16 +114,6 @@ public class DataPackageResourceTest {
     }
   }
 
-  /**
-   * Utility function to encode the doi.getDoiName.
-   */
-  private static String toEncodedURL(DOI doi) {
-    try {
-      return URLEncoder.encode(doi.getDoiName(), "UTF-8");
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-  }
 
   /**
    * Returns or creates a new configuration object instance.
@@ -170,9 +149,11 @@ public class DataPackageResourceTest {
     .addResource(new DataPackageResource(new FileSystemRepository(configuration().getDataRepoConfiguration()
                                                                     .getDataRepoPath(),
                                                                   new DoiRegistrationServiceMock(),
-                                                                  DATA_PACKAGE_MAPPER, DATA_PACKAGE_FILE_MAPPER,
-                                                                  TAG_MAPPER, REPOSITORY_STATS_MAPPER,
-                                                                  ALTERNATIVE_IDENTIFIER_MAPPER,
+                                                                  mappersInjector().getInstance(DataPackageMapper.class),
+                                                                  mappersInjector().getInstance(DataPackageFileMapper.class),
+                                                                  mappersInjector().getInstance(TagMapper.class),
+                                                                  mappersInjector().getInstance(RepositoryStatsMapper.class),
+                                                                  mappersInjector().getInstance(AlternativeIdentifierMapper.class),
                                                                   configuration().getDataRepoConfiguration()
                                                                     .getFileSystem()),
                                          configuration()))
@@ -182,7 +163,7 @@ public class DataPackageResourceTest {
    * Initialized all the elements used across all test cases.
    */
   @BeforeClass
-  public static void init() {
+  public static void init() throws  IOException {
     temporaryFolder();
     configuration();
   }
@@ -203,12 +184,11 @@ public class DataPackageResourceTest {
   @Before
   public void setup() {
     try {
-      //Copies all the content from  'testrepo/10.5072-dp.bvmv02' to the temporary directory
-      //This is done to test service to retrieve DataPackages information and files
-      FileUtils.copyDirectory(new File(TEST_REPO_PATH), temporaryFolder.toFile());
       //Only the TEST_USER is valid
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
-    } catch (AuthenticationException | IOException  ex) {
+      //Create test package
+      TEST_DATA_PACKAGE = createTestDataPackage();
+    } catch (Exception  ex) {
       throw new IllegalStateException(ex);
     }
   }
@@ -217,10 +197,11 @@ public class DataPackageResourceTest {
    * Executed after each test, resets all the mock instances.
    */
   @After
-  public void tearDown() {
+  public void tearDownTesCase() {
     // we have to reset the mock after each test because from the
     // @ClassRule, or use a @Rule as mentioned below.
     reset(AUTHENTICATOR);
+    clearDB();
   }
 
   /**
@@ -228,9 +209,10 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testGetDataPackage() {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI).toString())
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString())
+                                                 .toString())
                  .request().get(DataPackage.class))
-      .isEqualTo(TEST_DATA_PACKAGE);
+      .isNotNull();
   }
 
 
@@ -253,18 +235,21 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testCreateDataPackage() throws Exception {
+      DataPackage newDataPackage = createTestDataPackage();
+      //Test that both packages contains the same elements
+      assertThat(newDataPackage.getKey()).isNotNull();
+    assertThat(newDataPackage.getCreated()).isEqualTo(newDataPackage.getModified());
+  }
+
+  private static DataPackage createTestDataPackage() throws Exception {
     try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM))
       .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
-      DataPackage newDataPackage = resource.getJerseyTest()
+      return resource.getJerseyTest()
         .target(DATA_PACKAGES_PATH)
         .register(MultiPartFeature.class)
         .request()
         .header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS)
         .post(Entity.entity(multiPart, multiPart.getMediaType()), DataPackage.class);
-      //Test that both packages contains the same elements
-      assertThat(newDataPackage).isEqualTo(testDataPackage(newDataPackage.getDoi()));
-      //verify that exists method was invoked
-      verify(DATA_PACKAGE_MAPPER).create(any(DataPackage.class));
     }
   }
 
@@ -274,7 +259,8 @@ public class DataPackageResourceTest {
   @Test
   public void testGetFile() throws IOException {
     try (InputStream downloadFile = resource.getJerseyTest()
-                                      .target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI, CONTENT_TEST_FILE).toString())
+                                      .target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString(),
+                                                        CONTENT_TEST_FILE).toString())
                                       .request().get(InputStream.class); //download file
          //Read test file
         InputStream contentFile = new FileInputStream(Paths.get(TEST_DATA_PACKAGE_DIR, CONTENT_TEST_FILE).toFile())) {
@@ -288,11 +274,10 @@ public class DataPackageResourceTest {
    */
   @Test
   public void testDeleteDataPackage() throws DoiException {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, ENCODED_DOI).toString())
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString())
+                                                 .toString())
                  .request().header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS).delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-    verify(DATA_PACKAGE_MAPPER).getByKey(any(UUID.class));
-    verify(DATA_PACKAGE_MAPPER).delete(any(UUID.class));
   }
 
 }

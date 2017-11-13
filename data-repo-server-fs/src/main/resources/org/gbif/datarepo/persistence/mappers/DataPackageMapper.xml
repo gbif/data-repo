@@ -15,14 +15,10 @@
     <result property="createdBy" column="created_by"/>
     <result property="checksum" column="checksum"/>
     <result property="size" column="size"/>
-    <collection property="files" column="key" ofType="DataPackageFile"
-                select="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.list"/>
-    <collection property="alternativeIdentifiers" column="key" ofType="AlternativeIdentifier"
-                select="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper.listByDataPackageKey"/>
-    <collection property="tags" column="key" ofType="Tag"
-                select="org.gbif.datarepo.persistence.mappers.TagMapper.listByDataPackageKey"/>
-    <collection property="creators" column="key" ofType="Creator"
-                select="org.gbif.datarepo.persistence.mappers.CreatorMapper.listByDataPackageKey"/>
+    <collection property="files" column="key" select="listDataPackageFiles"/>
+    <collection property="alternativeIdentifiers" column="key" select="listAlternativeIdentifiers"/>
+    <collection property="tags" column="key" select="listTags"/>
+    <collection property="creators" column="key" select="listCreators"/>
 
   </resultMap>
 
@@ -35,13 +31,35 @@
   <select id="getByKey" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
     SELECT key, doi, title, description, created, modified, deleted, created_by, checksum, size
     FROM data_package
-    WHERE doi = #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+    WHERE key = #{dataPackageKey, jdbcType=OTHER}
   </select>
 
   <select id="getByAlternativeIdentifier" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="String">
     SELECT key, doi, title, description, dp.created, modified, deleted, dp.created_by, checksum, size
-    FROM data_package dp JOIN alternative_identifier ai ON ai.data_package_doi = dp.doi
+    FROM data_package dp JOIN alternative_identifier ai ON ai.data_package_key = dp.key
     WHERE ai.identifier = #{identifier, jdbcType=OTHER}
+  </select>
+
+  <select id="listDataPackageFiles" resultMap="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.DATA_PACKAGE_FILE_DATA_MAP">
+    SELECT file_name, checksum, size
+    FROM data_package_file
+    WHERE  data_package_key = #{dataPackageKey, jdbcType=OTHER}
+  </select>
+
+  <select id="listAlternativeIdentifiers" resultMap="org.gbif.datarepo.persistence.mappers.AlternativeIdentifierMapper.ALTERNATIVE_IDENTIFIER_MAP">
+    SELECT identifier, data_package_key, type, created, created_by
+    FROM alternative_identifier
+    WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER}
+  </select>
+
+  <select id="listTags" resultMap="org.gbif.datarepo.persistence.mappers.TagMapper.TAG_MAP">
+    SELECT <include refid="org.gbif.datarepo.persistence.mappers.TagMapper.TAG_FIELDS"/> FROM tag WHERE
+    data_package_key = #{_parameter, jdbcType=OTHER}
+  </select>
+
+  <select id="listCreators" resultMap="org.gbif.datarepo.persistence.mappers.CreatorMapper.CREATOR_MAP">
+    SELECT <include refid="org.gbif.datarepo.persistence.mappers.CreatorMapper.CREATOR_FIELDS"/> FROM creator
+    WHERE data_package_key = #{_parameter, jdbcType=OTHER}
   </select>
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
@@ -132,19 +150,19 @@
       modified_by = #{createdBy, jdbcType=OTHER},
       checksum = #{checksum, jdbcType=OTHER},
       size = #{size, jdbcType=OTHER}
-    WHERE key = #{key, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+    WHERE key = #{key, jdbcType=OTHER}
   </update>
 
   <update id="archive">
     UPDATE data_package SET
       deleted = now()
-    WHERE key = #{key}
+    WHERE key = #{dataPackageKey, jdbcType=OTHER}
   </update>
 
   <delete id="delete">
     UPDATE data_package SET
       deleted = now()
-    WHERE key = #{key, jdbcType=OTHER, typeHandler=UuidTypeHandler} AND deleted IS NULL
+    WHERE key = #{dataPackageKey, jdbcType=OTHER} AND deleted IS NULL
   </delete>
 
 </mapper>

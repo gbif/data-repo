@@ -16,8 +16,8 @@ import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
 import org.gbif.datarepo.persistence.type.DoiTypeHandler;
 import org.gbif.datarepo.persistence.type.TextArrayToListTypeHandler;
+import org.gbif.datarepo.persistence.type.UuidTypeHandler;
 import org.gbif.mybatis.guice.MyBatisModule;
-import org.gbif.mybatis.type.UuidTypeHandler;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -80,6 +80,7 @@ public class DataPackageMyBatisModule extends PrivateModule {
       addAlias("DoiTypeHandler").to(DoiTypeHandler.class);
       addAlias("UuidTypeHandler").to(UuidTypeHandler.class);
       addAlias("TextArrayToListTypeHandler").to(TextArrayToListTypeHandler.class);
+      addTypeHandlerClass(UuidTypeHandler.class);
     }
 
     @Override

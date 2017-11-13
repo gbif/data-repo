@@ -3,7 +3,9 @@ package org.gbif.datarepo.test.utils;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
+import org.gbif.api.vocabulary.UserRole;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,11 +24,11 @@ public class ResourceTestUtils {
 
   public static final String TEST_REPO_PATH = "src/test/resources/testrepo/";
 
-  public static final String TEST_DATA_PACKAGE_DIR = TEST_REPO_PATH + DOI.TEST_PREFIX +  "-dp.bvmv02/";
+  public static final String TEST_UUID = "85fc0ce8-f762-11e1-a439-00145eb45e9a";
+
+  public static final String TEST_DATA_PACKAGE_DIR = TEST_REPO_PATH + TEST_UUID + '/';
 
   public static final String CONTENT_TEST_FILE = "occurrence.txt";
-
-  public static final String METADATA_TEST_FILE = "metadata.xml";
 
   public static final String JSON_CREATE_TEST_FILE = "src/test/resources/datapackage_test.json";
 
@@ -54,6 +56,7 @@ public class ResourceTestUtils {
     GbifUser user = new GbifUser();
     user.setUserName(TEST_USER_NAME);
     user.setPasswordHash(TEST_USER_NAME);
+    user.addRole(UserRole.REGISTRY_ADMIN);
     return new GbifUserPrincipal(user);
   }
 
@@ -75,7 +78,7 @@ public class ResourceTestUtils {
    * Creates a Form param whose content is a file stream.
    */
   public static FormDataBodyPart dataBodyPartOf(String testFile, String formParam) throws IOException {
-    return new FormDataBodyPart(FormDataContentDisposition.name(formParam).fileName(testFile).build(),
+    return new FormDataBodyPart(FormDataContentDisposition.name(formParam).fileName(new File(testFile).getName()).build(),
                                 new FileInputStream(testFile), MediaType.APPLICATION_OCTET_STREAM_TYPE);
   }
 
