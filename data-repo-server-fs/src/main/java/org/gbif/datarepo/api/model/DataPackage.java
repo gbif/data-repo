@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -36,9 +38,11 @@ public class DataPackage {
   @JsonProperty
   private UUID key;
 
+  @NotNull
   @JsonProperty
   private String title;
 
+  @NotNull
   @JsonProperty
   private String description;
 
@@ -47,6 +51,7 @@ public class DataPackage {
   @JsonDeserialize(using = DOIDeserializer.class)
   private DOI doi;
 
+  @NotNull
   @JsonProperty
   private Set<DataPackageFile> files;
 
@@ -77,9 +82,11 @@ public class DataPackage {
   @JsonProperty
   private Set<Tag> tags;
 
+  @NotNull
   @JsonProperty
   private Set<Creator> creators;
 
+  @NotNull
   @JsonProperty
   private License license;
 

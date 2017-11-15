@@ -9,6 +9,7 @@ import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -197,6 +198,7 @@ public class FileSystemRepository implements DataRepository {
     newDataPackage.setDescription(dataPackage.getDescription());
     newDataPackage.setCreated(dataPackage.getCreated());
     newDataPackage.setModified(dataPackage.getModified());
+    newDataPackage.setLicense(dataPackage.getLicense());
 
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
@@ -218,7 +220,12 @@ public class FileSystemRepository implements DataRepository {
     }
 
     dataPackage.getRelatedIdentifiers().forEach(newDataPackage::addRelatedIdentifier);
-    dataPackage.getCreators().forEach(newDataPackage::addCreator);
+    dataPackage.getCreators().forEach(creator -> {
+      if (creator.getIdentifierScheme() != null) {
+        creator.setSchemeURI(creator.getIdentifierScheme().getSchemeURI());
+      }
+      newDataPackage.addCreator(creator);
+    });
     dataPackage.getTags().forEach(tag -> newDataPackage.addTag(tag.getValue()));
 
     return newDataPackage;
@@ -339,6 +346,8 @@ public class FileSystemRepository implements DataRepository {
             .map(doi -> {
               try {
                 DataPackage newDataPackage = prePersist(dataPackage, files, dataPackageKey);
+                newDataPackage.setDoi(doi);
+                newDataPackage.setCitation(CitationGenerator.generateCitation(newDataPackage));
                 //Persist data package info
                 dataPackageMapper.create(newDataPackage);
                 newDataPackage.getFiles()

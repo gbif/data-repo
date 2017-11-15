@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -56,12 +58,15 @@ public class Identifier {
   @JsonProperty
   private Integer key;
 
+  @NotNull
   @JsonProperty
   private String identifier;
 
+  @NotNull
   @JsonProperty
   private Type type;
 
+  @NotNull
   @JsonProperty
   private RelationType relationType = RelationType.IsAlternativeOf;
 

@@ -1,6 +1,7 @@
 package org.gbif.datarepo.persistence.mappers;
 
 import org.gbif.api.model.common.DOI;
+import org.gbif.api.vocabulary.License;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
@@ -64,6 +65,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     dataPackage.setDescription("test data package description");
     dataPackage.setSize(1);
     dataPackage.setTitle("test");
+    dataPackage.setLicense(License.CC_BY_NC_4_0);
     dataPackage.addFile(new DataPackageFile("test.xml", testChecksum, 1));
     return dataPackage;
   }

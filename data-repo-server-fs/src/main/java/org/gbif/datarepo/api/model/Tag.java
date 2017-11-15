@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -16,6 +18,7 @@ public class Tag {
   @JsonIgnore
   private UUID dataPackageKey;
 
+  @NotNull
   @JsonProperty
   private String value;
 

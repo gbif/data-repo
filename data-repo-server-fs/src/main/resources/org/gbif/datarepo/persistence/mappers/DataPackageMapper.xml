@@ -21,20 +21,24 @@
 
   </resultMap>
 
+  <sql id="DATA_PACKAGE_FIELDS">
+    dp.key, dp.doi, dp.title, dp.description, dp.citation, dp.license, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
+  </sql>
+
   <select id="getByDOI" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
-    SELECT key, doi, title, description, created, modified, deleted, created_by, checksum, size
-    FROM data_package
+    SELECT <include refid="DATA_PACKAGE_FIELDS"/>
+    FROM data_package dp
     WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
   </select>
 
   <select id="getByKey" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
-    SELECT key, doi, title, description, created, modified, deleted, created_by, checksum, size
-    FROM data_package
+    SELECT <include refid="DATA_PACKAGE_FIELDS"/>
+    FROM data_package dp
     WHERE key = #{dataPackageKey, jdbcType=OTHER}
   </select>
 
   <select id="getByAlternativeIdentifier" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="String">
-    SELECT dp.key, doi, title, description, dp.created, modified, deleted, dp.created_by, checksum, size
+    SELECT <include refid="DATA_PACKAGE_FIELDS"/>
     FROM data_package dp JOIN identifier ai ON ai.data_package_key = dp.key AND ai.relation_type = 'IsAlternativeOf'
     WHERE ai.identifier = #{identifier, jdbcType=OTHER}
     ORDER BY ai.created DESC
@@ -58,7 +62,7 @@
   </select>
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
-    SELECT dp.key, dp.doi, dp.title, dp.description, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
+    SELECT <include refid="DATA_PACKAGE_FIELDS"/>
     FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
@@ -130,8 +134,9 @@
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (key, doi, title, description, created, modified, created_by, modified_by, checksum, size)
-    VALUES(#{key, jdbcType=OTHER, typeHandler=UuidTypeHandler}, #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER}, #{description, jdbcType=OTHER},
+    INSERT INTO data_package (key, doi, title, description, citation, license, created, modified, created_by, modified_by, checksum, size)
+    VALUES(#{key, jdbcType=OTHER, typeHandler=UuidTypeHandler}, #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER},
+    #{description, jdbcType=OTHER},  #{citation, jdbcType=OTHER}, #{license, jdbcType=OTHER},
     <choose><when test="created !=null " >#{created, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
@@ -141,6 +146,8 @@
     UPDATE data_package
     SET title = #{title, jdbcType=OTHER},
         description = #{description, jdbcType=OTHER},
+        license = #{license, jdbcType=OTHER},
+        citation = #{citation, jdbcType=OTHER},
         modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
         modified_by = #{createdBy, jdbcType=OTHER},
         checksum = #{checksum, jdbcType=OTHER},
