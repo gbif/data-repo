@@ -14,38 +14,32 @@
   </resultMap>
 
   <select id="get" resultType="Identifier" resultMap="IDENTIFIER_MAP">
-    SELECT key, identifier, data_package_key, type, created, created_by
+    SELECT key, identifier, data_package_key, type, relation_type, created, created_by
     FROM identifier
     WHERE key = #{key, jdbcType=OTHER}
   </select>
 
-  <select id="listByDataPackageKey" resultType="Identifier" resultMap="IDENTIFIER_MAP">
-    SELECT key, identifier, data_package_key, type, created, created_by
-    FROM identifier
-    WHERE data_package_key = #{_parameter, jdbcType=OTHER, typeHandler=UuidTypeHandler}
-  </select>
-
   <select id="list" resultType="Identifier" resultMap="IDENTIFIER_MAP" parameterType="map">
-    SELECT key, identifier, data_package_key, type, created, created_by
+    SELECT key, identifier, data_package_key, type, relation_type, created, created_by
     FROM identifier
     <where>
       <if test="user != null" >
         AND created_by=#{user, jdbcType=OTHER}
       </if>
-      <if test="status != null" >
-        AND status=#{status, jdbcType=OTHER}
-      </if>
       <if test="created != null" >
         AND created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageKey != null" >
-        AND data_package_key=#{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+        AND data_package_key=#{dataPackageKey, jdbcType=OTHER}
       </if>
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
       </if>
       <if test="relationType != null" >
         AND relation_type=#{relationType, jdbcType=OTHER}
+      </if>
+      <if test="identifier != null" >
+        AND identifier=#{identifier, jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
@@ -54,20 +48,16 @@
   </select>
 
   <select id="count" resultType="Long" parameterType="map">
-    SELECT count(*)
-    FROM identifier
+    SELECT count(*) FROM identifier
     <where>
       <if test="user != null" >
         AND created_by=#{user, jdbcType=OTHER}
-      </if>
-      <if test="status != null" >
-        AND status=#{status, jdbcType=OTHER}
       </if>
       <if test="created != null" >
         AND created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageKey != null" >
-        AND data_package_key=#{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler}
+        AND data_package_key=#{dataPackageKey, jdbcType=OTHER}
       </if>
       <if test="type != null" >
         AND type=#{type, jdbcType=OTHER}
@@ -75,20 +65,20 @@
       <if test="relationType != null" >
         AND relation_type=#{relationType, jdbcType=OTHER}
       </if>
+      <if test="identifier != null" >
+        AND identifier=#{identifier, jdbcType=OTHER}
+      </if>
     </where>
-    <if test="page != null" >
-      LIMIT #{page.limit} OFFSET #{page.offset}
-    </if>
   </select>
 
-  <insert id="create" parameterType="Identifier" useGeneratedKeys="false">
+  <insert id="create" parameterType="Identifier" useGeneratedKeys="true" keyProperty="key" keyColumn="key">
     INSERT INTO identifier (identifier, data_package_key, type, relation_type, created, created_by)
-    VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageKey, jdbcType=OTHER, typeHandler=UuidTypeHandler},
-    #{type, jdbcType=OTHER}, #{relationType, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
+    VALUES (#{identifier, jdbcType=OTHER}, #{dataPackageKey, jdbcType=OTHER}, #{type, jdbcType=OTHER},
+            #{relationType, jdbcType=OTHER}, now(), #{createdBy, jdbcType=OTHER})
   </insert>
 
-  <delete id="delete" parameterType="String">
-    DELETE FROM identifier WHERE identifier = #{identifier, jdbcType=OTHER}
+  <delete id="delete" parameterType="Integer">
+    DELETE FROM identifier WHERE key = #{key, jdbcType=OTHER}
   </delete>
 
 </mapper>

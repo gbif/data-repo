@@ -2,12 +2,10 @@ package org.gbif.datarepo.persistence.type;
 
 import java.sql.Array;
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.ibatis.type.BaseTypeHandler;
@@ -38,7 +36,7 @@ public class TextArrayToListTypeHandler extends BaseTypeHandler<List<String>> {
     return asCollection(cs.getArray(columnIndex));
   }
 
-  private List<String> asCollection(Array array) throws SQLException {
+  private static List<String> asCollection(Array array) throws SQLException {
     if (array == null) {
       return null;
     }

@@ -3,9 +3,6 @@ package org.gbif.datarepo.auth.jwt;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import javax.ws.rs.NotAuthorizedException;
 
 import com.google.common.base.Optional;

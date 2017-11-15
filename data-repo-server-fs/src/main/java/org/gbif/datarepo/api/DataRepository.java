@@ -6,6 +6,7 @@ import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
+import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.RepositoryStats;
 
 import java.io.InputStream;
@@ -33,7 +34,7 @@ public interface DataRepository {
     /**
      * Remove replace all the data package content.
      */
-    OVERWRITE;
+    OVERWRITE
   }
 
   /**
@@ -85,6 +86,16 @@ public interface DataRepository {
                                    @Nullable String q);
 
   /**
+   * Page through AlternativeIdentifiers, optionally filtered by user and dates.
+   */
+  PagingResponse<Identifier> listIdentifiers(@Nullable String user, @Nullable Pageable page,
+                                  @Nullable String identifier,
+                                  @Nullable UUID dataPackageKey,
+                                  @Nullable Identifier.Type type,
+                                  @Nullable Identifier.RelationType relationType,
+                                  @Nullable Date created);
+
+  /**
    * Gets a file contained in a data package referenced by a DOI.
    */
   Optional<DataPackageFile> getFile(UUID dataPackageKey, String fileName);
@@ -98,5 +109,10 @@ public interface DataRepository {
    * Provides general statistics about the data repo usage.
    */
   RepositoryStats getStats();
+
+  /**
+   * Utility method to validate if an identifier has been  used as alternative identifier for another data package.
+   */
+  boolean isAlternativeIdentifierInUse(Identifier alternativeIdentifier);
 
 }

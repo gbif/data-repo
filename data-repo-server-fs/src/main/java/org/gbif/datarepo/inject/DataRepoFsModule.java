@@ -2,6 +2,7 @@ package org.gbif.datarepo.inject;
 
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
+import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
@@ -82,6 +83,13 @@ public class DataRepoFsModule {
   }
 
   /**
+   * Gets CreatorMapper instance.
+   */
+  public CreatorMapper creatorMapper() {
+    return injector.getInstance(CreatorMapper.class);
+  }
+
+  /**
    * Lazy creation of a DoiRegistrationService.
    * If the instance has ben created previously it is re-used.
    */
@@ -101,6 +109,7 @@ public class DataRepoFsModule {
                                     dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
                                     alternativeIdentifierMapper(),
+                                    creatorMapper(),
                                     configuration.getFileSystem());
   }
 

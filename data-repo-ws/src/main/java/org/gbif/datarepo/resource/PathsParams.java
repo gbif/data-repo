@@ -11,19 +11,14 @@ public final class PathsParams {
   public static final String DATA_PACKAGES_PATH = "data_packages";
 
   /**
+   * Related identifiers resource path.
+   */
+  public static final String RELATED_IDENTIFIERS_PATH = "relatedIdentifiers";
+
+  /**
    * Data repository stats path.
    */
   public static final String REPO_STATS_PATH = DATA_PACKAGES_PATH + "/stats";
-
-  /**
-   * Metadata file parameter.
-   */
-  public static final String METADATA_PARAM = "metadata";
-
-  /**
-   * Metadata file URL parameter.
-   */
-  public static final String METADATA_URL_PARAM = "metadataUrl";
 
   /**
    * DataPackage content file parameter.
@@ -34,6 +29,17 @@ public final class PathsParams {
    * DataPackage content file URL parameter.
    */
   public static final String FILE_URL_PARAM = "fileUrl";
+
+
+  /**
+   * Identifiers file parameter.
+   */
+  public static final String IDENTIFIERS_FILE_PARAM = "identifiersFile";
+
+  /**
+   * Identifiers file URL parameter.
+   */
+  public static final String IDENTIFIERS_FILE_URL_PARAM = "identifiersFileUrl";
 
   /**
    * DataPackage form parameters.

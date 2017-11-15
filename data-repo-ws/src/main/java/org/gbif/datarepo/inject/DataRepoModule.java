@@ -7,6 +7,7 @@ import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.auth.jwt.JwtAuthenticator;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
+import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
@@ -93,6 +94,13 @@ public class DataRepoModule {
   }
 
   /**
+   * Gets CreatorMapper instance.
+   */
+  public CreatorMapper creatorMapper() {
+    return injector.getInstance(CreatorMapper.class);
+  }
+
+  /**
    * Creates a new Authenticator instance using GBIF underlying services.
    */
   public Authenticator<BasicCredentials, GbifUserPrincipal> getBasicCredentialsAuthenticator() {
@@ -131,6 +139,7 @@ public class DataRepoModule {
                                     dataPackageMapper(),
                                     dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
                                     alternativeIdentifierMapper(),
+                                    creatorMapper(),
                                     configuration.getDataRepoConfiguration().getFileSystem());
   }
 

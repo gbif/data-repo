@@ -5,14 +5,15 @@ import org.gbif.api.vocabulary.License;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -27,9 +28,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * This class represents a data package, which contains: a metadata file, a DOI and a list from containing files.
  */
 @JsonSerialize
+@JsonIgnoreProperties(value = "relatedIdentifiers", allowSetters = true)
 public class DataPackage {
-
-  public static final String METADATA_FILE = "metadata.xml";
 
   public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -48,10 +48,7 @@ public class DataPackage {
   private DOI doi;
 
   @JsonProperty
-  private String metadata;
-
-  @JsonProperty
-  private List<DataPackageFile> files;
+  private Set<DataPackageFile> files;
 
   @JsonProperty
   @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=ISO_DATE_FORMAT)
@@ -75,13 +72,13 @@ public class DataPackage {
   private long size;
 
   @JsonProperty
-  private List<Identifier> alternativeIdentifiers;
+  private Set<Identifier> relatedIdentifiers;
 
   @JsonProperty
-  private List<Tag> tags;
+  private Set<Tag> tags;
 
   @JsonProperty
-  private List<Creator> creators;
+  private Set<Creator> creators;
 
   @JsonProperty
   private License license;
@@ -96,10 +93,10 @@ public class DataPackage {
    * Set the base url to empty and initialises the list from files.
    */
   public DataPackage() {
-    files = new ArrayList<>();
-    alternativeIdentifiers = new ArrayList<>();
-    tags = new ArrayList<>();
-    creators = new ArrayList<>();
+    files = new HashSet<>();
+    relatedIdentifiers = new HashSet<>();
+    tags = new HashSet<>();
+    creators = new HashSet<>();
     baseUrl = "";
   }
 
@@ -109,10 +106,10 @@ public class DataPackage {
    * Set the base url to specified value and initialises the list from files.
    */
   public DataPackage(String baseUrl) {
-    files = new ArrayList<>();
-    alternativeIdentifiers = new ArrayList<>();
-    tags = new ArrayList<>();
-    creators = new ArrayList<>();
+    files = new HashSet<>();
+    relatedIdentifiers = new HashSet<>();
+    tags = new HashSet<>();
+    creators = new HashSet<>();
     this.baseUrl = baseUrl;
   }
 
@@ -139,24 +136,13 @@ public class DataPackage {
   }
 
   /**
-   * Metadata associated to the data package.
-   */
-  public String getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(String metadata) {
-    this.metadata = baseUrl + metadata;
-  }
-
-  /**
    * List from containing files (excluding the metadata.xml file).
    */
-  public List<DataPackageFile> getFiles() {
+  public Set<DataPackageFile> getFiles() {
     return files;
   }
 
-  public void setFiles(List<DataPackageFile> files) {
+  public void setFiles(Set<DataPackageFile> files) {
     this.files = files;
   }
 
@@ -253,33 +239,33 @@ public class DataPackage {
   /**
    * External and alternative identifier that uniquely identify this data package.
    */
-  public List<Identifier> getAlternativeIdentifiers() {
-    return alternativeIdentifiers;
+  public Set<Identifier> getRelatedIdentifiers() {
+    return relatedIdentifiers;
   }
 
-  public void setAlternativeIdentifiers(List<Identifier> alternativeIdentifiers) {
-    this.alternativeIdentifiers = alternativeIdentifiers;
+  public void setRelatedIdentifiers(Set<Identifier> relatedIdentifiers) {
+    this.relatedIdentifiers = relatedIdentifiers;
   }
 
   /**
    * Tags associated to the DataPackage.
    */
-  public List<Tag> getTags() {
+  public Set<Tag> getTags() {
     return tags;
   }
 
-  public void setTags(List<Tag> tags) {
+  public void setTags(Set<Tag> tags) {
     this.tags = tags;
   }
 
   /**
    * DataPackage authors.
    */
-  public List<Creator> getCreators() {
+  public Set<Creator> getCreators() {
     return creators;
   }
 
-  public void setCreators(List<Creator> creators) {
+  public void setCreators(Set<Creator> creators) {
     this.creators = creators;
   }
 
@@ -330,13 +316,23 @@ public class DataPackage {
     files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum(), file.getSize()));
   }
 
+  /**
+   * Adds a new Creator to the list.
+   */
+  public void addCreator(Creator creator) {
+    creator.setDataPackageKey(key);
+    creator.setCreatedBy(createdBy);
+    creators.add(creator);
+  }
+
 
   /**
-   * Adds a new AlternativeIdentifier to the list of identifiers.
+   * Adds a new AlternativeIdentifier to the list of relatedIdentifiers.
    */
-  public void addAlternativeIdentifier(Identifier alternativeIdentifier) {
-    alternativeIdentifier.setDataPackageKey(key);
-    alternativeIdentifiers.add(alternativeIdentifier);
+  public void addRelatedIdentifier(Identifier relatedIdentifier) {
+    relatedIdentifier.setDataPackageKey(key);
+    relatedIdentifier.setCreatedBy(createdBy);
+    relatedIdentifiers.add(relatedIdentifier);
   }
 
   /**
@@ -344,6 +340,7 @@ public class DataPackage {
    */
   public void addTag(Tag tag) {
     tag.setDataPackageKey(key);
+    tag.setCreatedBy(createdBy);
     tags.add(tag);
   }
 
@@ -369,7 +366,6 @@ public class DataPackage {
     }
     DataPackage other = (DataPackage) obj;
     return Objects.equals(doi, other.doi)
-           && Objects.equals(metadata, other.metadata)
            && Objects.equals(files, other.files)
            && Objects.equals(createdBy, other.createdBy)
            && Objects.equals(title, other.title)
@@ -378,7 +374,7 @@ public class DataPackage {
            && Objects.equals(modified, other.modified)
            && Objects.equals(size, other.size)
            && Objects.equals(checksum, other.checksum)
-           && Objects.equals(alternativeIdentifiers, other.alternativeIdentifiers)
+           && Objects.equals(relatedIdentifiers, other.relatedIdentifiers)
            && Objects.equals(tags, other.tags)
            && Objects.equals(creators, other.creators)
            && Objects.equals(citation, other.citation)
@@ -388,14 +384,13 @@ public class DataPackage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(doi, metadata, files, createdBy, created, title, description, modified, size, checksum,
-                        alternativeIdentifiers, tags, creators, citation, license);
+    return Objects.hash(doi, files, createdBy, created, title, description, modified, size, checksum,
+                        relatedIdentifiers, tags, creators, citation, license);
   }
 
   @Override
   public String toString() {
     return "{\"doi\": \"" + Objects.toString(doi)
-           + "\", \"metadata\": \"" + metadata
            + "\", \"files\": \"" + Objects.toString(files)
            + "\", \"createdBy\": \"" + createdBy
            + "\", \"title\": \"" + title
@@ -404,7 +399,7 @@ public class DataPackage {
            + "\", \"modified\": \"" + modified
            + "\", \"checksum\": \"" + checksum
            + "\", \"size\": \"" + size
-           + "\", \"alternativeIdentifiers\": \"" + alternativeIdentifiers
+           + "\", \"relatedIdentifiers\": \"" + relatedIdentifiers
            + "\", \"creators\": \"" + creators
            + "\", \"citation\": \"" + citation
            + "\", \"license\": \"" + license
@@ -419,7 +414,6 @@ public class DataPackage {
     dataPackage.setDoi(doi);
     dataPackage.setKey(key);
     files.stream().forEach(dataPackage::addFile);
-    dataPackage.setMetadata(metadata);
     dataPackage.setCreatedBy(createdBy);
     dataPackage.setCreated(created);
     dataPackage.setDeleted(deleted);
@@ -428,7 +422,7 @@ public class DataPackage {
     dataPackage.setDescription(description);
     dataPackage.setChecksum(checksum);
     dataPackage.setSize(size);
-    dataPackage.setAlternativeIdentifiers(alternativeIdentifiers);
+    dataPackage.setRelatedIdentifiers(relatedIdentifiers);
     dataPackage.setTags(tags);
     dataPackage.setCreators(creators);
     dataPackage.setCitation(citation);

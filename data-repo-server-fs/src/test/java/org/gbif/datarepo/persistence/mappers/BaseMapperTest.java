@@ -30,18 +30,26 @@ public class BaseMapperTest {
   //Embedded postgres server
   private static EmbeddedPostgres embeddedPostgres;
 
-  protected static String jdbcUrl;
+  private static String jdbcUrl;
 
-
+  /**
+   * Cheks if the embedded database server has been initialized.
+   */
+  public static boolean hasInitiated() {
+    return jdbcUrl != null;
+  }
 
   /**
    * Initializes the Postgres server and database.
    */
   @BeforeClass
   public static void initDB() throws IOException {
-    embeddedPostgres = new EmbeddedPostgres(Version.V9_4_10);
-    jdbcUrl = embeddedPostgres.start("localhost", new ServerSocket(0).getLocalPort(), "testdb", "user", "password");
-    runLiquibase();
+    //Check for nullity to avoid double initialization
+    if (jdbcUrl == null) {
+      embeddedPostgres = new EmbeddedPostgres(Version.V9_4_10);
+      jdbcUrl = embeddedPostgres.start("localhost", new ServerSocket(0).getLocalPort(), "testdb", "user", "password");
+      runLiquibase();
+    }
   }
 
   @Before
@@ -49,7 +57,7 @@ public class BaseMapperTest {
     try {
       Class.forName("org.postgresql.Driver");
       try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
-        connection.prepareStatement("DELETE FROM data_package").execute();
+        connection.prepareStatement("DELETE FROM data_package").executeUpdate();
       }
     } catch (ClassNotFoundException | SQLException ex) {
       throw new IllegalStateException(ex);
@@ -79,6 +87,7 @@ public class BaseMapperTest {
   @AfterClass
   public static void tearDown() {
     Optional.ofNullable(embeddedPostgres).ifPresent(EmbeddedPostgres::stop);
+    jdbcUrl = null;
   }
 
   /**

@@ -6,7 +6,6 @@ import javax.ws.rs.core.Response;
 
 import org.assertj.core.util.Strings;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 
 /**
@@ -30,16 +29,6 @@ public class ResourceValidations {
       throw buildWebException(Response.Status.BAD_REQUEST, "Data package must contain at least 1 file");
     }
     return files;
-  }
-
-  /**
-   * Validate the file denoted by 'fileName' has been submitted.
-   */
-  public static void validateFileSubmitted(FormDataMultiPart multiPart, String fileName) {
-    FormDataBodyPart formDataBodyPart = multiPart.getField(fileName);
-    if (formDataBodyPart == null) { //File hasn't not been submitted
-      throwBadRequest(fileName + " file is required");
-    }
   }
 
   /**

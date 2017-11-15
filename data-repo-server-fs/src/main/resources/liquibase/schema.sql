@@ -53,13 +53,11 @@ CREATE TABLE creator (
   data_package_key uuid NOT NULL REFERENCES data_package(key) ON DELETE CASCADE,
   name text NOT NULL  CHECK (length(name) >= 2),
   affiliation text[] NOT NULL,
-  identifier varchar(254),
+  identifier varchar(254) NOT NULL,
   identifier_scheme identifier_scheme NOT NULL DEFAULT 'ORCID'::identifier_scheme,
   scheme_uri varchar(2048),
   created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3),
-  modified_by varchar(255) NOT NULL CHECK (length(modified_by) >= 3),
   created timestamp with time zone NOT NULL DEFAULT now(),
-  modified timestamp with time zone NOT NULL DEFAULT now(),
   fulltext_search tsvector
 );
 

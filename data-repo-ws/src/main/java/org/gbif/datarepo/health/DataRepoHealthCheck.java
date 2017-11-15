@@ -1,7 +1,6 @@
 package org.gbif.datarepo.health;
 
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
 
 import java.io.File;
 import java.nio.file.Paths;

@@ -2,9 +2,11 @@ package org.gbif.datarepo.resource;
 
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
@@ -16,6 +18,7 @@ import org.gbif.datarepo.store.fs.FileSystemRepository;
 import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
 import org.gbif.doi.service.DoiException;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,6 +59,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.mock;
 
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
+import static org.gbif.datarepo.resource.PathsParams.RELATED_IDENTIFIERS_PATH;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_DATA_PACKAGE_DIR;
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
@@ -73,24 +77,36 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfConte
  */
 public class DataPackageResourceTest extends BaseMapperTest {
 
-  private static final GenericType<PagingResponse<DataPackage>> GENERIC_PAGING_RESPONSE =
+  private static final GenericType<PagingResponse<DataPackage>> GENERIC_DATA_PACKAGE_PAGING_RESPONSE =
     new GenericType<PagingResponse<DataPackage>>(){};
 
+  private static final GenericType<PagingResponse<Identifier>> GENERIC_RELATED_IDENTIFIER_PAGING_RESPONSE =
+    new GenericType<PagingResponse<Identifier>>(){};
+
+  //Mock authenticator, it always authenticates against the same user
   private static final BasicAuthenticator AUTHENTICATOR = mock(BasicAuthenticator.class);
 
-  private static DataPackage TEST_DATA_PACKAGE;
+  private static DataPackage testDataPackage;
 
+  //Temporary local folder to store files generated for test cases
   private static Path temporaryFolder;
 
+  //Configuration instance
   private static DataRepoConfigurationDW configuration;
 
+  //Persistence layer injector
   private static Injector mappersInjector;
 
+  /**
+   * Guice Injector that provides instances of MyBatis Mappers.
+   */
   private static Injector mappersInjector() {
     try {
-      if (jdbcUrl == null) {
+      //Has the embedded DB been initiated
+      if (!hasInitiated()) {
         initDB();
       }
+      //Build the persistence layer injector
       if (mappersInjector == null) {
         mappersInjector = buildInjector();
       }
@@ -99,6 +115,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
       throw new IllegalStateException(ex);
     }
   }
+
   /**
    * Creates an temporary folder, the return instance is lazy evaluated into the field temporaryFolder.
    */
@@ -154,6 +171,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                   mappersInjector().getInstance(TagMapper.class),
                                                                   mappersInjector().getInstance(RepositoryStatsMapper.class),
                                                                   mappersInjector().getInstance(IdentifierMapper.class),
+                                                                  mappersInjector().getInstance(CreatorMapper.class),
                                                                   configuration().getDataRepoConfiguration()
                                                                     .getFileSystem()),
                                          configuration()))
@@ -176,18 +194,20 @@ public class DataPackageResourceTest extends BaseMapperTest {
     if (temporaryFolder != null && temporaryFolder.toFile().exists()) {
       FileUtils.deleteDirectory(temporaryFolder.toFile());
     }
+    tearDown();
   }
 
   /**
-   * Executed before each test case. Initializes all mock objects.
+   * Executed before each test case. Initializes all mock objects and create a test data package (testDataPackage).
    */
   @Before
   public void setup() {
     try {
       //Only the TEST_USER is valid
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
+      clearDB();
       //Create test package
-      TEST_DATA_PACKAGE = createTestDataPackage();
+      testDataPackage = createTestDataPackage();
     } catch (Exception  ex) {
       throw new IllegalStateException(ex);
     }
@@ -197,31 +217,58 @@ public class DataPackageResourceTest extends BaseMapperTest {
    * Executed after each test, resets all the mock instances.
    */
   @After
-  public void tearDownTesCase() {
+  public void tearDownTestCase() {
     // we have to reset the mock after each test because from the
     // @ClassRule, or use a @Rule as mentioned below.
     reset(AUTHENTICATOR);
-    clearDB();
   }
 
   /**
    * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
    */
   @Test
-  public void testGetDataPackage() {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString())
-                                                 .toString())
-                 .request().get(DataPackage.class))
-      .isNotNull();
+  public void testGetDataPackage() throws IOException  {
+    //Data package read from test file
+    DataPackage testDataPackage = resource.getObjectMapper().readValue(new File(JSON_CREATE_TEST_FILE),
+                                                                       DataPackage.class);
+    //Retrieves a data package instance using the test data package key
+    DataPackage dataPackage = resource.getJerseyTest()
+                                .target(Paths.get(DATA_PACKAGES_PATH, DataPackageResourceTest.testDataPackage.getKey().toString()).toString())
+                                .request().get(DataPackage.class);
+    //Have the same tag values
+    assertThat(testDataPackage.getTags().stream()
+                 .allMatch(testTag -> dataPackage.getTags().stream()
+                   .anyMatch(tag -> tag.getValue().equals(testTag.getValue()))));
+
+    //Have the same related identifiers
+    assertThat(testDataPackage.getRelatedIdentifiers().stream()
+                 .allMatch(testIdentifier -> dataPackage.getRelatedIdentifiers().stream()
+                   .anyMatch(identifier -> identifier.getIdentifier().equals(testIdentifier.getIdentifier())
+                                           && identifier.getType() == testIdentifier.getType()
+                                           && identifier.getRelationType() == testIdentifier.getRelationType())
+                 ));
+
+    //Have the same creators
+    assertThat(testDataPackage.getCreators().stream()
+                 .allMatch(testCreator -> dataPackage.getCreators().stream()
+                   .anyMatch(creator -> creator.getName().equals(testCreator.getName())
+                                        && creator.getIdentifier().equals(testCreator.getIdentifier())
+                                        && creator.getIdentifierScheme() == testCreator.getIdentifierScheme()
+                                        && creator.getAffiliation().stream()
+                                          .allMatch(affiliation -> testCreator.getAffiliation().contains(affiliation))
+                   )));
   }
 
 
   /**
-   * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   * Tests the listing of data packages, filtered by user and tag.
    */
   @Test
   public void testListDataPackage()  {
-    assertThat(resource.getJerseyTest().target(DATA_PACKAGES_PATH).request().get(GENERIC_PAGING_RESPONSE))
+    assertThat(resource.getJerseyTest().target(DATA_PACKAGES_PATH)
+                 .queryParam("user", testDataPackage.getCreatedBy())
+                 .queryParam("tag", testDataPackage.getTags().iterator().next().getValue())
+                 .request().get(GENERIC_DATA_PACKAGE_PAGING_RESPONSE))
       .has(new Condition<PagingResponse<DataPackage>>() {
         @Override
         public boolean matches(PagingResponse<DataPackage> value) {
@@ -231,16 +278,27 @@ public class DataPackageResourceTest extends BaseMapperTest {
   }
 
   /**
-   * Tests that the test users can upload files and create a new DataPackage instance.
+   * Test the listing of related identifier of data package.
    */
   @Test
-  public void testCreateDataPackage() throws Exception {
-      DataPackage newDataPackage = createTestDataPackage();
-      //Test that both packages contains the same elements
-      assertThat(newDataPackage.getKey()).isNotNull();
-    assertThat(newDataPackage.getCreated()).isEqualTo(newDataPackage.getModified());
+  public void testListIdentifiers()  {
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, testDataPackage.getKey().toString(),
+                                                         RELATED_IDENTIFIERS_PATH).toString())
+                 .queryParam("user", testDataPackage.getCreatedBy())
+                 .queryParam("relationType", Identifier.RelationType.IsAlternativeOf)
+                 .request().get(
+      GENERIC_RELATED_IDENTIFIER_PAGING_RESPONSE))
+      .has(new Condition<PagingResponse<Identifier>>() {
+        @Override
+        public boolean matches(PagingResponse<Identifier> value) {
+          return Objects.nonNull(value) && !value.getResults().isEmpty();
+        }
+      });
   }
 
+  /**
+   * Utility method that creates and instance of a Test data package.
+   */
   private static DataPackage createTestDataPackage() throws Exception {
     try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM))
       .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
@@ -254,12 +312,12 @@ public class DataPackageResourceTest extends BaseMapperTest {
   }
 
   /**
-   * Test that the file 'testrepo/10.5072-dp.bvmv02/occurrence.txt' can be retrieved.
+   * Test that the file 'occurrence.txt' can be retrieved.
    */
   @Test
   public void testGetFile() throws IOException {
     try (InputStream downloadFile = resource.getJerseyTest()
-                                      .target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString(),
+                                      .target(Paths.get(DATA_PACKAGES_PATH, testDataPackage.getKey().toString(),
                                                         CONTENT_TEST_FILE).toString())
                                       .request().get(InputStream.class); //download file
          //Read test file
@@ -270,11 +328,11 @@ public class DataPackageResourceTest extends BaseMapperTest {
   }
 
   /**
-   * Tests that the content from directory 'testrepo/10.5072-dp.bvmv02' is retrieved correctly as DataPackage instance.
+   * Tests that a DataPackage can be deleted.
    */
   @Test
   public void testDeleteDataPackage() throws DoiException {
-    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, TEST_DATA_PACKAGE.getKey().toString())
+    assertThat(resource.getJerseyTest().target(Paths.get(DATA_PACKAGES_PATH, testDataPackage.getKey().toString())
                                                  .toString())
                  .request().header(HttpHeaders.AUTHORIZATION, TEST_USER_CREDENTIALS).delete().getStatus())
       .isEqualTo(Response.Status.NO_CONTENT.getStatusCode());

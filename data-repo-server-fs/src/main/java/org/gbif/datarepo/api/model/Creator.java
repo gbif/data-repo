@@ -1,6 +1,8 @@
 package org.gbif.datarepo.api.model;
 
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,11 +13,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Creator {
 
   public enum IdentifierScheme {
-    ORCID, ISNI, FUND_REF, OTHER;
+    ORCID, ISNI, FUND_REF, OTHER
   }
 
   @JsonIgnore
   private Integer key;
+
+  @JsonIgnore
+  private UUID dataPackageKey;
 
   @JsonProperty
   private String name;
@@ -32,6 +37,12 @@ public class Creator {
   @JsonProperty
   private String schemeURI;
 
+  @JsonIgnore
+  private Date created;
+
+  @JsonIgnore
+  private String createdBy;
+
   /**
    * Author's data base key.
    */
@@ -44,6 +55,17 @@ public class Creator {
   }
 
   /**
+   * Associated data package identifier.
+   */
+  public UUID getDataPackageKey() {
+    return dataPackageKey;
+  }
+
+  public void setDataPackageKey(UUID dataPackageKey) {
+    this.dataPackageKey = dataPackageKey;
+  }
+
+  /**
    * Author's first name and given names.
    */
   public String getName() {
@@ -53,7 +75,6 @@ public class Creator {
   public void setName(String name) {
     this.name = name;
   }
-
 
   /**
    * Author's affiliation to DataPackage.
@@ -88,5 +109,21 @@ public class Creator {
 
   public void setSchemeURI(String schemeURI) {
     this.schemeURI = schemeURI;
+  }
+
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  public String getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(String createdBy) {
+    this.createdBy = createdBy;
   }
 }

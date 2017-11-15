@@ -56,13 +56,12 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     String testChecksum = Hashing.md5().newHasher(32).hash().toString();
     dataPackage.setKey(DATA_PACKAGE_KEY_TEST);
     dataPackage.setDoi(new DOI(DOI.TEST_PREFIX, Long.toString(new Date().getTime())));
-    dataPackage.addAlternativeIdentifier(alternativeIdentifier);
+    dataPackage.addRelatedIdentifier(alternativeIdentifier);
     dataPackage.addTag(tag);
     dataPackage.setChecksum(testChecksum);
     dataPackage.setCreated(new Date());
     dataPackage.setCreatedBy("testUser");
     dataPackage.setDescription("test data package description");
-    dataPackage.setMetadata("metadata.xml");
     dataPackage.setSize(1);
     dataPackage.setTitle("test");
     dataPackage.addFile(new DataPackageFile("test.xml", testChecksum, 1));
@@ -72,12 +71,19 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
   /**
    * Utility method that creates a test data package in the DB.
    */
-  private void insertDataPackage(DataPackage dataPackage) {
+  private static void insertDataPackage(DataPackage dataPackage) {
     DataPackageMapper dataPackageMapper = injector.getInstance(DataPackageMapper.class);
     dataPackageMapper.create(dataPackage);
-
+    dataPackage.getRelatedIdentifiers().forEach(identifier -> {
+      identifier.setCreatedBy(dataPackage.getCreatedBy());
+      identifier.setDataPackageKey(dataPackage.getKey());
+    });
+    dataPackage.getTags().forEach(tag -> {
+      tag.setCreatedBy(dataPackage.getCreatedBy());
+      tag.setDataPackageKey(dataPackage.getKey());
+    });
     IdentifierMapper identifierMapper = injector.getInstance(IdentifierMapper.class);
-    dataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
+    dataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
 
     TagMapper tagMapper = injector.getInstance(TagMapper.class);
     dataPackage.getTags().forEach(tagMapper::create);
@@ -117,8 +123,9 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
     DataPackage justCreated = mapper.getByAlternativeIdentifier(ALTERNATIVE_ID_TEST);
-    Assert.assertEquals(ALTERNATIVE_ID_TEST, justCreated.getAlternativeIdentifiers().get(0).getIdentifier());
+    Assert.assertEquals(dataPackage.getKey(), justCreated.getKey());
   }
+
 
   /**
    * Tests methods create and delete.
@@ -129,6 +136,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
     mapper.delete(dataPackage.getKey());
+    Assert.assertNotNull(mapper.getByKey(dataPackage.getKey()).getDeleted());
   }
 
   /**
@@ -168,7 +176,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     insertDataPackage(dataPackage);
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"), null);
     Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"), null);
-    Assert.assertTrue(dataPackages.size() ==  0);
+    Assert.assertTrue(dataPackages.isEmpty());
     Assert.assertTrue(count ==  0);
   }
 

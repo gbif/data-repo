@@ -5,9 +5,11 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
+import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.RepositoryStats;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
@@ -17,6 +19,8 @@ import org.gbif.datarepo.store.fs.download.FileDownload;
 import org.gbif.doi.metadata.datacite.DataCiteMetadata;
 import org.gbif.doi.metadata.datacite.DateType;
 import org.gbif.doi.metadata.datacite.DescriptionType;
+import org.gbif.doi.metadata.datacite.RelatedIdentifierType;
+import org.gbif.doi.metadata.datacite.RelationType;
 import org.gbif.doi.service.InvalidMetadataException;
 import org.gbif.doi.service.datacite.DataCiteValidator;
 import org.gbif.registry.doi.DoiType;
@@ -70,6 +74,8 @@ public class FileSystemRepository implements DataRepository {
 
   private final TagMapper tagMapper;
 
+  private final CreatorMapper creatorMapper;
+
 
   /**
    * Paths where the files are stored.
@@ -91,6 +97,7 @@ public class FileSystemRepository implements DataRepository {
                               TagMapper tagMapper,
                               RepositoryStatsMapper repositoryStatsMapper,
                               IdentifierMapper identifierMapper,
+                              CreatorMapper creatorMapper,
                               FileSystem fileSystem) {
     try {
       this.doiRegistrationService = doiRegistrationService;
@@ -108,6 +115,7 @@ public class FileSystemRepository implements DataRepository {
       this.repositoryStatsMapper = repositoryStatsMapper;
       this.identifierMapper = identifierMapper;
       this.tagMapper = tagMapper;
+      this.creatorMapper = creatorMapper;
     } catch (IOException ex) {
       throw new IllegalStateException(ex);
     }
@@ -144,7 +152,7 @@ public class FileSystemRepository implements DataRepository {
         fileSystem.mkdirs(doiDir);
       }
     } catch (IOException ex) {
-      LOG.error("Error deleting datapackage content {}", ex);
+      LOG.error("Error deleting datapackage content {}", dataPackageKey, ex);
       throw new RuntimeException(ex);
     }
   }
@@ -153,22 +161,22 @@ public class FileSystemRepository implements DataRepository {
    * Store metadata file.
    */
   private void storeMetadata(UUID dataPackageKey, InputStream file) {
-    store(dataPackageKey, FileInputContent.from(DataPackage.METADATA_FILE, file));
+    store(dataPackageKey, FileInputContent.from(dataPackageKey.toString(), file));
   }
 
   /**
    * Deletes the entire directory and its contents from a DOI.
    */
   @Override
-  public void delete(UUID dataPackageKey) {
-    DataPackage dataPackage = dataPackageMapper.getByKey(dataPackageKey);
-    dataPackageMapper.delete(dataPackageKey);
+  public void delete(UUID key) {
+    DataPackage dataPackage = dataPackageMapper.getByKey(key);
+    dataPackageMapper.delete(key);
     Optional.ofNullable(dataPackage.getDoi())
       .ifPresent(doi ->  doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix()));
     try {
-      fileSystem.delete(getPath(dataPackageKey), true);
+      fileSystem.delete(getPath(key), true);
     } catch (IOException ex) {
-      LOG.error("Error deleting DataPackage {} directory", dataPackageKey);
+      LOG.error("Error deleting DataPackage {} directory", key);
     }
   }
 
@@ -176,15 +184,14 @@ public class FileSystemRepository implements DataRepository {
    * Marks the DataPackage as deleted.
    */
   @Override
-  public void archive(UUID dataPackageKey) {
-    dataPackageMapper.archive(dataPackageKey);
+  public void archive(UUID key) {
+    dataPackageMapper.archive(key);
   }
 
   private DataPackage prePersist(DataPackage dataPackage, List<FileInputContent> newFiles, UUID dataPackageKey) {
     DataPackage newDataPackage = new DataPackage();
     newDataPackage.setDoi(dataPackage.getDoi());
     newDataPackage.setKey(dataPackageKey);
-    newDataPackage.setMetadata(DataPackage.METADATA_FILE);
     newDataPackage.setCreatedBy(dataPackage.getCreatedBy());
     newDataPackage.setTitle(dataPackage.getTitle());
     newDataPackage.setDescription(dataPackage.getDescription());
@@ -200,8 +207,9 @@ public class FileSystemRepository implements DataRepository {
       newDataPackage.setSize(newDataPackage.getSize() + fileLength);
       newDataPackage.addFile(dataPackageFile);
     });
+
     if (newDataPackage.getFiles().size() == 1) {
-      newDataPackage.setChecksum(newDataPackage.getFiles().get(0).getChecksum());
+      newDataPackage.setChecksum(newDataPackage.getFiles().iterator().next().getChecksum());
     } else {
       newDataPackage.setChecksum(Hashing.md5().hashBytes(newDataPackage.getFiles().stream()
                                                            .map(DataPackageFile::getChecksum)
@@ -209,12 +217,8 @@ public class FileSystemRepository implements DataRepository {
                                                            .getBytes(Charset.forName("UTF8"))).toString());
     }
 
-    dataPackage.getAlternativeIdentifiers()
-      .forEach(alternativeIdentifier -> {
-        alternativeIdentifier.setDataPackageKey(dataPackageKey);
-        alternativeIdentifier.setCreatedBy(dataPackage.getCreatedBy());
-        newDataPackage.addAlternativeIdentifier(alternativeIdentifier);
-      });
+    dataPackage.getRelatedIdentifiers().forEach(newDataPackage::addRelatedIdentifier);
+    dataPackage.getCreators().forEach(newDataPackage::addCreator);
     dataPackage.getTags().forEach(tag -> newDataPackage.addTag(tag.getValue()));
 
     return newDataPackage;
@@ -222,13 +226,43 @@ public class FileSystemRepository implements DataRepository {
 
   private static DataCiteMetadata toDataCiteMetadata(DataPackage dataPackage) {
     Date metadataCreationDate = Optional.ofNullable(dataPackage.getCreated()).orElse(new Date());
+    DataCiteMetadata.RelatedIdentifiers.Builder<Void> relatedIdentifiers = DataCiteMetadata.RelatedIdentifiers.builder();
+    DataCiteMetadata.AlternateIdentifiers.Builder<Void> alternateIdentifiers = DataCiteMetadata.AlternateIdentifiers.builder();
+    Optional.ofNullable(dataPackage.getRelatedIdentifiers()).ifPresent(
+      dpRelatedIdentifiers -> dpRelatedIdentifiers.forEach(identifier -> {
+         if (Identifier.RelationType.IsAlternativeOf == identifier.getRelationType()) {
+           alternateIdentifiers.addAlternateIdentifier(DataCiteMetadata.AlternateIdentifiers.AlternateIdentifier
+                                                         .builder()
+                                                         .withValue(identifier.getIdentifier())
+                                                         .withAlternateIdentifierType(identifier.getRelationType().name())
+                                                         .build());
+         } else {
+           relatedIdentifiers.addRelatedIdentifier(DataCiteMetadata.RelatedIdentifiers.RelatedIdentifier.builder()
+                                                    .withRelatedIdentifierType(RelatedIdentifierType.fromValue(identifier.getType().name()))
+                                                    .withValue(identifier.getIdentifier())
+                                                    .withRelationType(RelationType.fromValue(identifier.getRelationType().name()))
+                                                    .build()
+           );
+         }
+      }));
+    DataCiteMetadata.Creators.Builder<Void> creators = DataCiteMetadata.Creators.builder();
+    creators.addCreator(DataCiteMetadata.Creators.Creator.builder()
+                          .withCreatorName(dataPackage.getCreatedBy())
+                          .build());
+    Optional.ofNullable(dataPackage.getCreators()).ifPresent(dpCreators -> dpCreators.forEach(dpCreator ->
+      creators.addCreator(DataCiteMetadata.Creators.Creator.builder()
+                            .withCreatorName(dpCreator.getName())
+                            .withNameIdentifier(DataCiteMetadata.Creators.Creator.NameIdentifier.builder()
+                                                  .withNameIdentifierScheme(dpCreator.getIdentifierScheme().name())
+                                                  .withValue(dpCreator.getIdentifier())
+                                                  .withSchemeURI(dpCreator.getSchemeURI())
+                                                  .build())
+                            .build()
+      )
+    ));
     return
       DataCiteMetadata.builder()
-      .withCreators(DataCiteMetadata.Creators.builder()
-                      .withCreator(DataCiteMetadata.Creators.Creator.builder()
-                                     .withCreatorName(dataPackage.getCreatedBy())
-                                     .build())
-                      .build())
+      .withCreators(creators.build())
       .withTitles(DataCiteMetadata.Titles.builder()
                     .withTitle(DataCiteMetadata.Titles.Title.builder()
                                  .withValue(dataPackage.getTitle())
@@ -250,7 +284,18 @@ public class FileSystemRepository implements DataRepository {
                                              .withDescriptionType(DescriptionType.ABSTRACT)
                                              .build())
                           .build())
+      .withAlternateIdentifiers(alternateIdentifiers.build())
+      .withRelatedIdentifiers(relatedIdentifiers.build())
       .build();
+  }
+
+  /**
+   * Utility method to validate if an identifier has been  used as alternative identifier for another data package.
+   */
+  @Override
+  public boolean isAlternativeIdentifierInUse(Identifier alternativeIdentifier) {
+    return identifierMapper.count(null, alternativeIdentifier.getIdentifier(), null, null,
+                                  Identifier.RelationType.IsAlternativeOf, null) > 0;
   }
 
   /**
@@ -270,6 +315,13 @@ public class FileSystemRepository implements DataRepository {
    */
   @Override
   public DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
+
+    if (dataPackage.getRelatedIdentifiers() != null && dataPackage.getRelatedIdentifiers()
+                                                         .stream()
+                                                         .filter(this::isAlternativeIdentifierInUse)
+                                                         .count() > 0) {
+      throw new IllegalStateException("A identifiers has been used as alternative identifier in other data package");
+    }
     UUID dataPackageKey  = UUID.randomUUID();
     //Generates a DataCiteMetadata object for further validation/manipulation
     return Optional.ofNullable(handleMetadata(metadata, dataCiteMetadata ->
@@ -291,9 +343,10 @@ public class FileSystemRepository implements DataRepository {
                 dataPackageMapper.create(newDataPackage);
                 newDataPackage.getFiles()
                   .forEach(dataPackageFile -> dataPackageFileMapper.create(newDataPackage.getKey(), dataPackageFile));
-                newDataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
+                newDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
                 newDataPackage.getTags().forEach(tagMapper::create);
-                return newDataPackage;
+                newDataPackage.getCreators().forEach(creatorMapper::create);
+                return get(newDataPackage.getKey()).get();
               } catch (Exception ex) {
                 LOG.error("Error registering a DOI", ex);
                 //Deletes all data created to this DOI in case from error
@@ -343,7 +396,7 @@ public class FileSystemRepository implements DataRepository {
       existingDataPackage.getFiles().remove(dataPackageFile);
     });
     existingDataPackage.setModified(dataPackage.getModified());
-    existingDataPackage.getAlternativeIdentifiers()
+    existingDataPackage.getRelatedIdentifiers()
       .forEach(alternativeIdentifier -> identifierMapper.delete(alternativeIdentifier.getKey()));
     existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
     DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getKey());
@@ -355,7 +408,7 @@ public class FileSystemRepository implements DataRepository {
       .forEach(dataPackageFile -> dataPackageFileMapper.create(existingDataPackage.getKey(), dataPackageFile));
 
     dataPackageMapper.update(preparedDataPackage);
-    preparedDataPackage.getAlternativeIdentifiers().forEach(identifierMapper::create);
+    preparedDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
     preparedDataPackage.getTags().forEach(tagMapper::create);
     handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)
@@ -425,6 +478,22 @@ public class FileSystemRepository implements DataRepository {
     return new PagingResponse<>(page, count, packages);
   }
 
+  /**
+   * Page through AlternativeIdentifiers, optionally filtered by user and dates.
+   */
+  @Override
+  public PagingResponse<Identifier> listIdentifiers(@Nullable String user, @Nullable Pageable page,
+                                                    @Nullable String identifier,
+                                                    @Nullable UUID dataPackageKey,
+                                                    @Nullable Identifier.Type type,
+                                                    @Nullable Identifier.RelationType relationType,
+                                                    @Nullable Date created) {
+    Long count = identifierMapper.count(user, identifier, dataPackageKey, type, relationType, created);
+    List<Identifier> identifiers = identifierMapper.list(user, page, identifier, dataPackageKey, type,
+                                                         relationType, created);
+    return new PagingResponse<>(page, count, identifiers);
+  }
+
 
   /**
    * Gets the file, if it exists, stored in the directory assigned to a DOI.
@@ -457,8 +526,6 @@ public class FileSystemRepository implements DataRepository {
       Optional<DataPackageFile> packageFile = getFile(dataPackageKey, fileName);
       if (packageFile.isPresent()) {
         return Optional.of(fileSystem.open(resolve(getPath(dataPackageKey),packageFile.get().getFileName())));
-      } else if (DataPackage.METADATA_FILE.equalsIgnoreCase(fileName)) {
-        return Optional.of(fileSystem.open(resolve(getPath(dataPackageKey),DataPackage.METADATA_FILE)));
       }
     } catch (FileNotFoundException ex) {
       LOG.warn("Requested file {} not found", fileName, ex);

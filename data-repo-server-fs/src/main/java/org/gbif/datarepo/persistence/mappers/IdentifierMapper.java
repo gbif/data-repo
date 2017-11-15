@@ -1,6 +1,5 @@
 package org.gbif.datarepo.persistence.mappers;
 
-import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.datarepo.api.model.Identifier;
 
@@ -22,25 +21,24 @@ public interface IdentifierMapper {
   Identifier get(@Param("key") Integer key);
 
   /**
-   * List AlternativeIdentifier by a data package DOI.
-   */
-  List<Identifier> listByDataPackageKey(@Nullable @Param("dataPackageKey") UUID dataPackageKey);
-
-  /**
    * Page through AlternativeIdentifiers, optionally filtered by user and dates.
    */
   List<Identifier> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+                        @Nullable @Param("identifier") String identifier,
+                        @Nullable @Param("dataPackageKey") UUID dataPackageKey,
                         @Nullable @Param("type") Identifier.Type type,
                         @Nullable @Param("relationType") Identifier.RelationType relationType,
-                        @Nullable @Param("created") Date created, @Nullable @Param("doi") DOI doi);
+                        @Nullable @Param("created") Date created);
 
   /**
    * Count AlternativeIdentifiers, optionally filtered by user.
    */
-  Long count(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
+  Long count(@Nullable @Param("user") String user,
+             @Nullable @Param("identifier") String identifier,
+             @Nullable @Param("dataPackageKey") UUID dataPackageKey,
              @Nullable @Param("type") Identifier.Type type,
              @Nullable @Param("relationType") Identifier.RelationType relationType,
-             @Nullable @Param("created") Date created, @Nullable @Param("doi") DOI doi);
+             @Nullable @Param("created") Date created);
 
 
   /**

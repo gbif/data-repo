@@ -12,7 +12,6 @@
     <result property="schemeURI" column="scheme_uri"/>
     <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="createdBy" column="created_by"/>
-
   </resultMap>
 
   <sql id="WRITABLE_CREATOR_FIELDS">
@@ -28,8 +27,8 @@
     #{name, jdbcType=OTHER},
     #{affiliation, jdbcType=OTHER, typeHandler=TextArrayToListTypeHandler},
     #{identifier, jdbcType=OTHER},
-    #{identifier_scheme, jdbcType=OTHER},
-    #{scheme_uri, jdbcType=OTHER},
+    #{identifierScheme, jdbcType=OTHER},
+    #{schemeURI, jdbcType=OTHER},
     now(),<!-- created -->
     #{createdBy,jdbcType=OTHER}
   </sql>

@@ -18,7 +18,7 @@ public class Identifier {
    * Types of supported identifiers.
    */
   public enum Type {
-    URL, LSID, DOI, UUID, URI, UNKNOWN;
+    URL, LSID, DOI, UUID, URI, UNKNOWN
   }
 
   public enum RelationType {
@@ -63,13 +63,14 @@ public class Identifier {
   private Type type;
 
   @JsonProperty
+  private RelationType relationType = RelationType.IsAlternativeOf;
+
+  @JsonProperty
   private String createdBy;
 
   @JsonProperty
   private Date created;
 
-  @JsonProperty
-  private RelationType relationType = RelationType.IsAlternativeOf;
 
   public Integer getKey() {
     return key;

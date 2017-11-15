@@ -59,7 +59,7 @@ public class DataPackageDeSerTest {
    * Creates an instance from DataPackage that matches the definition stored in 'fixtures/datapackage.json'.
    */
   public static DataPackage testDataPackage() {
-    return  testDataPackage(UUID.fromString(TEST_UUID));
+    return testDataPackage(UUID.fromString(TEST_UUID));
   }
 
   /**
@@ -70,7 +70,6 @@ public class DataPackageDeSerTest {
       //DOI.name nhas to be encoded
       DataPackage dataPackage =
         new DataPackage("http://localhost:8080/data_packages/" + URLEncoder.encode(key.toString(), "utf-8") + '/');
-      dataPackage.setMetadata("metadata.xml");
       dataPackage.addFile(OCCURRENCE_TEST_FILE);
       dataPackage.setTitle("Test Title");
       dataPackage.setDescription("Test Description");

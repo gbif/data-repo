@@ -16,7 +16,6 @@
     <result property="checksum" column="checksum"/>
     <result property="size" column="size"/>
     <collection property="files" column="key" select="listDataPackageFiles"/>
-    <collection property="alternativeIdentifiers" column="key" select="listAlternativeIdentifiers"/>
     <collection property="tags" column="key" select="listTags"/>
     <collection property="creators" column="key" select="listCreators"/>
 
@@ -38,18 +37,14 @@
     SELECT dp.key, doi, title, description, dp.created, modified, deleted, dp.created_by, checksum, size
     FROM data_package dp JOIN identifier ai ON ai.data_package_key = dp.key AND ai.relation_type = 'IsAlternativeOf'
     WHERE ai.identifier = #{identifier, jdbcType=OTHER}
+    ORDER BY ai.created DESC
+    LIMIT 1
   </select>
 
   <select id="listDataPackageFiles" resultMap="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.DATA_PACKAGE_FILE_DATA_MAP">
     SELECT file_name, checksum, size
     FROM data_package_file
     WHERE  data_package_key = #{dataPackageKey, jdbcType=OTHER}
-  </select>
-
-  <select id="listAlternativeIdentifiers" resultMap="org.gbif.datarepo.persistence.mappers.IdentifierMapper.IDENTIFIER_MAP">
-    SELECT identifier, data_package_key, type, created, created_by
-    FROM identifier
-    WHERE data_package_key = #{dataPackageKey, jdbcType=OTHER}
   </select>
 
   <select id="listTags" resultMap="org.gbif.datarepo.persistence.mappers.TagMapper.TAG_MAP">
@@ -143,25 +138,25 @@
   </insert>
 
   <update id="update" parameterType="DataPackage">
-    UPDATE data_package SET
-      title = #{title, jdbcType=OTHER},
-      description = #{description, jdbcType=OTHER},
-      modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
-      modified_by = #{createdBy, jdbcType=OTHER},
-      checksum = #{checksum, jdbcType=OTHER},
-      size = #{size, jdbcType=OTHER}
+    UPDATE data_package
+    SET title = #{title, jdbcType=OTHER},
+        description = #{description, jdbcType=OTHER},
+        modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
+        modified_by = #{createdBy, jdbcType=OTHER},
+        checksum = #{checksum, jdbcType=OTHER},
+        size = #{size, jdbcType=OTHER}
     WHERE key = #{key, jdbcType=OTHER}
   </update>
 
   <update id="archive">
-    UPDATE data_package SET
-      deleted = now()
+    UPDATE data_package
+    SET deleted = now()
     WHERE key = #{dataPackageKey, jdbcType=OTHER}
   </update>
 
   <delete id="delete">
-    UPDATE data_package SET
-      deleted = now()
+    UPDATE data_package
+    SET deleted = now()
     WHERE key = #{dataPackageKey, jdbcType=OTHER} AND deleted IS NULL
   </delete>
 

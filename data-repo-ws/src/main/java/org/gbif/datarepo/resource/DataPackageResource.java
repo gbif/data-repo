@@ -7,6 +7,7 @@ import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
+import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.store.fs.download.FileDownload;
@@ -54,8 +55,10 @@ import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
+import static org.gbif.datarepo.resource.PathsParams.RELATED_IDENTIFIERS_PATH;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.FILE_URL_PARAM;
+
 
 /**
  * Data packages resource.
@@ -80,6 +83,8 @@ public class DataPackageResource {
 
   private final FileDownload downloadHandler;
 
+  private final IdentifiersUtils dentifiersUtils;
+
   /**
    * Full constructor.
    */
@@ -88,6 +93,7 @@ public class DataPackageResource {
     DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
     downloadHandler = new FileDownload(dataRepoConfiguration.getFileSystem());
+    dentifiersUtils = new IdentifiersUtils(dataRepository, downloadHandler);
   }
 
   /**
@@ -105,6 +111,26 @@ public class DataPackageResource {
                                           @Nullable @QueryParam("tag") List<String> tags,
                                           @Nullable @QueryParam("q") String q) {
     return dataRepository.list(user, page, fromDate, toDate, false, tags, q);
+  }
+
+  /**
+   * Creates a new data package. The parameters: file(multiple values), metadata are required. Only authenticated
+   * user are allowed to create data packages. A new DOI is created and assigned as a Identifier.
+   *
+   */
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("{dataPackageIdentifier}/" + RELATED_IDENTIFIERS_PATH)
+  public PagingResponse<Identifier> listIdentifiers(@Nullable @QueryParam("user") String user,
+                                                    @Nullable @BeanParam PagingParam page,
+                                                    @Nullable @QueryParam("identifier") String identifier,
+                                                    @Nullable @PathParam("dataPackageIdentifier") String dataPackageIdentifier,
+                                                    @Nullable @QueryParam("type") Identifier.Type type,
+                                                    @Nullable @QueryParam("relationType") Identifier.RelationType relationType,
+                                                    @Nullable @QueryParam("created") Date created) {
+    DataPackage dataPackage = getOrNotFound(dataPackageIdentifier);
+    return dataRepository.listIdentifiers(user, page, identifier, dataPackage.getKey(), type, relationType, created);
   }
 
 
@@ -134,6 +160,8 @@ public class DataPackageResource {
       DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER
                                   .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
                                              DataPackage.class);
+
+      dataPackage.setRelatedIdentifiers(dentifiersUtils.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles));
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
@@ -255,6 +283,28 @@ public class DataPackageResource {
     dataRepository.delete(dataPackage.getKey());
   }
 
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("vocabulary/identifierType")
+  /**
+   * Return the list of supported identifier types.
+   */
+  public Identifier.Type[] getIdentifierTypes() {
+    return Identifier.Type.values();
+  }
+
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("vocabulary/identifierRelationType")
+  /**
+   * Return the list of supported identifier relation types.
+   */
+  public Identifier.RelationType[] getIdentifierRelationTypes() {
+    return Identifier.RelationType.values();
+  }
+
   /**
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */
@@ -272,15 +322,21 @@ public class DataPackageResource {
       .inUrl(uriBuilder.build(identifier));
   }
 
-   private Optional<DataPackage> getByUUID(String identifier) {
-     try {
-       UUID dataPackageKey = UUID.fromString(identifier);
-       return dataRepository.get(dataPackageKey);
-     } catch (Exception ex) {
-       return Optional.empty();
-     }
+  /**
+   * Get a DataPackage by UUID.
+   */
+  private Optional<DataPackage> getByUUID(String identifier) {
+   try {
+     UUID dataPackageKey = UUID.fromString(identifier);
+     return dataRepository.get(dataPackageKey);
+   } catch (Exception ex) {
+     return Optional.empty();
    }
+  }
 
+  /**
+   * Get a DataPackage by DOI.
+   */
   private Optional<DataPackage> getByDOI(String identifier) {
     try {
       DOI doi = new DOI(identifier);
@@ -290,6 +346,9 @@ public class DataPackageResource {
     }
   }
 
+  /**
+   * Get a DataPackage by Alternative identifier.
+   */
   private Optional<DataPackage> getByAlternativeIdentifier(String identifier) {
       return dataRepository.getByAlternativeIdentifier(identifier);
   }

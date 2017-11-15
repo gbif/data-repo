@@ -1,6 +1,5 @@
 package org.gbif.datarepo.test.utils;
 
-import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.vocabulary.UserRole;
