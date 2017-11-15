@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,6 +27,7 @@ public class Tag {
   private String createdBy;
 
   @JsonProperty
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=DataPackage.ISO_DATE_FORMAT)
   private Date created;
 
   public Integer getKey() {

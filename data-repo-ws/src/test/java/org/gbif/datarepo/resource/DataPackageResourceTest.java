@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import javax.validation.Validation;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
@@ -38,6 +39,7 @@ import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
+import org.apache.bval.BeanValidator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Condition;
@@ -45,6 +47,7 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
+import org.hibernate.validator.internal.engine.ValidatorImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -174,7 +177,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                   mappersInjector().getInstance(CreatorMapper.class),
                                                                   configuration().getDataRepoConfiguration()
                                                                     .getFileSystem()),
-                                         configuration()))
+                                         configuration(), Validation.buildDefaultValidatorFactory().getValidator()))
     .build();
 
   /**

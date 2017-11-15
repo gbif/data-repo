@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.ValidationException;
+import javax.validation.Validator;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -48,12 +51,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
+import static  org.gbif.datarepo.resource.validation.ResourceValidations.throwBadRequest;
 import static org.gbif.datarepo.resource.PathsParams.DATA_PACKAGES_PATH;
 import static org.gbif.datarepo.resource.PathsParams.RELATED_IDENTIFIERS_PATH;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
@@ -85,15 +90,18 @@ public class DataPackageResource {
 
   private final IdentifiersUtils dentifiersUtils;
 
+  private final Validator validator;
+
   /**
    * Full constructor.
    */
-  public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration) {
+  public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration, Validator validator) {
     this.dataRepository = dataRepository;
     DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
     downloadHandler = new FileDownload(dataRepoConfiguration.getFileSystem());
     dentifiersUtils = new IdentifiersUtils(dataRepository, downloadHandler);
+    this.validator = validator;
   }
 
   /**
@@ -160,14 +168,32 @@ public class DataPackageResource {
       DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER
                                   .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
                                              DataPackage.class);
-
+      //Validates all javax.validation annotations
+      validateDataPackage(dataPackage);
       dataPackage.setRelatedIdentifiers(dentifiersUtils.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles));
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
-      throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error registering DOI");
+      throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error creating data package");
+    }
+  }
+
+  /**
+   * Performs all bean validations defined in the class DataPackage.
+   */
+  private void validateDataPackage(DataPackage dataPackage) {
+    try {
+      Set<ConstraintViolation<DataPackage>> violations = validator.validate(dataPackage);
+      if (!violations.isEmpty()) {
+        throwBadRequest("Invalid DataPackage definition: "
+                        + violations.stream()
+                          .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                          .collect(Collectors.joining(System.lineSeparator())));
+      }
+    } catch (ValidationException ex) {
+      throwBadRequest(ex.getMessage());
     }
   }
 
@@ -225,6 +251,29 @@ public class DataPackageResource {
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
     return getOrNotFound(identifier);
   }
+
+
+  /**
+   * Retrieves a DataPackage by its DOI suffix.
+   */
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_XML)
+  @Path("{identifier}/metadata")
+  public Response getMetadata(@PathParam("identifier") String identifier)  {
+    //Gets the data package, throws a NOT_FOUND error if it doesn't exist
+    DataPackage dataPackage = getOrNotFound(identifier);
+    //Tries to get the file
+    Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(dataPackage.getKey(),
+                                                                              dataPackage.getKey() + ".xml");
+
+        //Check file existence before send it in the Response
+    return fileInputStream.isPresent() ? Response.ok(fileInputStream.get()).build()
+      : Response.status(Status.NOT_FOUND)
+        .entity(String.format("Metadata file not found")).build();
+
+  }
+
 
   /**
    * Retrieves a file contained in a data package.

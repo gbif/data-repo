@@ -1,5 +1,7 @@
 package org.gbif.datarepo.resource.validation;
 
+import org.gbif.datarepo.api.model.DataPackage;
+
 import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -61,6 +63,10 @@ public class ResourceValidations {
    * Returns a new WebApplicationException with a status code and an error message.
    */
   public static WebApplicationException buildWebException(Throwable throwable, Response.Status status, String message) {
+    if (throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
+      return (WebApplicationException)throwable;
+    }
     return new WebApplicationException(throwable, Response.status(status).entity(message).build());
   }
+
 }
