@@ -1,0 +1,12 @@
+{
+  "title":"Test Title",
+  "description":"Test Description",
+  "creators":[
+    {
+      "name":"Jimi Hendrix",
+      "identifier":"0000-0001-5473-3208",
+      "identifierScheme":"ORCID",
+      "affiliation": ["owner", "publisher"]
+    }
+  ]
+}

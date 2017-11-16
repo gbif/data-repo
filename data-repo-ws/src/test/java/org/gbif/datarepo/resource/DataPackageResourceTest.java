@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Objects;
 
 import javax.validation.Validation;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
@@ -39,17 +40,17 @@ import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
-import org.apache.bval.BeanValidator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Condition;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
-import org.hibernate.validator.internal.engine.ValidatorImpl;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -68,11 +69,13 @@ import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
 import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_LICENSE_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_CREATOR_ID_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
-import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfContent;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfJsonContent;
 
 /**
  * Test class for the DataPackageResource class.
@@ -210,7 +213,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
       clearDB();
       //Create test package
-      testDataPackage = createTestDataPackage();
+      testDataPackage = createTestDataPackage(dataBodyPartOf(JSON_CREATE_TEST_FILE, DP_FORM_PARAM));
     } catch (Exception  ex) {
       throw new IllegalStateException(ex);
     }
@@ -280,6 +283,52 @@ public class DataPackageResourceTest extends BaseMapperTest {
       });
   }
 
+
+  /**
+   * Tests that is not possible to create a DataPackage that contains a alternative identifier that is already in used.
+   */
+  @Test
+  public void testDuplicateAlternativeIdentifier() throws Exception {
+    try {
+      createTestDataPackage(dataBodyPartOfJsonContent(new String(Files.readAllBytes(Paths.get(JSON_CREATE_TEST_FILE))),
+                                                      DP_FORM_PARAM));
+    } catch (WebApplicationException ex) {
+      assertThat(Response.Status.BAD_REQUEST.getStatusCode() == ex.getResponse().getStatus());
+      return;
+    }
+    Assert.fail("An BadRequest exception was expected");
+  }
+
+  /**
+   * Tests a call that must return a BadRequest response.
+   */
+  private static void badRequestTestCase(String testFile) throws Exception {
+    try {
+      createTestDataPackage(dataBodyPartOfJsonContent(new String(Files.readAllBytes(Paths.get(testFile))),
+                                                      DP_FORM_PARAM));
+    } catch (WebApplicationException ex) {
+      assertThat(Response.Status.BAD_REQUEST.getStatusCode() == ex.getResponse().getStatus());
+      return;
+    }
+    Assert.fail("An BadRequest exception was expected");
+  }
+
+  /**
+   * Tests that is not possible to create a DataPackage that contains a alternative identifier that is already in used.
+   */
+  @Test
+  public void testNoLicenseProvided() throws Exception {
+    badRequestTestCase(JSON_CREATE_NO_LICENSE_TEST_FILE);
+  }
+
+  /**
+   * Tests that is not possible to create a DataPackage that contains a creator without identifier.
+   */
+  @Test
+  public void testCreatorWithoutId() throws Exception {
+    badRequestTestCase(JSON_CREATE_NO_CREATOR_ID_TEST_FILE);
+  }
+
   /**
    * Test the listing of related identifier of data package.
    */
@@ -302,8 +351,8 @@ public class DataPackageResourceTest extends BaseMapperTest {
   /**
    * Utility method that creates and instance of a Test data package.
    */
-  private static DataPackage createTestDataPackage() throws Exception {
-    try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM))
+  private static DataPackage createTestDataPackage(FormDataBodyPart dataPackage) throws Exception {
+    try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataPackage)
       .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
       return resource.getJerseyTest()
         .target(DATA_PACKAGES_PATH)

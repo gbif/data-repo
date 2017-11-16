@@ -1,0 +1,16 @@
+{
+  "title":"Test Title",
+  "description":"Test Description",
+  "license": "CC_BY_NC_4_0",
+  "tags":[
+    {"value":"ecological"},
+    {"value":"species"}
+  ],
+  "creators":[
+    {
+      "name":"Jimi Hendrix",
+      "identifierScheme":"ORCID",
+      "affiliation": ["owner", "publisher"]
+    }
+  ]
+}

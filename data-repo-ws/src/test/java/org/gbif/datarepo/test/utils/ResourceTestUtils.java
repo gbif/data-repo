@@ -3,6 +3,7 @@ package org.gbif.datarepo.test.utils;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.vocabulary.UserRole;
+import org.gbif.datarepo.api.model.DataPackage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +31,11 @@ public class ResourceTestUtils {
   public static final String CONTENT_TEST_FILE = "occurrence.txt";
 
   public static final String JSON_CREATE_TEST_FILE = "src/test/resources/datapackage_test.json";
+
+  public static final String JSON_CREATE_NO_LICENSE_TEST_FILE = "src/test/resources/datapackage_test_no_license.json";
+
+  public static final String JSON_CREATE_NO_CREATOR_ID_TEST_FILE =
+    "src/test/resources/datapackage_test_no_creator_id.json";
 
   public static final GbifUserPrincipal TEST_USER = testUser();
 
@@ -85,7 +91,13 @@ public class ResourceTestUtils {
    * Creates a Form param whose content is testFile itself.
    */
   public static FormDataBodyPart dataBodyPartOfContent(String testFile, String formParam) throws IOException {
-    return new FormDataBodyPart(formParam, new String(Files.readAllBytes(Paths.get(testFile))),
-                                MediaType.APPLICATION_JSON_TYPE);
+    return dataBodyPartOfJsonContent(new String(Files.readAllBytes(Paths.get(testFile))), formParam);
+  }
+
+  /**
+   * Creates a Form param whose content is DataPackage as String.
+   */
+  public static FormDataBodyPart dataBodyPartOfJsonContent(String dataPackage, String formParam) {
+    return new FormDataBodyPart(formParam, dataPackage, MediaType.APPLICATION_JSON_TYPE);
   }
 }

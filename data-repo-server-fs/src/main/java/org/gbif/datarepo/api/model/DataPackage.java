@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -77,12 +78,14 @@ public class DataPackage {
   private long size;
 
   @JsonProperty
+  @Valid
   private Set<Identifier> relatedIdentifiers;
 
   @JsonProperty
   private Set<Tag> tags;
 
   @NotNull
+  @Valid
   @JsonProperty
   private Set<Creator> creators;
 
