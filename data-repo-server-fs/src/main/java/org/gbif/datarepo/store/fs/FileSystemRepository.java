@@ -320,8 +320,7 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
-  @Override
-  public DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
+  private DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
 
     if (dataPackage.getRelatedIdentifiers() != null && dataPackage.getRelatedIdentifiers()
                                                          .stream()
@@ -379,8 +378,7 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
-  @Override
-  public DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
+  private DataPackage update(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
                             UpdateMode mode) {
     DataPackage existingDataPackage =  get(dataPackage.getKey())
                                         .orElseThrow(() -> new RuntimeException("DataPackage not found"));
@@ -408,6 +406,7 @@ public class FileSystemRepository implements DataRepository {
     existingDataPackage.getRelatedIdentifiers()
       .forEach(alternativeIdentifier -> identifierMapper.delete(alternativeIdentifier.getKey()));
     existingDataPackage.getTags().forEach(tag -> tagMapper.delete(tag.getKey()));
+    existingDataPackage.getCreators().forEach(creator -> creatorMapper.delete(creator.getKey()));
     DataPackage preparedDataPackage = prePersist(existingDataPackage, files, existingDataPackage.getKey());
     preparedDataPackage.getFiles().stream()
       .filter(dataPackageFile -> existingFiles.get(Boolean.FALSE)
@@ -419,6 +418,7 @@ public class FileSystemRepository implements DataRepository {
     dataPackageMapper.update(preparedDataPackage);
     preparedDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
     preparedDataPackage.getTags().forEach(tagMapper::create);
+    preparedDataPackage.getCreators().forEach(creatorMapper::create);
     handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)
                                                                                   .withMetadata(dataCiteMetadata)
@@ -429,6 +429,18 @@ public class FileSystemRepository implements DataRepository {
                                                                                   .build()),
                    existingDataPackage.getKey());
     return preparedDataPackage;
+  }
+
+  /**
+   * Creates a new DataPackage containing the metadata and files specified.
+   */
+  @Override
+  public DataPackage update(DataPackage dataPackage, List<FileInputContent> files, UpdateMode mode) {
+    try (InputStream xmlMetadata = new ByteArrayInputStream(DataCiteValidator.toXml(toDataCiteMetadata(dataPackage), false).getBytes())) {
+      return update(dataPackage, xmlMetadata, files, mode);
+    } catch (InvalidMetadataException | IOException  ex) {
+      throw new IllegalStateException(ex);
+    }
   }
 
   /**
