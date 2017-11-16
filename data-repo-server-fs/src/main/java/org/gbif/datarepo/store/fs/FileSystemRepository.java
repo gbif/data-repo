@@ -309,9 +309,9 @@ public class FileSystemRepository implements DataRepository {
    * Creates a new DataPackage containing the metadata and files specified.
    */
   @Override
-  public DataPackage create(DataPackage dataPackage, List<FileInputContent> files) {
+  public DataPackage create(DataPackage dataPackage, List<FileInputContent> files, boolean generateDOI) {
     try (InputStream xmlMetadata = new ByteArrayInputStream(DataCiteValidator.toXml(toDataCiteMetadata(dataPackage), false).getBytes())) {
-      return create(dataPackage, xmlMetadata, files);
+      return create(dataPackage, xmlMetadata, files, generateDOI);
     } catch (InvalidMetadataException | IOException  ex) {
       throw new IllegalStateException(ex);
     }
@@ -320,58 +320,52 @@ public class FileSystemRepository implements DataRepository {
   /**
    * Creates a new DataPackage containing the metadata and files specified.
    */
-  private DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files) {
+  private DataPackage create(DataPackage dataPackage, InputStream metadata, List<FileInputContent> files,
+                             boolean generateDOI) {
 
     if (dataPackage.getRelatedIdentifiers() != null && dataPackage.getRelatedIdentifiers()
                                                          .stream()
                                                          .filter(this::isAlternativeIdentifierInUse)
                                                          .count() > 0) {
-      throw new IllegalStateException("A identifiers has been used as alternative identifier in other data package");
+      throw new IllegalStateException("An identifier has been used as alternative identifier in other data package");
     }
     UUID dataPackageKey  = UUID.randomUUID();
     //Generates a DataCiteMetadata object for further validation/manipulation
-    return Optional.ofNullable(handleMetadata(metadata, dataCiteMetadata ->
-                                                          Optional.ofNullable(dataPackage.getDoi())
-                                                            .orElseGet(() -> doiRegistrationService
-                                                                              .register(DoiRegistration.builder()
-                                                                                          .withType(DoiType
-                                                                                                      .DATA_PACKAGE)
-                                                                                        .withMetadata(dataCiteMetadata)
-                                                                                        .withUser(dataPackage
-                                                                                                    .getCreatedBy())
-                                                                                        .withDoi(dataPackage.getDoi())
-                                                                                        .build())),
-                                              dataPackageKey))
-            .map(doi -> {
-              try {
-                DataPackage newDataPackage = prePersist(dataPackage, files, dataPackageKey);
-                newDataPackage.setDoi(doi);
-                newDataPackage.setCitation(CitationGenerator.generateCitation(newDataPackage));
-                //Persist data package info
-                dataPackageMapper.create(newDataPackage);
-                newDataPackage.getFiles()
-                  .forEach(dataPackageFile -> dataPackageFileMapper.create(newDataPackage.getKey(), dataPackageFile));
-                newDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
-                newDataPackage.getTags().forEach(tagMapper::create);
-                newDataPackage.getCreators().forEach(creatorMapper::create);
-                return get(newDataPackage.getKey()).get();
-              } catch (Exception ex) {
-                LOG.error("Error registering a DOI", ex);
-                //Deletes all data created to this DOI in case from error
-                delete(dataPackageKey);
-                throw new RuntimeException(ex);
-              }
-            }).orElseThrow(() -> new IllegalStateException("DataPackage couldn't be created"));
+    try {
+      DataPackage newDataPackage = prePersist(dataPackage, files, dataPackageKey);
+      newDataPackage.setDoi(handleMetadata(metadata, dataCiteMetadata ->
+                                           generateDOI? doiRegistrationService
+                                             .register(DoiRegistration.builder()
+                                                         .withType(DoiType.DATA_PACKAGE)
+                                                         .withMetadata(dataCiteMetadata)
+                                                         .withUser(dataPackage.getCreatedBy())
+                                                         .withDoi(dataPackage.getDoi()).build()) : null,
+                                           dataPackageKey));
+
+      newDataPackage.setCitation(CitationGenerator.generateCitation(newDataPackage));
+      //Persist data package info
+      dataPackageMapper.create(newDataPackage);
+      newDataPackage.getFiles()
+        .forEach(dataPackageFile -> dataPackageFileMapper.create(newDataPackage.getKey(), dataPackageFile));
+      newDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
+      newDataPackage.getTags().forEach(tagMapper::create);
+      newDataPackage.getCreators().forEach(creatorMapper::create);
+      return get(newDataPackage.getKey()).get();
+    } catch (Exception ex) {
+      LOG.error("Error registering a DOI", ex);
+      //Deletes all data created to this DOI in case from error
+      delete(dataPackageKey);
+      throw new RuntimeException(ex);
+    }
   }
 
   /**
    * Deletes all files of a DataPackage.
    */
   private void clearDataPackageContent(DataPackage dataPackage) {
-    dataPackage.getFiles()
-      .forEach(dataPackageFile ->
-                 dataPackageFileMapper.delete(dataPackage.getKey(), dataPackageFile.getFileName()));
-    clearDataPackageDir(Optional.ofNullable(dataPackage.getKey()).orElseThrow(() -> new RuntimeException("Doi not supplied")));
+    dataPackage.getFiles().forEach(dataPackageFile -> dataPackageFileMapper.delete(dataPackage.getKey(),
+                                                                                   dataPackageFile.getFileName()));
+    clearDataPackageDir(dataPackage.getKey());
     dataPackage.getFiles().clear();
   }
 
@@ -419,14 +413,15 @@ public class FileSystemRepository implements DataRepository {
     preparedDataPackage.getRelatedIdentifiers().forEach(identifierMapper::create);
     preparedDataPackage.getTags().forEach(tagMapper::create);
     preparedDataPackage.getCreators().forEach(creatorMapper::create);
-    handleMetadata(metadata, dataCiteMetadata -> doiRegistrationService.update(DoiRegistration.builder()
+    handleMetadata(metadata, dataCiteMetadata -> preparedDataPackage.getDoi() != null ?
+                                                    doiRegistrationService.update(DoiRegistration.builder()
                                                                                   .withType(DoiType.DATA_PACKAGE)
                                                                                   .withMetadata(dataCiteMetadata)
                                                                                   .withUser(preparedDataPackage
                                                                                               .getCreatedBy())
                                                                                   .withDoi(preparedDataPackage
                                                                                              .getDoi())
-                                                                                  .build()),
+                                                                                  .build()):null,
                    existingDataPackage.getKey());
     return preparedDataPackage;
   }

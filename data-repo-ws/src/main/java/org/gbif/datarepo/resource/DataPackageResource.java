@@ -172,7 +172,7 @@ public class DataPackageResource {
       validateDataPackage(dataPackage);
       dataPackage.setRelatedIdentifiers(dentifiersUtils.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
-      DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles));
+      DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles), true);
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);

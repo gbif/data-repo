@@ -16,7 +16,7 @@ CREATE TABLE data_package (
     title text NOT NULL CHECK (length(title) >= 3),
     description text,
     citation text,
-    license datapackage_license NOT NULL DEFAULT 'CC_BY_4_0'::datapackage_license,
+    license datapackage_license,
     created timestamp with time zone NOT NULL DEFAULT now(),
     modified timestamp with time zone NOT NULL DEFAULT now(),
     deleted timestamp with time zone,

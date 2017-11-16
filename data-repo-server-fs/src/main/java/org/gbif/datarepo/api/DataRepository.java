@@ -40,7 +40,7 @@ public interface DataRepository {
   /**
    * Creates a DataPackage and store metadata and input content in the data repository.
    */
-  DataPackage create(DataPackage dataPackage, List<FileInputContent> files);
+  DataPackage create(DataPackage dataPackage, List<FileInputContent> files, boolean generateDOI);
 
 
   /**
