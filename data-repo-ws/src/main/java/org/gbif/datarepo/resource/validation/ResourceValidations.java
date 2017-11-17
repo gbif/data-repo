@@ -1,7 +1,5 @@
 package org.gbif.datarepo.resource.validation;
 
-import org.gbif.datarepo.api.model.DataPackage;
-
 import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -34,18 +32,6 @@ public class ResourceValidations {
   }
 
   /**
-   * Validates the DOI specified by its parts.
-   */
-  public static void validateDoi(String doiPrefix, String doiSuffix) {
-    if (Strings.isNullOrEmpty(doiSuffix)) {
-      throwBadRequest("A non-empty DOI must be provided");
-    }
-    if (doiSuffix.split("\\.").length != 2) { // Suffix/Shoulder must contain two sections divided by a .
-      throwBadRequest(String.format("DOI format invalid %s, it must be in the format prefix-suffix", doiSuffix));
-    }
-  }
-
-  /**
    * Throws a WebApplicationException containing a BadRequest status.
    */
   public static void throwBadRequest(String message) {
@@ -63,7 +49,7 @@ public class ResourceValidations {
    * Returns a new WebApplicationException with a status code and an error message.
    */
   public static WebApplicationException buildWebException(Throwable throwable, Response.Status status, String message) {
-    if (throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
+    if (!throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
       return (WebApplicationException)throwable;
     }
     return new WebApplicationException(throwable, Response.status(status).entity(message).build());

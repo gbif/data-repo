@@ -3,7 +3,7 @@ package org.gbif.datarepo.resource;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.resource.validation.ResourceValidations;
-import org.gbif.datarepo.store.fs.download.FileDownload;
+import org.gbif.datarepo.impl.download.FileDownload;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,20 +28,20 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 /**
  * Utility class to process and validates related identifiers.
  */
-public class IdentifiersUtils {
+public class IdentifiersValidator {
 
-  private static final Logger LOG = LoggerFactory.getLogger(IdentifiersUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IdentifiersValidator.class);
 
   /**
    * Class that encapsulates the response of identifiers processing.
    */
-  public static class IdentifiersUsage {
+  private static class IdentifiersUsage {
 
     private final Set<Identifier> relatedIdentifiers;
 
     private final Set<Identifier> alternativeIdentifiersInUse;
 
-    public IdentifiersUsage(Set<Identifier> relatedIdentifiers, Set<Identifier> alternativeIdentifiersInUse) {
+    IdentifiersUsage(Set<Identifier> relatedIdentifiers, Set<Identifier> alternativeIdentifiersInUse) {
       this.relatedIdentifiers = relatedIdentifiers;
       this.alternativeIdentifiersInUse = alternativeIdentifiersInUse;
     }
@@ -63,7 +63,7 @@ public class IdentifiersUtils {
   private final DataRepository dataRepository;
   private final FileDownload fileDownload;
 
-  public IdentifiersUtils(DataRepository dataRepository, FileDownload fileDownload) {
+  public IdentifiersValidator(DataRepository dataRepository, FileDownload fileDownload) {
     this.dataRepository = dataRepository;
     this.fileDownload = fileDownload;
   }
@@ -165,14 +165,14 @@ public class IdentifiersUtils {
       identifier.setRelationType(Identifier.RelationType.valueOf(identifierLine[2].toUpperCase()));
       return Optional.of(identifier);
     }
-    if(identifierLine.length == 2) {
+    if (identifierLine.length == 2) {
       Identifier identifier = new Identifier();
       identifier.setIdentifier(identifierLine[0]);
       identifier.setType(Identifier.Type.valueOf(identifierLine[1].toUpperCase()));
       identifier.setRelationType(Identifier.RelationType.References);
       return Optional.of(identifier);
     }
-    if(identifierLine.length == 1) {
+    if (identifierLine.length == 1) {
       Identifier identifier = new Identifier();
       identifier.setIdentifier(identifierLine[0]);
       identifier.setType(Identifier.Type.DOI);

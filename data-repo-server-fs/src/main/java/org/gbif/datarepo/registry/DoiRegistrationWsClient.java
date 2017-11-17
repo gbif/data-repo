@@ -3,7 +3,7 @@ package org.gbif.datarepo.registry;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.DoiData;
 import org.gbif.datarepo.auth.HttpGbifClientAuthFilter;
-import org.gbif.datarepo.store.fs.conf.ApplicationKeyConfiguration;
+import org.gbif.datarepo.impl.conf.ApplicationKeyConfiguration;
 import org.gbif.registry.doi.DoiType;
 import org.gbif.registry.doi.registration.DoiRegistration;
 import org.gbif.registry.doi.registration.DoiRegistrationService;

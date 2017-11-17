@@ -69,7 +69,9 @@ $dpchange$
     BEGIN
       NEW.fulltext_search :=
         TO_TSVECTOR('pg_catalog.english', unaccent(COALESCE(NEW.name,''))) ||
-        TO_TSVECTOR('pg_catalog.english', unaccent(COALESCE(NEW.identifier,'')));
+        TO_TSVECTOR('pg_catalog.english', unaccent(COALESCE(NEW.identifier,''))) ||
+        TO_TSVECTOR('pg_catalog.english', unaccent(COALESCE(array_to_string(NEW.affiliation,' '),''))) ||
+        TO_TSVECTOR('pg_catalog.english', unaccent(COALESCE(NEW.scheme_uri,'')));
       RETURN NEW;
     END;
 $dpchange$

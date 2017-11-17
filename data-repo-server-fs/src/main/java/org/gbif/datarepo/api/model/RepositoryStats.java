@@ -23,7 +23,7 @@ public class RepositoryStats {
   }
 
   /**
-   * Total size in bytes: sum of all file size in the repo.
+   * Total fileSize in bytes: sum of all file fileSize in the repo.
    */
   public Long getTotalSize() {
     return totalSize;
@@ -34,7 +34,7 @@ public class RepositoryStats {
   }
 
   /**
-   * Average file size in the repository.
+   * Average file fileSize in the repository.
    */
   public Long getAverageFileSize() {
     return averageFileSize;

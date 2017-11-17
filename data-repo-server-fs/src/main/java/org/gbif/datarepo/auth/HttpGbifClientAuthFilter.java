@@ -1,6 +1,6 @@
 package org.gbif.datarepo.auth;
 
-import org.gbif.datarepo.store.fs.conf.ApplicationKeyConfiguration;
+import org.gbif.datarepo.impl.conf.ApplicationKeyConfiguration;
 
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;

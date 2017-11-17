@@ -6,15 +6,11 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.auth.jwt.JwtAuthenticator;
+import org.gbif.datarepo.fs.DataRepoFileSystemService;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
-import org.gbif.datarepo.persistence.mappers.CreatorMapper;
-import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
-import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
-import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
-import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
-import org.gbif.datarepo.persistence.mappers.TagMapper;
+import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
-import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.datarepo.impl.FileSystemDataRepository;
 import org.gbif.identity.inject.IdentityAccessModule;
 import org.gbif.registry.doi.registration.DoiRegistrationService;
 
@@ -25,6 +21,7 @@ import com.google.inject.Injector;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.setup.Environment;
+import org.apache.hadoop.fs.Path;
 
 import static org.gbif.datarepo.registry.DoiRegistrationWsClient.buildWebTarget;
 
@@ -56,48 +53,9 @@ public class DataRepoModule {
                                     dataPackageMyBatisModule);
   }
 
-  /**
-   * Gets DataPackageMapper instance.
-   */
-  public DataPackageMapper dataPackageMapper() {
-    return injector.getInstance(DataPackageMapper.class);
-  }
-
-  /**
-   * Gets AlternativeIdentifierMapper instance.
-   */
-  public IdentifierMapper alternativeIdentifierMapper() {
-    return injector.getInstance(IdentifierMapper.class);
-  }
-
-  /**
-   * Gets RepositoryStatsMapper instance.
-   */
-  public RepositoryStatsMapper repositoryStatsMapper() {
-    return injector.getInstance(RepositoryStatsMapper.class);
-  }
-
-
-  /**
-   * Gets DataPackageDataPackageFileMapperMapper instance.
-   */
-  public DataPackageFileMapper dataPackageFileMapper() {
-    return injector.getInstance(DataPackageFileMapper.class);
-  }
-
-
-  /**
-   * Gets TagMapper instance.
-   */
-  public TagMapper tagMapper() {
-    return injector.getInstance(TagMapper.class);
-  }
-
-  /**
-   * Gets CreatorMapper instance.
-   */
-  public CreatorMapper creatorMapper() {
-    return injector.getInstance(CreatorMapper.class);
+  private DataRepoFileSystemService getDataRepoFileSystemService() {
+    return new DataRepoFileSystemService(new Path(configuration.getDataRepoConfiguration().getDataRepoPath()),
+                                         configuration.getDataRepoConfiguration().getFileSystem());
   }
 
   /**
@@ -134,13 +92,8 @@ public class DataRepoModule {
    * Creates an instance of DataRepository that is backed by a file system.
    */
   public DataRepository dataRepository() {
-    return new FileSystemRepository(configuration.getDataRepoConfiguration().getDataRepoPath(),
-                                    doiRegistrationService(),
-                                    dataPackageMapper(),
-                                    dataPackageFileMapper(), tagMapper(), repositoryStatsMapper(),
-                                    alternativeIdentifierMapper(),
-                                    creatorMapper(),
-                                    configuration.getDataRepoConfiguration().getFileSystem());
+    return new FileSystemDataRepository(doiRegistrationService(), injector.getInstance(DataRepoPersistenceService.class),
+                                        getDataRepoFileSystemService());
   }
 
 }

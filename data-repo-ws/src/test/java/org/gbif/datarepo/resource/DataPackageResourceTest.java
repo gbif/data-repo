@@ -6,15 +6,11 @@ import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
-import org.gbif.datarepo.persistence.mappers.CreatorMapper;
-import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
+import org.gbif.datarepo.fs.DataRepoFileSystemService;
+import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
-import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
-import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
-import org.gbif.datarepo.persistence.mappers.TagMapper;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
-import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
-import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
+import org.gbif.datarepo.impl.FileSystemDataRepository;
 import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
 import org.gbif.doi.service.DoiException;
 
@@ -169,17 +165,14 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                           .setRealm(BasicAuthenticator.GBIF_REALM).buildAuthFilter()))
     .addProvider(new AuthValueFactoryProvider.Binder<>(GbifUserPrincipal.class))
     //Test resource
-    .addResource(new DataPackageResource(new FileSystemRepository(configuration().getDataRepoConfiguration()
-                                                                    .getDataRepoPath(),
-                                                                  new DoiRegistrationServiceMock(),
-                                                                  mappersInjector().getInstance(DataPackageMapper.class),
-                                                                  mappersInjector().getInstance(DataPackageFileMapper.class),
-                                                                  mappersInjector().getInstance(TagMapper.class),
-                                                                  mappersInjector().getInstance(RepositoryStatsMapper.class),
-                                                                  mappersInjector().getInstance(IdentifierMapper.class),
-                                                                  mappersInjector().getInstance(CreatorMapper.class),
-                                                                  configuration().getDataRepoConfiguration()
-                                                                    .getFileSystem()),
+    .addResource(new DataPackageResource(new FileSystemDataRepository(new DoiRegistrationServiceMock(),
+                                                                      mappersInjector().getInstance(DataRepoPersistenceService.class),
+                                                                      new DataRepoFileSystemService(
+                                                                    new org.apache.hadoop.fs.Path(configuration()
+                                                                                                    .getDataRepoConfiguration()
+                                                                                                    .getDataRepoPath()),
+                                                                    configuration().getDataRepoConfiguration()
+                                                                    .getFileSystem())),
                                          configuration(), Validation.buildDefaultValidatorFactory().getValidator()))
     .build();
 
@@ -187,7 +180,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
    * Initialized all the elements used across all test cases.
    */
   @BeforeClass
-  public static void init() throws  IOException {
+  public static void init() {
     temporaryFolder();
     configuration();
   }

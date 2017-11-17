@@ -1,4 +1,4 @@
-package org.gbif.datarepo.store.fs.download;
+package org.gbif.datarepo.impl.download;
 
 import org.gbif.datarepo.api.model.FileInputContent;
 

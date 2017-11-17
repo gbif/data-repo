@@ -224,7 +224,7 @@ public class DataPackage {
 
   /**
    *
-   * @return estimated size in bytes
+   * @return estimated fileSize in bytes
    */
   public long getSize() {
     return size;
@@ -408,7 +408,7 @@ public class DataPackage {
            + "\", \"created\": \"" + created
            + "\", \"modified\": \"" + modified
            + "\", \"checksum\": \"" + checksum
-           + "\", \"size\": \"" + size
+           + "\", \"fileSize\": \"" + size
            + "\", \"relatedIdentifiers\": \"" + relatedIdentifiers
            + "\", \"creators\": \"" + creators
            + "\", \"citation\": \"" + citation

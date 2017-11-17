@@ -110,5 +110,7 @@ public class DataPackageMyBatisModule extends PrivateModule {
     expose(IdentifierMapper.class);
     expose(TagMapper.class);
     expose(CreatorMapper.class);
+    bind(DataRepoPersistenceService.class);
+    expose(DataRepoPersistenceService.class);
   }
 }

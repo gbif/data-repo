@@ -1,6 +1,6 @@
 package org.gbif.datarepo.api.model;
 import org.gbif.api.model.common.DOI;
-import org.gbif.datarepo.store.fs.FileSystemRepository;
+import org.gbif.datarepo.fs.DataRepoFileSystemService;
 import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class DataPackageDeSerTest {
 
   private static final DataPackageFile OCCURRENCE_TEST_FILE =
     new DataPackageFile("occurrence.txt",
-                        FileSystemRepository.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)),
+                        DataRepoFileSystemService.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)),
                         18644);
 
   /**

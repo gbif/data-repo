@@ -1,4 +1,4 @@
-package org.gbif.datarepo.store.fs.conf;
+package org.gbif.datarepo.impl.conf;
 
 import javax.validation.constraints.NotNull;
 

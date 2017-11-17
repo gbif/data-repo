@@ -1,7 +1,7 @@
 package org.gbif.datarepo.app;
 
 import org.gbif.datarepo.auth.jwt.JwtAuthConfiguration;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
+import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 import org.gbif.discovery.conf.ServiceConfiguration;
 
 import javax.validation.Valid;

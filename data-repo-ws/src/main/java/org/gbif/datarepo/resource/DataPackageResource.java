@@ -10,8 +10,8 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
-import org.gbif.datarepo.store.fs.download.FileDownload;
-import org.gbif.datarepo.store.fs.conf.DataRepoConfiguration;
+import org.gbif.datarepo.impl.download.FileDownload;
+import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
@@ -88,7 +88,7 @@ public class DataPackageResource {
 
   private final FileDownload downloadHandler;
 
-  private final IdentifiersUtils dentifiersUtils;
+  private final IdentifiersValidator identifiersValidator;
 
   private final Validator validator;
 
@@ -100,7 +100,7 @@ public class DataPackageResource {
     DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
     downloadHandler = new FileDownload(dataRepoConfiguration.getFileSystem());
-    dentifiersUtils = new IdentifiersUtils(dataRepository, downloadHandler);
+    identifiersValidator = new IdentifiersValidator(dataRepository, downloadHandler);
     this.validator = validator;
   }
 
@@ -137,8 +137,8 @@ public class DataPackageResource {
                                                     @Nullable @QueryParam("type") Identifier.Type type,
                                                     @Nullable @QueryParam("relationType") Identifier.RelationType relationType,
                                                     @Nullable @QueryParam("created") Date created) {
-    DataPackage dataPackage = getOrNotFound(dataPackageIdentifier);
-    return dataRepository.listIdentifiers(user, page, identifier, dataPackage.getKey(), type, relationType, created);
+    UUID dataPackageKey = getDataPackageByIdentifier(identifier).map(DataPackage::getKey).orElse(null);
+    return dataRepository.listIdentifiers(user, page, identifier, dataPackageKey, type, relationType, created);
   }
 
 
@@ -170,7 +170,7 @@ public class DataPackageResource {
                                              DataPackage.class);
       //Validates all javax.validation annotations
       validateDataPackage(dataPackage);
-      dataPackage.setRelatedIdentifiers(dentifiersUtils.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
+      dataPackage.setRelatedIdentifiers(identifiersValidator.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles), true);
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
@@ -358,7 +358,15 @@ public class DataPackageResource {
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */
   private DataPackage getOrNotFound(String identifier) {
+    return getDataPackageByIdentifier(identifier).orElseThrow(() -> buildWebException(Status.NOT_FOUND,
+                                           String.format("Identifier %s not found in repository", identifier)))
+      .inUrl(uriBuilder.build(identifier));
+  }
 
+  /**
+   * Tries to get a DataPackage by UUID, DOI or an alternative identifier.
+   */
+  private Optional<DataPackage> getDataPackageByIdentifier(String identifier) {
     Optional<DataPackage> dataPackage = getByUUID(identifier);
     if (!dataPackage.isPresent()) {
       dataPackage = getByDOI(identifier);
@@ -366,9 +374,7 @@ public class DataPackageResource {
         dataPackage = getByAlternativeIdentifier(identifier);
       }
     }
-    return dataPackage.orElseThrow(() -> buildWebException(Status.NOT_FOUND,
-                                           String.format("Identifier %s not found in repository", identifier)))
-      .inUrl(uriBuilder.build(identifier));
+    return  dataPackage;
   }
 
   /**

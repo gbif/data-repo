@@ -53,7 +53,7 @@ public class DataPackageFile {
   }
 
   /**
-   * File size in bytes.
+   * File fileSize in bytes.
    */
   public long getSize() {
     return size;
@@ -86,6 +86,6 @@ public class DataPackageFile {
   public String toString() {
     return "{\"fileName\": \"" + fileName
            + "\", \"checksum\": \"" + checksum
-           + "\", \"size\": \"" + size + "\"}";
+           + "\", \"fileSize\": \"" + size + "\"}";
   }
 }
