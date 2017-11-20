@@ -44,7 +44,7 @@ public final class PathsParams {
   /**
    * DataPackage form parameters.
    */
-  static final String DP_FORM_PARAM = "data_package";
+  static final String DP_FORM_PARAM = "dataPackage";
 
   /**
    * Private constructor.
