@@ -173,3 +173,27 @@ This project contains a RESTful application that exposes the services provided b
 * Success Response: 
   * Code: 200 OK
   * Content: a JSON response containing basic metadata (name, size and checksum) about the requested file name 
+
+
+### List supported identifier types
+
+* Description: list the supported identifiers type
+* URL: */data_packages/identifierType* 
+* Method: GET
+* Authentication: no 
+* Response type: *application/json*
+* Success Response: 
+  * Code: 200 OK
+  * Content: a JSON response containing the list of supported identifier types 
+
+
+### List supported identifier relation types
+
+* Description: list the supported identifiers type
+* URL: */data_packages/identifierRelationType* 
+* Method: GET
+* Authentication: no 
+* Response type: *application/json*
+* Success Response: 
+  * Code: 200 OK
+  * Content: a JSON response containing the list of supported identifier relation types 
