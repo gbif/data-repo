@@ -175,10 +175,22 @@ This project contains a RESTful application that exposes the services provided b
   * Content: a JSON response containing basic metadata (name, size and checksum) about the requested file name 
 
 
+### List supported licenses types
+
+* Description: list the supported license type
+* URL: */data_packages/vocabulary/LicenseType* 
+* Method: GET
+* Authentication: no 
+* Response type: *application/json*
+* Success Response: 
+  * Code: 200 OK
+  * Content: a JSON response containing the list of supported license types 
+
+
 ### List supported identifier types
 
 * Description: list the supported identifiers type
-* URL: */data_packages/identifierType* 
+* URL: */data_packages/vocabulary/identifierType* 
 * Method: GET
 * Authentication: no 
 * Response type: *application/json*
@@ -190,7 +202,7 @@ This project contains a RESTful application that exposes the services provided b
 ### List supported identifier relation types
 
 * Description: list the supported identifiers type
-* URL: */data_packages/identifierRelationType* 
+* URL: */data_packages/vocabulary/identifierRelationType* 
 * Method: GET
 * Authentication: no 
 * Response type: *application/json*

@@ -3,6 +3,7 @@ package org.gbif.datarepo.resource;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.api.vocabulary.License;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.DataPackage;
@@ -47,8 +48,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -330,6 +333,17 @@ public class DataPackageResource {
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
     dataRepository.delete(dataPackage.getKey());
+  }
+
+  @GET
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("vocabulary/LicenseType")
+  /**
+   * Return the list of supported identifier types.
+   */
+  public Collection<License> getLicenseTypes() {
+    return EnumSet.complementOf(EnumSet.of(License.UNSPECIFIED, License.UNSUPPORTED));
   }
 
   @GET
