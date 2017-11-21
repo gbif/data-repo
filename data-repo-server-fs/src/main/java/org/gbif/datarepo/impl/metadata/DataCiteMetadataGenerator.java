@@ -112,15 +112,25 @@ public class DataCiteMetadataGenerator {
       .ifPresent(dpCreators -> dpCreators.forEach(dpCreator ->
                                                     creators.addCreator(DataCiteMetadata.Creators.Creator.builder()
                                                                           .withCreatorName(dpCreator.getName())
-                                                                          .withNameIdentifier(DataCiteMetadata.Creators.Creator.NameIdentifier.builder()
-                                                                                                .withNameIdentifierScheme(
-                                                                                                  Optional.ofNullable(dpCreator.getIdentifierScheme())
-                                                                                                    .map(Creator.IdentifierScheme::name).orElse(null))
-                                                                                                .withValue(dpCreator.getIdentifier())
-                                                                                                .withSchemeURI(dpCreator.getSchemeURI())
-                                                                                                .build())
+                                                                          .withNameIdentifier(getNameIdentifier(dpCreator)
+                                                                                                .orElse(null))
                                                                           .build())
       ));
     return creators.build();
+  }
+
+  /**
+   * Extracts the name identifier from a data package creator.
+   */
+  private static Optional<DataCiteMetadata.Creators.Creator.NameIdentifier> getNameIdentifier(Creator creator) {
+    return Optional.ofNullable(creator.getIdentifier()).map( id ->
+              DataCiteMetadata.Creators.Creator.NameIdentifier.builder()
+                .withNameIdentifierScheme(
+                  Optional.ofNullable(creator.getIdentifierScheme())
+                    .map(Creator.IdentifierScheme::name).orElse(null))
+                .withValue(creator.getIdentifier())
+                .withSchemeURI(creator.getSchemeURI())
+                .build()
+            );
   }
 }
