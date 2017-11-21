@@ -34,8 +34,8 @@ public class ResourceTestUtils {
 
   public static final String JSON_CREATE_NO_LICENSE_TEST_FILE = "src/test/resources/datapackage_test_no_license.json";
 
-  public static final String JSON_CREATE_NO_CREATOR_ID_TEST_FILE =
-    "src/test/resources/datapackage_test_no_creator_id.json";
+  public static final String JSON_CREATE_NO_CREATOR_NAME_TEST_FILE =
+    "src/test/resources/datapackage_test_no_creator_name.json";
 
   public static final GbifUserPrincipal TEST_USER = testUser();
 

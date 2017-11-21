@@ -66,7 +66,7 @@ import static org.gbif.datarepo.resource.PathsParams.DP_FORM_PARAM;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_LICENSE_TEST_FILE;
-import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_CREATOR_ID_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_CREATOR_NAME_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
@@ -318,8 +318,8 @@ public class DataPackageResourceTest extends BaseMapperTest {
    * Tests that is not possible to create a DataPackage that contains a creator without identifier.
    */
   @Test
-  public void testCreatorWithoutId() throws Exception {
-    badRequestTestCase(JSON_CREATE_NO_CREATOR_ID_TEST_FILE);
+  public void testCreatorWithoutName() throws Exception {
+    badRequestTestCase(JSON_CREATE_NO_CREATOR_NAME_TEST_FILE);
   }
 
   /**
