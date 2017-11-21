@@ -1,8 +1,8 @@
-#Datata Repository Web Service
+# Datata Repository Web Service
 This project contains a RESTful application that exposes the services provided by the GBIF Data Repository.
  
  
-##Endpoints
+## Endpoints
 
 ### Data Package creation
 
