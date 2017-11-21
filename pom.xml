@@ -47,7 +47,7 @@
     <commons-io.version>2.4</commons-io.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <guava.version>19.0</guava.version>
-    <jersey-media-multipart.version>2.23.2</jersey-media-multipart.version>
+    <jersey-media-multipart.version>2.22.1</jersey-media-multipart.version>
     <javax.ws.rs-api.version>2.0.1</javax.ws.rs-api.version>
     <assertj-core.version>2.2.0</assertj-core.version>
     <httpclient.version>4.3.6</httpclient.version>

@@ -13,11 +13,13 @@ import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
+import org.gbif.datarepo.resource.api.DataPackageRequest;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +27,10 @@ import javax.annotation.Nullable;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
+import javax.validation.Valid;
 import javax.validation.ValidationException;
 import javax.validation.Validator;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -155,11 +159,11 @@ public class DataPackageResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed(DATA_REPO_ACCESS_ROLE)
-  public DataPackage create(FormDataMultiPart multiPart, @Auth GbifUserPrincipal principal,
-                            @Context HttpServletRequest request) throws IOException {
+  public DataPackage create(FormDataMultiPart multiPart,
+                            @NotNull @Valid @FormDataParam(DP_FORM_PARAM) DataPackageRequest dataPackageRequest,
+                            @Auth GbifUserPrincipal principal) throws IOException {
     //Validations
     List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
-
     List<String> urlFiles = Optional.ofNullable(multiPart.getFields(FILE_URL_PARAM))
                               .map(formDataBodyParts -> formDataBodyParts.stream().map(FormDataBodyPart::getValue)
                                 .collect(Collectors.toList()))

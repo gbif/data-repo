@@ -33,6 +33,7 @@ import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
+import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -122,7 +123,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     registerSecurityComponents(dataRepoModule, environment, configuration.getJwtAuthConfiguration());
 
     //Resources and required features
-    environment.jersey().register(MultiPartFeature.class);
+    //environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration,
                                                           environment.getValidator()));
     environment.jersey().register(new RepositoryStatsResource(dataRepoModule.dataRepository()));
@@ -138,6 +139,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
   @Override
   public void initialize(Bootstrap<DataRepoConfigurationDW> bootstrap) {
     // NOP
+    bootstrap.addBundle(new MultiPartBundle());
   }
 
 

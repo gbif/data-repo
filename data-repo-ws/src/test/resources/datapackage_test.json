@@ -1,12 +1,8 @@
 {
-  "key": "85fc0ce8-f762-11e1-a439-00145eb45e9a",
   "title":"Test Title",
   "description":"Test Description",
   "license": "CC_BY_NC_4_0",
-  "tags":[
-    {"value":"ecological"},
-    {"value":"species"}
-  ],
+
   "creators":[
     {
       "name":"Jimi Hendrix",

@@ -72,6 +72,7 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIA
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOf;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfJsonContent;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfContent;
 
 /**
  * Test class for the DataPackageResource class.
@@ -206,7 +207,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
       when(AUTHENTICATOR.authenticate(Matchers.eq(TEST_BASIC_CREDENTIALS))).thenReturn(Optional.of(TEST_USER));
       clearDB();
       //Create test package
-      testDataPackage = createTestDataPackage(dataBodyPartOf(JSON_CREATE_TEST_FILE, DP_FORM_PARAM));
+      testDataPackage = createTestDataPackage(dataBodyPartOfContent(JSON_CREATE_TEST_FILE, DP_FORM_PARAM));
     } catch (Exception  ex) {
       throw new IllegalStateException(ex);
     }
