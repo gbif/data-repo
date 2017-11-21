@@ -41,15 +41,12 @@ public class Creator {
   @JsonProperty
   private String name;
 
-  @NotNull
   @JsonProperty
   private List<String> affiliation;
 
-  @NotNull
   @JsonProperty
   private String identifier;
 
-  @NotNull
   @JsonProperty
   private IdentifierScheme identifierScheme;
 
