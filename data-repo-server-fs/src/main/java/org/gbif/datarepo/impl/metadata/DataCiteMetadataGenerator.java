@@ -1,5 +1,6 @@
 package org.gbif.datarepo.impl.metadata;
 
+import org.gbif.datarepo.api.model.Creator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.doi.metadata.datacite.DataCiteMetadata;
@@ -112,7 +113,9 @@ public class DataCiteMetadataGenerator {
                                                     creators.addCreator(DataCiteMetadata.Creators.Creator.builder()
                                                                           .withCreatorName(dpCreator.getName())
                                                                           .withNameIdentifier(DataCiteMetadata.Creators.Creator.NameIdentifier.builder()
-                                                                                                .withNameIdentifierScheme(dpCreator.getIdentifierScheme().name())
+                                                                                                .withNameIdentifierScheme(
+                                                                                                  Optional.ofNullable(dpCreator.getIdentifierScheme())
+                                                                                                    .map(Creator.IdentifierScheme::name).orElse(null))
                                                                                                 .withValue(dpCreator.getIdentifier())
                                                                                                 .withSchemeURI(dpCreator.getSchemeURI())
                                                                                                 .build())
