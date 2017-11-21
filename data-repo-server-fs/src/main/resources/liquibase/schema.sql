@@ -54,7 +54,7 @@ CREATE TABLE creator (
   name text NOT NULL  CHECK (length(name) >= 2),
   affiliation text[],
   identifier varchar(254),
-  identifier_scheme identifier_scheme DEFAULT 'ORCID'::identifier_scheme,
+  identifier_scheme identifier_scheme,
   scheme_uri varchar(2048),
   created_by varchar(255) NOT NULL CHECK (length(created_by) >= 3),
   created timestamp with time zone NOT NULL DEFAULT now(),
