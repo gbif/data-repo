@@ -49,7 +49,7 @@ public class ResourceValidations {
    * Returns a new WebApplicationException with a status code and an error message.
    */
   public static WebApplicationException buildWebException(Throwable throwable, Response.Status status, String message) {
-    if (!throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
+    if (throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
       return (WebApplicationException)throwable;
     }
     return new WebApplicationException(throwable, Response.status(status).entity(message).build());
