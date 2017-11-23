@@ -161,8 +161,8 @@ public class IdentifiersValidator {
     if (identifierLine.length == 3) {
       Identifier identifier = new Identifier();
       identifier.setIdentifier(identifierLine[0]);
-      identifier.setType(Identifier.Type.valueOf(identifierLine[1].toUpperCase()));
-      identifier.setRelationType(Identifier.RelationType.valueOf(identifierLine[2].toUpperCase()));
+      identifier.setType(Identifier.Type.valueOf(identifierLine[1]));
+      identifier.setRelationType(Identifier.RelationType.valueOf(identifierLine[2]));
       return Optional.of(identifier);
     }
     if (identifierLine.length == 2) {
