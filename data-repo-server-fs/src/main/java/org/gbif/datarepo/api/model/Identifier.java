@@ -21,7 +21,7 @@ public class Identifier {
    * Types of supported identifiers.
    */
   public enum Type {
-    URL, LSID, DOI, UUID, URI, UNKNOWN
+    URL, DOI, GBIF_DATASET_KEY
   }
 
   public enum RelationType {

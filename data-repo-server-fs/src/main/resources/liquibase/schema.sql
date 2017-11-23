@@ -1,7 +1,7 @@
 CREATE EXTENSION unaccent;
 
-CREATE TYPE datapackage_license AS ENUM ('CC0_1_0', 'CC_BY_4_0', 'CC_BY_NC_4_0', 'UNSPECIFIED', 'UNSUPPORTED');
-CREATE TYPE identifier_type AS ENUM ('URL', 'LSID', 'HANDLER', 'DOI', 'UUID', 'FTP', 'URI', 'UNKNOWN');
+CREATE TYPE datapackage_license AS ENUM ('CC0_1_0', 'CC_BY_4_0', 'CC_BY_NC_4_0');
+CREATE TYPE identifier_type AS ENUM ('URL', 'DOI', 'GBIF_DATASET_KEY');
 CREATE TYPE identifier_relation_type AS ENUM('IsAlternativeOf' ,'IsCitedBy', 'Cites', 'IsSupplementTo', 'IsSupplementedBy',
                                               'IsContinuedBy', 'Continues', 'HasMetadata', 'IsMetadataFor',
                                               'IsNewVersionOf', 'IsPreviousVersionOf', 'IsPartOf', 'HasPart',

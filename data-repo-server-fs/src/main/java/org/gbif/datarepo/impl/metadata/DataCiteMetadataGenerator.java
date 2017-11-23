@@ -90,15 +90,51 @@ public class DataCiteMetadataGenerator {
                                                         .withAlternateIdentifierType(identifier.getRelationType().name())
                                                         .build());
         } else {
-          relatedIdentifiers.addRelatedIdentifier(DataCiteMetadata.RelatedIdentifiers.RelatedIdentifier.builder()
-                                                    .withRelatedIdentifierType(RelatedIdentifierType.fromValue(identifier.getType().name()))
-                                                    .withValue(identifier.getIdentifier())
-                                                    .withRelationType(RelationType.fromValue(identifier.getRelationType().name()))
-                                                    .build()
-          );
+          asDataCiteRelatedIdentifier(identifier).ifPresent(relatedIdentifiers::addRelatedIdentifier);
         }
       }));
     return builder.withAlternateIdentifiers(alternateIdentifiers.build()).withRelatedIdentifiers(relatedIdentifiers.build());
+  }
+
+  /**
+   * If possible, translates a Identifier into a DataCiteMetadata.RelatedIdentifiers.RelatedIdentifier.
+   */
+  private static Optional<DataCiteMetadata.RelatedIdentifiers.RelatedIdentifier> asDataCiteRelatedIdentifier(Identifier identifier) {
+    Optional<RelatedIdentifierType> identifierType = asDataCiteRelatedIdentifierType(identifier.getType());
+    Optional<RelationType> relationType = asDataCiteRelationType(identifier.getRelationType());
+    if (identifierType.isPresent() && relationType.isPresent()) {
+      DataCiteMetadata.RelatedIdentifiers.RelatedIdentifier.builder()
+        .withRelatedIdentifierType(identifierType.get())
+        .withValue(identifier.getIdentifier())
+        .withRelationType(relationType.get())
+        .build();
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * Converts a Identifier.Type to a RelatedIdentifierType, if possible.
+   */
+  private static Optional<RelatedIdentifierType> asDataCiteRelatedIdentifierType(Identifier.Type identifierType) {
+    if (Identifier.Type.DOI == identifierType ) {
+      return Optional.of(RelatedIdentifierType.DOI);
+    } else if (Identifier.Type.URL == identifierType ) {
+      return Optional.of(RelatedIdentifierType.URL);
+    } else if (Identifier.Type.GBIF_DATASET_KEY == identifierType ) {
+      return Optional.of(RelatedIdentifierType.URL);
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * Converts a Identifier.Type to a RelatedIdentifierType, if possible.
+   */
+  private static Optional<RelationType> asDataCiteRelationType(Identifier.RelationType relationType) {
+    try {
+      return Optional.of(RelationType.fromValue(relationType.name()));
+    } catch (IllegalArgumentException ex) {
+      return Optional.empty();
+    }
   }
 
   /**

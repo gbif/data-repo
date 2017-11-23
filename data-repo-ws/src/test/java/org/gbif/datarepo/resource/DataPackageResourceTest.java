@@ -67,6 +67,7 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.CONTENT_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_LICENSE_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.JSON_CREATE_NO_CREATOR_NAME_TEST_FILE;
+import static org.gbif.datarepo.test.utils.ResourceTestUtils.RELATED_IDS_TEST_FILE;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_USER_CREDENTIALS;
 import static org.gbif.datarepo.test.utils.ResourceTestUtils.TEST_BASIC_CREDENTIALS;
@@ -346,7 +347,8 @@ public class DataPackageResourceTest extends BaseMapperTest {
    */
   private static DataPackage createTestDataPackage(FormDataBodyPart dataPackage) throws Exception {
     try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataPackage)
-      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
+      .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))
+    .bodyPart(dataBodyPartOf(RELATED_IDS_TEST_FILE, PathsParams.IDENTIFIERS_FILE_PARAM))) {
       return resource.getJerseyTest()
         .target(DATA_PACKAGES_PATH)
         .register(MultiPartFeature.class)

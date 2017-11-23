@@ -30,6 +30,8 @@ public class ResourceTestUtils {
 
   public static final String CONTENT_TEST_FILE = "occurrence.txt";
 
+  public static final String RELATED_IDS_TEST_FILE = "src/test/resources/relationtest.csv";
+
   public static final String JSON_CREATE_TEST_FILE = "src/test/resources/datapackage_test.json";
 
   public static final String JSON_CREATE_NO_LICENSE_TEST_FILE = "src/test/resources/datapackage_test_no_license.json";
