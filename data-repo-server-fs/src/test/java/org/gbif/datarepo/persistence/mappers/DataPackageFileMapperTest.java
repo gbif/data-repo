@@ -48,7 +48,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     Identifier alternativeIdentifier = new Identifier();
     alternativeIdentifier.setCreated(new Date());
     alternativeIdentifier.setCreatedBy("testUser");
-    alternativeIdentifier.setType(Identifier.Type.UUID);
+    alternativeIdentifier.setType(Identifier.Type.GBIF_DATASET_KEY);
     alternativeIdentifier.setIdentifier(ALTERNATIVE_ID_TEST);
     Tag tag = new Tag();
     tag.setCreated(new Date());
