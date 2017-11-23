@@ -28,7 +28,7 @@
   <select id="getByDOI" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
     SELECT <include refid="DATA_PACKAGE_FIELDS"/>
     FROM data_package dp
-    WHERE doi = #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}
+    WHERE doi = #{doi, jdbcType=OTHER}
   </select>
 
   <select id="getByKey" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
