@@ -338,7 +338,7 @@ public class DataPackageResource {
   @GET
   @Timed
   @Produces(MediaType.APPLICATION_JSON)
-  @Path("vocabulary/LicenseType")
+  @Path("vocabulary/licenseType")
   /**
    * Return the list of supported identifier types.
    */
