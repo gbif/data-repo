@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Validation;
 import javax.ws.rs.WebApplicationException;
@@ -30,7 +31,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Optional;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Injector;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
@@ -348,6 +349,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
   private static DataPackage createTestDataPackage(FormDataBodyPart dataPackage) throws Exception {
     try (MultiPart multiPart = new FormDataMultiPart().bodyPart(dataPackage)
       .bodyPart(dataBodyPartOf(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE, FILE_PARAM))) {
+      resource.getObjectMapper().registerModule(new Jdk8Module());
       return resource.getJerseyTest()
         .target(DATA_PACKAGES_PATH)
         .register(MultiPartFeature.class)

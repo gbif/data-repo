@@ -63,6 +63,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.gbif.datarepo.resource.PathsParams.FILE_PARAM;
+import static org.gbif.datarepo.resource.PathsParams.IDENTIFIERS_FILE_PARAM;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.buildWebException;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.validateFiles;
 import static  org.gbif.datarepo.resource.validation.ResourceValidations.throwBadRequest;
@@ -159,18 +160,15 @@ public class DataPackageResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed(DATA_REPO_ACCESS_ROLE)
-  public DataPackage create(FormDataMultiPart multiPart,
-                            @NotNull @Valid @FormDataParam(DP_FORM_PARAM) DataPackageRequest dataPackageRequest,
+  public DataPackage create(
+                            @FormDataParam(DP_FORM_PARAM) DataPackageRequest dataPackageRequest,
+                            @FormDataParam(FILE_PARAM) List<FormDataBodyPart> files,
+                            @FormDataParam(IDENTIFIERS_FILE_PARAM) InputStream identifiersFile,
                             @Auth GbifUserPrincipal principal) throws IOException {
-    //Validations
-    List<FormDataBodyPart> files = multiPart.getFields(FILE_PARAM);
-    List<String> urlFiles = Optional.ofNullable(multiPart.getFields(FILE_URL_PARAM))
-                              .map(formDataBodyParts -> formDataBodyParts.stream().map(FormDataBodyPart::getValue)
-                                .collect(Collectors.toList()))
-                              .orElse(Collections.emptyList());
+
     //check that files + urlFiles are not empty
-    validateFiles(files, urlFiles);
-    checkFileLocations(urlFiles);
+    validateFiles(files, dataPackageRequest.getContentFiles());
+    checkFileLocations(dataPackageRequest.getContentFiles());
     try {
       DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER
                                   .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
@@ -179,7 +177,7 @@ public class DataPackageResource {
       validateDataPackage(dataPackage);
       dataPackage.setRelatedIdentifiers(identifiersValidator.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
-      DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles), true);
+      DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, dataPackageRequest.getContentFiles()), true);
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);

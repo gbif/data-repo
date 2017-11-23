@@ -4,6 +4,7 @@ import org.gbif.api.model.common.GbifUserPrincipal;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
@@ -11,7 +12,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.AuthenticationException;

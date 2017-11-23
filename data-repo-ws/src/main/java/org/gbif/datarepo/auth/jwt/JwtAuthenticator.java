@@ -3,9 +3,9 @@ package org.gbif.datarepo.auth.jwt;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 
+import java.util.Optional;
 import javax.ws.rs.NotAuthorizedException;
 
-import com.google.common.base.Optional;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.jsonwebtoken.Claims;
@@ -49,9 +49,9 @@ public class JwtAuthenticator implements Authenticator<String, GbifUserPrincipal
     try {
       Jws<Claims> jws = Jwts.parser().setSigningKey(jwtSigningKey)
         .parseClaimsJws(credentials);
-      return Optional.fromNullable(jws.getBody().get(configuration.getUserFieldName(), String.class))
-        .transform(identityAccessService::get)
-        .transform(GbifUserPrincipal::new);
+      return Optional.ofNullable(jws.getBody().get(configuration.getUserFieldName(), String.class))
+        .map(identityAccessService::get)
+        .map(GbifUserPrincipal::new);
     } catch (JwtException | IllegalArgumentException ex) {
       throw new NotAuthorizedException("Invalid JWT token", ex);
     } catch (Exception ex) {

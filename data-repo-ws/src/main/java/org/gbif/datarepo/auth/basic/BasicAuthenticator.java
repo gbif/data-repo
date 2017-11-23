@@ -4,7 +4,8 @@ import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
+
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.basic.BasicCredentials;
@@ -48,7 +49,7 @@ public class BasicAuthenticator implements Authenticator<BasicCredentials, GbifU
     }
     //User not found
     LOG.debug("User {} not found via scheme {}", credentials.getUsername(), SCHEME);
-    return Optional.absent();
+    return Optional.empty();
   }
 
 }
