@@ -4,6 +4,7 @@ import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.auth.jwt.JwtAuthConfiguration;
 import org.gbif.datarepo.auth.jwt.JwtCredentialsFilter;
+import org.gbif.datarepo.identifiers.orcid.OrcidPublicClient;
 import org.gbif.datarepo.inject.DataRepoModule;
 import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
@@ -124,7 +125,8 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     //Resources and required features
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration,
-                                                          environment.getValidator()));
+                                                          environment.getValidator(),
+                                                          new OrcidPublicClient()));
     environment.jersey().register(new RepositoryStatsResource(dataRepoModule.dataRepository()));
     if (configuration.getService().isDiscoverable()) {
       environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));

@@ -4,12 +4,14 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.vocabulary.License;
+import org.gbif.datarepo.api.model.Creator;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
+import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
@@ -95,16 +97,20 @@ public class DataPackageResource {
 
   private final Validator validator;
 
+  private final OrcidPublicService orcidPublicService;
+
   /**
    * Full constructor.
    */
-  public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration, Validator validator) {
+  public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration, Validator validator,
+                             OrcidPublicService orcidPublicService) {
     this.dataRepository = dataRepository;
     DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
     downloadHandler = new FileDownload(dataRepoConfiguration.getFileSystem());
     identifiersValidator = new IdentifiersValidator(dataRepository, downloadHandler);
     this.validator = validator;
+    this.orcidPublicService = orcidPublicService;
   }
 
   /**
@@ -198,6 +204,21 @@ public class DataPackageResource {
     } catch (ValidationException ex) {
       throwBadRequest(ex.getMessage());
     }
+    validateOrcidsExist(dataPackage);
+  }
+
+  private void validateOrcidsExist(DataPackage dataPackage) {
+    if (dataPackage.getCreators() != null) {
+      dataPackage.getCreators().stream()
+        .filter(creator -> Creator.IdentifierScheme.ORCID == creator.getIdentifierScheme()
+                           && creator.getIdentifier() != null)
+        .collect(Collectors.toSet()).forEach(orcider -> {
+        if (!orcidPublicService.exists(orcider.getIdentifier())) {
+          throwBadRequest("The orcid " + orcider.getIdentifier() + " does not exist");
+        }
+      });
+    }
+
   }
 
   /**

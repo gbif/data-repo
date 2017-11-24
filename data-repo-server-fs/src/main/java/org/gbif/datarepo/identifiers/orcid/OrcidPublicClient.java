@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 /**
  * Simple Orcid client that validates the existence of a Orcid number.
  */
-public class OrcidPublicClient implements AutoCloseable {
+public class OrcidPublicClient implements AutoCloseable, OrcidPublicService {
 
   //Path to the profile web service
   private static final String ORCID_PROFILE_PATH = "orcid-profile";
@@ -57,6 +57,7 @@ public class OrcidPublicClient implements AutoCloseable {
   /**
    * Validates if the orcid parameter exists.
    */
+  @Override
   public boolean exists(String orcid) {
     return Response.Status.OK.getStatusCode() ==
            webTarget.path(orcid).path(ORCID_PROFILE_PATH).request()

@@ -11,6 +11,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.fs.DataRepoFileSystemService;
+import org.gbif.datarepo.api.validation.identifierschemes.IdentifierSchemaValidatorFactory;
 import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.impl.metadata.DataCiteMetadataGenerator;
 import org.gbif.doi.service.InvalidMetadataException;
@@ -124,6 +125,8 @@ public class FileSystemDataRepository implements DataRepository {
     dataPackage.getCreators().forEach(creator -> {
       if (creator.getIdentifierScheme() != null) {
         creator.setSchemeURI(creator.getIdentifierScheme().getSchemeURI());
+        creator.setIdentifier(IdentifierSchemaValidatorFactory.getValidator(creator.getIdentifierScheme())
+                                .normalize(creator.getIdentifier()));
       }
       newDataPackage.addCreator(creator);
     });

@@ -1,5 +1,8 @@
 package org.gbif.datarepo.api.model;
 
+
+import org.gbif.datarepo.api.validation.constraints.ValidIdentifierScheme;
+
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -13,11 +16,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * DataPackage associated author.
  */
+@ValidIdentifierScheme
 public class Creator {
 
   public enum IdentifierScheme {
 
-    ORCID("http://orcid.org"), ISNI("http://www.isni.org"), OTHER("");
+    ORCID("https://orcid.org"), ISNI("http://www.isni.org"), OTHER("");
 
     private String schemeURI;
 

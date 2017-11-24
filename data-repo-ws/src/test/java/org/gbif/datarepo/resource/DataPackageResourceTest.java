@@ -7,6 +7,7 @@ import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.auth.basic.BasicAuthenticator;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.fs.DataRepoFileSystemService;
+import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
 import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
@@ -52,8 +53,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Matchers;
+import org.mockito.internal.matchers.Any;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.mock;
@@ -153,6 +156,12 @@ public class DataPackageResourceTest extends BaseMapperTest {
     return configuration;
   }
 
+  private static OrcidPublicService mockOrcidService() {
+    OrcidPublicService mockOrcidPublicService = mock(OrcidPublicService.class);
+    when(mockOrcidPublicService.exists(any())).thenReturn(Boolean.TRUE);
+    return mockOrcidPublicService;
+  }
+
   //Grizzly is required since he in-memory Jersey test container does not support all features,
   // such as the @Context injection used by BasicAuthFactory and OAuthFactory.
   @ClassRule
@@ -174,7 +183,8 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                                                     .getDataRepoPath()),
                                                                     configuration().getDataRepoConfiguration()
                                                                     .getFileSystem())),
-                                         configuration(), Validation.buildDefaultValidatorFactory().getValidator()))
+                                         configuration(), Validation.buildDefaultValidatorFactory().getValidator(),
+                                         mockOrcidService()))
     .build();
 
   /**
