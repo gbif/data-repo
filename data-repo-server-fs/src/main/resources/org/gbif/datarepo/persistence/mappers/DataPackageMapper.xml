@@ -7,7 +7,6 @@
     <result property="doi" column="doi" typeHandler="DoiTypeHandler"/>
     <result property="title" column="title"/>
     <result property="description" column="description"/>
-    <result property="citation" column="citation"/>
     <result property="license" column="license"/>
     <result property="created" column="created" jdbcType="TIMESTAMP"/>
     <result property="modified" column="modified" jdbcType="TIMESTAMP"/>
@@ -22,7 +21,7 @@
   </resultMap>
 
   <sql id="DATA_PACKAGE_FIELDS">
-    dp.key, dp.doi, dp.title, dp.description, dp.citation, dp.license, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
+    dp.key, dp.doi, dp.title, dp.description, dp.license, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
   </sql>
 
   <select id="getByDOI" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
@@ -134,9 +133,9 @@
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (key, doi, title, description, citation, license, created, modified, created_by, modified_by, checksum, size)
+    INSERT INTO data_package (key, doi, title, description, license, created, modified, created_by, modified_by, checksum, size)
     VALUES(#{key, jdbcType=OTHER, typeHandler=UuidTypeHandler}, #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER},
-    #{description, jdbcType=OTHER},  #{citation, jdbcType=OTHER}, #{license, jdbcType=OTHER},
+    #{description, jdbcType=OTHER},  #{license, jdbcType=OTHER},
     <choose><when test="created !=null " >#{created, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
@@ -147,7 +146,6 @@
     SET title = #{title, jdbcType=OTHER},
         description = #{description, jdbcType=OTHER},
         license = #{license, jdbcType=OTHER},
-        citation = #{citation, jdbcType=OTHER},
         modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
         modified_by = #{createdBy, jdbcType=OTHER},
         checksum = #{checksum, jdbcType=OTHER},

@@ -9,6 +9,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.RepositoryStats;
+import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
@@ -156,13 +157,20 @@ public class DataRepoPersistenceService {
                                                                   dataPackageFile.getFileName())));
   }
 
+  private List<DataPackage> setCitation(List<DataPackage> dataPackages) {
+    if (dataPackages !=null) {
+      dataPackages.forEach(dp -> dp.setCitation(CitationGenerator.generateCitation(dp)));
+    }
+    return dataPackages;
+  }
+
   public PagingResponse<DataPackage> listDataPackages(String user, @Nullable Pageable page,
                                           @Nullable Date fromDate, @Nullable Date toDate,
                                           @Nullable Boolean deleted, @Nullable List<String> tags,
                                           @Nullable String q) {
     return doPageableResponse(page,
                               () -> dataPackageMapper.count(user, fromDate, toDate, deleted, tags, q),
-                              () -> dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, q));
+                              () -> setCitation(dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, q)));
   }
 
   /**

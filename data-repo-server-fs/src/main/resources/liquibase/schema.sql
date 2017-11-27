@@ -15,7 +15,6 @@ CREATE TABLE data_package (
     doi text UNIQUE,
     title text NOT NULL CHECK (length(title) >= 3),
     description text,
-    citation text,
     license datapackage_license,
     created timestamp with time zone NOT NULL DEFAULT now(),
     modified timestamp with time zone NOT NULL DEFAULT now(),

@@ -4,7 +4,6 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.vocabulary.License;
-import org.gbif.api.vocabulary.UserRole;
 import org.gbif.datarepo.api.model.Creator;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
@@ -12,6 +11,7 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
+import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
@@ -388,6 +388,15 @@ public class DataPackageResource {
    */
   public Identifier.RelationType[] getIdentifierRelationTypes() {
     return Identifier.RelationType.values();
+  }
+
+  @POST
+  @Timed
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("citationPreview")
+  public String citationPreview(DataPackage dataPackage) {
+    return CitationGenerator.generateCitation(dataPackage);
   }
 
   /**

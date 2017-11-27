@@ -183,7 +183,6 @@ public class FileSystemDataRepository implements DataRepository {
                                                          .withDoi(dataPackage.getDoi()).build()) : null,
                                            dataPackageKey));
 
-      newDataPackage.setCitation(CitationGenerator.generateCitation(newDataPackage));
       //Persist data package info
       return persistenceService.create(newDataPackage);
     } catch (Exception ex) {
@@ -256,7 +255,7 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(UUID dataPackageKey) {
-    return Optional.ofNullable(persistenceService.getDataPackage(dataPackageKey));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(dataPackageKey)));
   }
 
   /**
@@ -264,7 +263,7 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(DOI doi) {
-    return Optional.ofNullable(persistenceService.getDataPackage(doi));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(doi)));
   }
 
   /**
@@ -272,7 +271,14 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> getByAlternativeIdentifier(String identifier) {
-    return Optional.ofNullable(persistenceService.getDataPackageByAlternativeIdentifier(identifier));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackageByAlternativeIdentifier(identifier)));
+  }
+
+  private DataPackage setCitation(DataPackage dataPackage) {
+    if (dataPackage != null) {
+      dataPackage.setCitation(CitationGenerator.generateCitation(dataPackage));
+    }
+    return dataPackage;
   }
 
   /**
