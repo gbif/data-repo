@@ -4,6 +4,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.datarepo.api.model.Creator;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.api.model.FileInputContent;
@@ -85,7 +86,7 @@ public class DataPackageResource {
 
   private static final String FILE_ATTACHMENT = "attachment; filename=";
 
-  private static final String DATA_REPO_ACCESS_ROLE = "REGISTRY_ADMIN";
+  private static final String DATA_REPO_ACCESS_ROLE ="DATA_REPO_USER";
 
   private final DataRepository dataRepository;
 
