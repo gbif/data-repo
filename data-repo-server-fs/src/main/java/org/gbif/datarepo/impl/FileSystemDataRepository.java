@@ -184,7 +184,7 @@ public class FileSystemDataRepository implements DataRepository {
                                            dataPackageKey));
 
       //Persist data package info
-      return persistenceService.create(newDataPackage);
+      return setCitation(persistenceService.create(newDataPackage));
     } catch (Exception ex) {
       LOG.error("Error registering a DOI", ex);
       //Deletes all data created to this DOI in case from error
