@@ -3,6 +3,7 @@ package org.gbif.datarepo.auth.jwt;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.service.common.IdentityAccessService;
 
+import java.nio.charset.StandardCharsets;
 import javax.ws.rs.NotAuthorizedException;
 
 import com.google.common.base.Optional;
@@ -35,7 +36,7 @@ public class JwtAuthenticator implements Authenticator<String, GbifUserPrincipal
   public JwtAuthenticator(JwtAuthConfiguration configuration, IdentityAccessService identityAccessService) {
     this.configuration= configuration;
     this.identityAccessService = identityAccessService;
-    jwtSigningKey = configuration.getSigningKey().getBytes();
+    jwtSigningKey = configuration.getSigningKey().getBytes(StandardCharsets.UTF_8);
   }
 
   /**

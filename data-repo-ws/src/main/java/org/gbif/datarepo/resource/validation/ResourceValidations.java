@@ -4,7 +4,6 @@ import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.assertj.core.util.Strings;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
 
@@ -49,7 +48,7 @@ public class ResourceValidations {
    * Returns a new WebApplicationException with a status code and an error message.
    */
   public static WebApplicationException buildWebException(Throwable throwable, Response.Status status, String message) {
-    if (throwable.getClass().isAssignableFrom(WebApplicationException.class)) {
+    if (throwable instanceof WebApplicationException) {
       return (WebApplicationException)throwable;
     }
     return new WebApplicationException(throwable, Response.status(status).entity(message).build());

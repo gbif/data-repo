@@ -19,6 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @ValidIdentifierScheme
 public class Creator {
 
+  /**
+   * Is used to identify unique records in a set.
+   */
   public enum IdentifierScheme {
 
     ORCID("https://orcid.org"), ISNI("http://www.isni.org"), OTHER("");
@@ -58,7 +61,7 @@ public class Creator {
   private String schemeURI;
 
   @JsonIgnore
-  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern=DataPackage.ISO_DATE_FORMAT)
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern = DataPackage.ISO_DATE_FORMAT)
   private Date created;
 
   @JsonIgnore

@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -135,7 +136,7 @@ public class IdentifiersValidator {
   private IdentifiersUsage processRelatedIdentifiers(InputStream identifiersFile) {
     Set<Identifier> relatedIdentifiers = new HashSet<>();
     Set<Identifier> identifiersInUse = new HashSet<>();
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(identifiersFile))) {
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(identifiersFile, StandardCharsets.UTF_8))) {
       String line;
       while((line = reader.readLine()) != null){
         asIdentifier(line).ifPresent(relatedIdentifier -> {
