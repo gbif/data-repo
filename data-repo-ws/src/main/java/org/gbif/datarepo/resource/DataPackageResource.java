@@ -147,7 +147,7 @@ public class DataPackageResource {
                                                     @Nullable @QueryParam("type") Identifier.Type type,
                                                     @Nullable @QueryParam("relationType") Identifier.RelationType relationType,
                                                     @Nullable @QueryParam("created") Date created) {
-    UUID dataPackageKey = getDataPackageByIdentifier(identifier).map(DataPackage::getKey).orElse(null);
+    UUID dataPackageKey = getDataPackageByIdentifier(dataPackageIdentifier).map(DataPackage::getKey).orElse(null);
     return dataRepository.listIdentifiers(user, page, identifier, dataPackageKey, type, relationType, created);
   }
 
