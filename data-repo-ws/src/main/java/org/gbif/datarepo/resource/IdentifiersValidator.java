@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.BadRequestException;
+
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

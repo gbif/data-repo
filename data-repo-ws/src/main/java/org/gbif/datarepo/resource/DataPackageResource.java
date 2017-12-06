@@ -14,6 +14,7 @@ import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 import org.gbif.datarepo.resource.api.DataPackageRequest;
+import org.gbif.datarepo.resource.api.NamedInputStream;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
@@ -163,18 +164,19 @@ public class DataPackageResource {
   public DataPackage create(
                             @FormDataParam(DP_FORM_PARAM) DataPackageRequest dataPackageRequest,
                             @FormDataParam(FILE_PARAM) List<FormDataBodyPart> files,
-                            @FormDataParam(IDENTIFIERS_FILE_PARAM) InputStream identifiersFile,
+                            @FormDataParam(IDENTIFIERS_FILE_PARAM) FormDataBodyPart identifiersFile,
                             @Auth GbifUserPrincipal principal) throws IOException {
 
     //check that files + urlFiles are not empty
     validateFiles(files, dataPackageRequest.getContentFiles());
     checkFileLocations(dataPackageRequest.getContentFiles());
     try {
-      DataPackage dataPackage = JacksonObjectMapperProvider.MAPPER
-                                  .readValue(multiPart.getField(DP_FORM_PARAM).getValueAs(String.class),
-                                             DataPackage.class);
+      DataPackageRequest.Builder builder = dataPackageRequest.toBuilder();
+      if (identifiersFile != null) {
+        builder.setRelatedIdentifiers(identifiersValidator.validateIdentifiers(identifiersFile, dataPackageRequest.getRelatedIdentifiers()));
+      }
+
       //Validates all javax.validation annotations
-      validateDataPackage(dataPackage);
       dataPackage.setRelatedIdentifiers(identifiersValidator.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, dataPackageRequest.getContentFiles()), true);
@@ -183,6 +185,11 @@ public class DataPackageResource {
       LOG.error("Error creating data package", ex);
       throw buildWebException(ex, Status.INTERNAL_SERVER_ERROR, "Error creating data package");
     }
+  }
+
+  private static NamedInputStream asNamedInputStream(FormDataBodyPart formDataBodyPart) {
+    return NamedInputStream.builder().setName(formDataBodyPart.getContentDisposition().getFileName())
+      .setInputStream(formDataBodyPart.getValueAs(InputStream.class)).build();
   }
 
   /**

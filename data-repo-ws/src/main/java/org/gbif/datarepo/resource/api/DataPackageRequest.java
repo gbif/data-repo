@@ -70,6 +70,8 @@ public abstract class DataPackageRequest {
     return new AutoValue_DataPackageRequest.Builder();
   }
 
+  public abstract Builder toBuilder();
+
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
   public abstract static class Builder {
