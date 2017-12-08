@@ -16,6 +16,9 @@ import org.apache.hadoop.fs.RawLocalFileSystem;
 public class DataRepoConfiguration  {
 
   @NotNull
+  private String dataRepoName;
+
+  @NotNull
   private String dataRepoPath;
 
   @Nullable
@@ -37,6 +40,18 @@ public class DataRepoConfiguration  {
 
   @NotNull
   private ApplicationKeyConfiguration appKey;
+
+  /**
+   * Repository name, used to set ownership and sharing of data packages.
+   * All repositories with the same name can manage (CRUD ops) data packages created from that repository.
+   */
+  public String getDataRepoName() {
+    return dataRepoName;
+  }
+
+  public void setDataRepoName(String dataRepoName) {
+    this.dataRepoName = dataRepoName;
+  }
 
   /**
    * File system path where the archives are being stored.

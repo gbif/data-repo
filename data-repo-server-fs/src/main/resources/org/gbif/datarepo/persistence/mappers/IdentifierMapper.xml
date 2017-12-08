@@ -20,26 +20,29 @@
   </select>
 
   <select id="list" resultType="Identifier" resultMap="IDENTIFIER_MAP" parameterType="map">
-    SELECT key, identifier, data_package_key, type, relation_type, created, created_by
-    FROM identifier
+    SELECT i.key, i.identifier, i.data_package_key, i.type, i.relation_type, i.created, i.created_by
+    FROM identifier i
+    <if test="publishedIn != null" >
+      LEFT JOIN data_package dp ON dp.key = i.data_package_key AND #{publishedIn, jdbcType=OTHER} = ANY(array_append(dp.share_in, dp.published_in))
+    </if>
     <where>
       <if test="user != null" >
-        AND created_by=#{user, jdbcType=OTHER}
+        AND i.created_by=#{user, jdbcType=OTHER}
       </if>
       <if test="created != null" >
-        AND created=#{created, jdbcType=TIMESTAMP}
+        AND i.created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageKey != null" >
-        AND data_package_key=#{dataPackageKey, jdbcType=OTHER}
+        AND i.data_package_key=#{dataPackageKey, jdbcType=OTHER}
       </if>
       <if test="type != null" >
-        AND type=#{type, jdbcType=OTHER}
+        AND i.type=#{type, jdbcType=OTHER}
       </if>
       <if test="relationType != null" >
-        AND relation_type=#{relationType, jdbcType=OTHER}
+        AND i.relation_type=#{relationType, jdbcType=OTHER}
       </if>
       <if test="identifier != null" >
-        AND identifier=#{identifier, jdbcType=OTHER}
+        AND i.identifier=#{identifier, jdbcType=OTHER}
       </if>
     </where>
     <if test="page != null" >
@@ -48,25 +51,28 @@
   </select>
 
   <select id="count" resultType="Long" parameterType="map">
-    SELECT count(*) FROM identifier
+    SELECT count(*) FROM identifier i
+    <if test="publishedIn != null" >
+      LEFT JOIN data_package dp ON dp.key = i.data_package_key AND #{publishedIn, jdbcType=OTHER} = ANY(array_append(dp.share_in, dp.published_in))
+    </if>
     <where>
       <if test="user != null" >
-        AND created_by=#{user, jdbcType=OTHER}
+        AND i.created_by=#{user, jdbcType=OTHER}
       </if>
       <if test="created != null" >
-        AND created=#{created, jdbcType=TIMESTAMP}
+        AND i.created=#{created, jdbcType=TIMESTAMP}
       </if>
       <if test="dataPackageKey != null" >
-        AND data_package_key=#{dataPackageKey, jdbcType=OTHER}
+        AND i.data_package_key=#{dataPackageKey, jdbcType=OTHER}
       </if>
       <if test="type != null" >
-        AND type=#{type, jdbcType=OTHER}
+        AND i.type=#{type, jdbcType=OTHER}
       </if>
       <if test="relationType != null" >
-        AND relation_type=#{relationType, jdbcType=OTHER}
+        AND i.relation_type=#{relationType, jdbcType=OTHER}
       </if>
       <if test="identifier != null" >
-        AND identifier=#{identifier, jdbcType=OTHER}
+        AND i.identifier=#{identifier, jdbcType=OTHER}
       </if>
     </where>
   </select>

@@ -52,15 +52,19 @@ public class FileSystemDataRepository implements DataRepository {
 
   private final DataRepoFileSystemService fileSystemService;
 
+  private final String dataRepoName;
+
   /**
    * Default constructor: requires a path to an existing directory.
    */
   public FileSystemDataRepository(DoiRegistrationService doiRegistrationService,
                                   DataRepoPersistenceService persistenceService,
-                                  DataRepoFileSystemService fileSystemService) {
-      this.persistenceService = persistenceService;
-      this.doiRegistrationService = doiRegistrationService;
-      this.fileSystemService = fileSystemService;
+                                  DataRepoFileSystemService fileSystemService,
+                                  String dataRepoName) {
+    this.persistenceService = persistenceService;
+    this.doiRegistrationService = doiRegistrationService;
+    this.fileSystemService = fileSystemService;
+    this.dataRepoName = dataRepoName;
   }
 
 
@@ -72,11 +76,29 @@ public class FileSystemDataRepository implements DataRepository {
   }
 
   /**
+   * Can this repository modify/delete this data package.
+   */
+  private void checkOwnership(DataPackage dataPackage) {
+    if (!dataRepoName.equalsIgnoreCase(dataPackage.getPublishedIn())) {
+      throw new IllegalAccessError("This repository can't modify packages published by another repositories");
+    }
+  }
+
+  /**
+   * Can this repository expose this data package.
+   */
+  private boolean canShareIt(DataPackage dataPackage) {
+    return (dataRepoName.equalsIgnoreCase(dataPackage.getPublishedIn()) ||
+            (dataPackage.getShareIn() != null && dataPackage.getShareIn().contains(dataRepoName)));
+  }
+
+  /**
    * Deletes the entire directory and its contents from a DOI.
    */
   @Override
   public void delete(UUID key) {
     DataPackage dataPackage = persistenceService.getDataPackage(key);
+    checkOwnership(dataPackage);
     persistenceService.deleteDataPackage(key);
     Optional.ofNullable(dataPackage.getDoi())
       .ifPresent(doi ->  doiRegistrationService.delete(doi.getPrefix(), doi.getSuffix()));
@@ -101,6 +123,7 @@ public class FileSystemDataRepository implements DataRepository {
     newDataPackage.setCreated(dataPackage.getCreated());
     newDataPackage.setModified(dataPackage.getModified());
     newDataPackage.setLicense(dataPackage.getLicense());
+    newDataPackage.setPublishedIn(dataRepoName);
 
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
@@ -143,7 +166,8 @@ public class FileSystemDataRepository implements DataRepository {
   @Override
   public boolean isAlternativeIdentifierInUse(Identifier alternativeIdentifier) {
     return persistenceService.listIdentifiers(null, null, alternativeIdentifier.getIdentifier(), null, null,
-                                              Identifier.RelationType.IsAlternativeOf, null).getCount() > 0;
+                                              Identifier.RelationType.IsAlternativeOf, null, dataRepoName)
+             .getCount() > 0;
   }
 
   /**
@@ -182,7 +206,6 @@ public class FileSystemDataRepository implements DataRepository {
                                                          .withUser(dataPackage.getCreatedBy())
                                                          .withDoi(dataPackage.getDoi()).build()) : null,
                                            dataPackageKey));
-
       //Persist data package info
       return setCitation(persistenceService.create(newDataPackage));
     } catch (Exception ex) {
@@ -204,6 +227,7 @@ public class FileSystemDataRepository implements DataRepository {
     }
 
     DataPackage preparedDataPackage = prePersist(dataPackage, files, dataPackage.getKey());
+    get(dataPackage.getKey()).ifPresent(this::checkOwnership);
     persistenceService.update(dataPackage, mode);
     handleMetadata(metadata, dataCiteMetadata -> preparedDataPackage.getDoi() != null ?
                                                     doiRegistrationService.update(DoiRegistration.builder()
@@ -255,7 +279,7 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(UUID dataPackageKey) {
-    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(dataPackageKey)));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(dataPackageKey))).filter(this::canShareIt);
   }
 
   /**
@@ -263,7 +287,7 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> get(DOI doi) {
-    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(doi)));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackage(doi))).filter(this::canShareIt);
   }
 
   /**
@@ -271,10 +295,11 @@ public class FileSystemDataRepository implements DataRepository {
    */
   @Override
   public Optional<DataPackage> getByAlternativeIdentifier(String identifier) {
-    return Optional.ofNullable(setCitation(persistenceService.getDataPackageByAlternativeIdentifier(identifier)));
+    return Optional.ofNullable(setCitation(persistenceService.getDataPackageByAlternativeIdentifier(identifier)))
+      .filter(this::canShareIt);
   }
 
-  private DataPackage setCitation(DataPackage dataPackage) {
+  private static DataPackage setCitation(DataPackage dataPackage) {
     if (dataPackage != null) {
       dataPackage.setCitation(CitationGenerator.generateCitation(dataPackage));
     }
@@ -289,7 +314,8 @@ public class FileSystemDataRepository implements DataRepository {
                                           @Nullable Date fromDate, @Nullable Date toDate,
                                           @Nullable Boolean deleted, @Nullable List<String> tags,
                                           @Nullable String q) {
-    return persistenceService.listDataPackages(user, page, fromDate, toDate, deleted, tags, q);
+    return persistenceService.listDataPackages(user, page, fromDate, toDate, deleted, tags, dataRepoName, dataRepoName,
+                                               q);
   }
 
   /**
@@ -302,7 +328,8 @@ public class FileSystemDataRepository implements DataRepository {
                                                     @Nullable Identifier.Type type,
                                                     @Nullable Identifier.RelationType relationType,
                                                     @Nullable Date created) {
-    return persistenceService.listIdentifiers(user, page, identifier, dataPackageKey, type, relationType, created);
+    return persistenceService.listIdentifiers(user, page, identifier, dataPackageKey, type, relationType, created,
+                                              dataRepoName);
   }
 
 

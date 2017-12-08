@@ -23,6 +23,8 @@ CREATE TABLE data_package (
     modified_by varchar(255) NOT NULL CHECK (length(modified_by) >= 3),
     checksum varchar(32) NOT NULL CHECK (length(checksum) = 32),
     size bigint,
+    published_in varchar(255) NOT NULL,
+    share_in varchar(255)[],
     fulltext_search tsvector
 );
 

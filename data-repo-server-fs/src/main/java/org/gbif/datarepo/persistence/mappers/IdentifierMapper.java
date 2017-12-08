@@ -28,7 +28,8 @@ public interface IdentifierMapper {
                         @Nullable @Param("dataPackageKey") UUID dataPackageKey,
                         @Nullable @Param("type") Identifier.Type type,
                         @Nullable @Param("relationType") Identifier.RelationType relationType,
-                        @Nullable @Param("created") Date created);
+                        @Nullable @Param("created") Date created,
+                        @Nullable @Param("publishedIn") String publishedIn);
 
   /**
    * Count AlternativeIdentifiers, optionally filtered by user.
@@ -38,7 +39,8 @@ public interface IdentifierMapper {
              @Nullable @Param("dataPackageKey") UUID dataPackageKey,
              @Nullable @Param("type") Identifier.Type type,
              @Nullable @Param("relationType") Identifier.RelationType relationType,
-             @Nullable @Param("created") Date created);
+             @Nullable @Param("created") Date created,
+             @Nullable @Param("publishedIn") String publishedIn);
 
 
   /**

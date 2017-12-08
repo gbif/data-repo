@@ -96,6 +96,12 @@ public class DataPackage {
   @JsonProperty
   private String citation;
 
+  @JsonIgnore
+  private String publishedIn;
+
+  @JsonIgnore
+  private Set<String> shareIn;
+
   private final String baseUrl;
 
   /**
@@ -310,6 +316,28 @@ public class DataPackage {
     this.citation = citation;
   }
 
+  public String getPublishedIn() {
+    return publishedIn;
+  }
+
+  /**
+   * Repository that published/created this data package.
+   */
+  public void setPublishedIn(String publishedIn) {
+    this.publishedIn = publishedIn;
+  }
+
+  /**
+   * Repositories that can share this data package.
+   */
+  public Set<String> getShareIn() {
+    return shareIn;
+  }
+
+  public void setShareIn(Set<String> shareIn) {
+    this.shareIn = shareIn;
+  }
+
   /**
    * Adds a new file to the list from containing files.
    * The baseUrl is prepend to the file name.
@@ -388,14 +416,16 @@ public class DataPackage {
            && Objects.equals(tags, other.tags)
            && Objects.equals(creators, other.creators)
            && Objects.equals(citation, other.citation)
-           && Objects.equals(license, other.license);
+           && Objects.equals(license, other.license)
+           && Objects.equals(publishedIn, other.publishedIn)
+           && Objects.equals(shareIn, other.shareIn);
 
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(doi, files, createdBy, created, title, description, modified, size, checksum,
-                        relatedIdentifiers, tags, creators, citation, license);
+                        relatedIdentifiers, tags, creators, citation, license, publishedIn, shareIn);
   }
 
   @Override
@@ -413,7 +443,9 @@ public class DataPackage {
            + "\", \"creators\": \"" + creators
            + "\", \"citation\": \"" + citation
            + "\", \"license\": \"" + license
-           + "\", \"tags\": \"" + tags + "\"}";
+           + "\", \"tags\": \"" + tags
+           + "\", \"publishedIn\": \"" + publishedIn
+           + "\", \"shareIn\": \"" + shareIn + "\"}";
   }
 
   /**
@@ -437,6 +469,8 @@ public class DataPackage {
     dataPackage.setCreators(creators);
     dataPackage.setCitation(citation);
     dataPackage.setLicense(license);
+    dataPackage.setPublishedIn(publishedIn);
+    dataPackage.setShareIn(shareIn);
     return dataPackage;
   }
 

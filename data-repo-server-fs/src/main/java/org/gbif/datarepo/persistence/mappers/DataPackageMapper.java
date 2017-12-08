@@ -33,6 +33,7 @@ public interface DataPackageMapper {
   List<DataPackage> list(@Nullable @Param("user") String user, @Nullable @Param("page") Pageable page,
                          @Nullable @Param("fromDate") Date fromDate, @Nullable @Param("toDate") Date toDate,
                          @Nullable @Param("deleted") Boolean deleted, @Nullable @Param("tags") List<String> tags,
+                         @Nullable @Param("publishedIn") String publishedIn, @Nullable @Param("shareIn") String shareIn,
                          @Nullable @Param("query") String q);
 
   /**
@@ -40,7 +41,8 @@ public interface DataPackageMapper {
    */
   Long count(@Nullable @Param("user") String user, @Nullable @Param("fromDate") Date fromDate,
              @Nullable @Param("toDate") Date toDate, @Nullable @Param("deleted") Boolean deleted,
-             @Nullable @Param("tags") List<String> tags, @Nullable @Param("query") String q);
+             @Nullable @Param("tags") List<String> tags, @Nullable @Param("publishedIn") String publishedIn,
+             @Nullable @Param("shareIn") String shareIn, @Nullable @Param("query") String q);
 
   /**
    * Persists a new data package.

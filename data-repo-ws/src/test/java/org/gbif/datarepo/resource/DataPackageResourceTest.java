@@ -83,6 +83,8 @@ import static org.gbif.datarepo.test.utils.ResourceTestUtils.dataBodyPartOfJsonC
  */
 public class DataPackageResourceTest extends BaseMapperTest {
 
+  private static final String TEST_REPO_NAME = "TestRepo";
+
   private static final GenericType<PagingResponse<DataPackage>> GENERIC_DATA_PACKAGE_PAGING_RESPONSE =
     new GenericType<PagingResponse<DataPackage>>(){};
 
@@ -182,7 +184,8 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                                                     .getDataRepoConfiguration()
                                                                                                     .getDataRepoPath()),
                                                                     configuration().getDataRepoConfiguration()
-                                                                    .getFileSystem())),
+                                                                    .getFileSystem()),
+                                                                      TEST_REPO_NAME),
                                          configuration(), Validation.buildDefaultValidatorFactory().getValidator(),
                                          mockOrcidService()))
     .build();

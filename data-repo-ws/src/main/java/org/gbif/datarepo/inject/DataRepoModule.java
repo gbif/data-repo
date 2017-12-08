@@ -92,8 +92,10 @@ public class DataRepoModule {
    * Creates an instance of DataRepository that is backed by a file system.
    */
   public DataRepository dataRepository() {
-    return new FileSystemDataRepository(doiRegistrationService(), injector.getInstance(DataRepoPersistenceService.class),
-                                        getDataRepoFileSystemService());
+    return new FileSystemDataRepository(doiRegistrationService(),
+                                        injector.getInstance(DataRepoPersistenceService.class),
+                                        getDataRepoFileSystemService(),
+                                        configuration.getDataRepoConfiguration().getDataRepoName());
   }
 
 }

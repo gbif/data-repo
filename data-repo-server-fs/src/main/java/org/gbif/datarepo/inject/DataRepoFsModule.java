@@ -62,7 +62,8 @@ public class DataRepoFsModule {
     return new FileSystemDataRepository(doiRegistrationService(mapper),
                                         injector.getInstance(DataRepoPersistenceService.class),
                                         new DataRepoFileSystemService(new Path(configuration.getDataRepoPath()),
-                                                                  configuration.getFileSystem()));
+                                                                  configuration.getFileSystem()),
+                                        configuration.getDataRepoName());
   }
 
 }

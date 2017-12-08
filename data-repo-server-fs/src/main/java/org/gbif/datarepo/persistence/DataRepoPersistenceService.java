@@ -45,7 +45,7 @@ public class DataRepoPersistenceService {
   /**
    * Executes the listing operation if the page is not null and the pageable.limit > 0.
    */
-  private static <L> PagingResponse<L> doPageableResponse(Pageable pageable,
+  private static <L> PagingResponse<L> asPageableResponse(Pageable pageable,
                                                           Supplier<Long> countSupplier,
                                                           Supplier<List<L>> listSupplier) {
     Pageable pagingRequest = Optional.ofNullable(pageable).orElse(EMPTY_PAGE);
@@ -157,7 +157,7 @@ public class DataRepoPersistenceService {
                                                                   dataPackageFile.getFileName())));
   }
 
-  private List<DataPackage> setCitation(List<DataPackage> dataPackages) {
+  private static List<DataPackage> setCitation(List<DataPackage> dataPackages) {
     if (dataPackages !=null) {
       dataPackages.forEach(dp -> dp.setCitation(CitationGenerator.generateCitation(dp)));
     }
@@ -165,12 +165,13 @@ public class DataRepoPersistenceService {
   }
 
   public PagingResponse<DataPackage> listDataPackages(String user, @Nullable Pageable page,
-                                          @Nullable Date fromDate, @Nullable Date toDate,
-                                          @Nullable Boolean deleted, @Nullable List<String> tags,
-                                          @Nullable String q) {
-    return doPageableResponse(page,
-                              () -> dataPackageMapper.count(user, fromDate, toDate, deleted, tags, q),
-                              () -> setCitation(dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, q)));
+                                                      @Nullable Date fromDate, @Nullable Date toDate,
+                                                      @Nullable Boolean deleted, @Nullable List<String> tags,
+                                                      @Nullable String publishedIn, @Nullable String shareIn,
+                                                      @Nullable String q) {
+    return asPageableResponse(page,
+                              () -> dataPackageMapper.count(user, fromDate, toDate, deleted, tags, publishedIn, shareIn, q),
+                              () -> setCitation(dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, publishedIn, shareIn, q)));
   }
 
   /**
@@ -181,12 +182,13 @@ public class DataRepoPersistenceService {
                                                     @Nullable UUID dataPackageKey,
                                                     @Nullable Identifier.Type type,
                                                     @Nullable Identifier.RelationType relationType,
-                                                    @Nullable Date created) {
-    return doPageableResponse(page,
+                                                    @Nullable Date created,
+                                                    @Nullable String publishedIn) {
+    return asPageableResponse(page,
                               () -> identifierMapper.count(user, identifier, dataPackageKey, type, relationType,
-                                                           created),
+                                                           created, publishedIn),
                               () -> identifierMapper.list(user, page, identifier, dataPackageKey, type, relationType,
-                                                          created));
+                                                          created, publishedIn));
   }
 
   public RepositoryStats getRepositoryStats() {

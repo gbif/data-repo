@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.inject.Injector;
 import org.junit.Assert;
@@ -24,6 +25,9 @@ import org.junit.Test;
  * Integration tests of DataPackageMapper.
  */
 public class DataPackageFileMapperTest extends BaseMapperTest {
+
+  private static final String TEST_REPO_NAME = "TestRepo";
+  private static final String TEST_OTHER_REPO_NAME = "OtherRepo";
 
   //Guice injector used to instantiate Mappers.
   private static Injector injector;
@@ -65,6 +69,8 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     dataPackage.setDescription("test data package description");
     dataPackage.setSize(1);
     dataPackage.setTitle("test");
+    dataPackage.setPublishedIn(TEST_REPO_NAME);
+    dataPackage.setShareIn(Sets.newHashSet(TEST_OTHER_REPO_NAME));
     dataPackage.setLicense(License.CC_BY_NC_4_0);
     dataPackage.addFile(new DataPackageFile("test.xml", testChecksum, 1));
     return dataPackage;
@@ -98,8 +104,8 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, null, query);
-    Long count = mapper.count(null, null, null, null, null, query);
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, null, null, null, query);
+    Long count = mapper.count(null, null, null, null, null, null, null, query);
     Assert.assertTrue(assertion.apply(dataPackages, count));
   }
 
@@ -114,6 +120,26 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
 
     DataPackage justCreated = mapper.getByKey(DATA_PACKAGE_KEY_TEST);
     Assert.assertEquals(justCreated.getDoi(), dataPackage.getDoi());
+  }
+
+  /**
+   * Tests methods create and get.
+   */
+  @Test
+  public void testPublishInRepos() {
+    DataPackage dataPackage = testDataPackage();
+    insertDataPackage(dataPackage);
+    DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
+    List<DataPackage> packages = mapper.list(null, null, null, null, null, null, TEST_REPO_NAME, null, null);
+    Long packagesCount = mapper.count(null, null, null, null, null, TEST_REPO_NAME, null, null);
+    Assert.assertTrue("DataPackage not found in repository",
+                      packages.stream().anyMatch(dp -> dp.getKey().equals(dataPackage.getKey())));
+    Assert.assertTrue("DataPackage not found in repository", packagesCount > 0);
+
+    List<DataPackage> packagesNotInRepo = mapper.list(null, null, null, null, null, null, TEST_OTHER_REPO_NAME, null, null);
+    Long packagesNotInRepoCount = mapper.count(null, null, null, null, null, TEST_OTHER_REPO_NAME, null, null);
+    Assert.assertTrue("No DataPackages must be found in this repository", packagesNotInRepo.stream().noneMatch(dp -> dp.getKey().equals(dataPackage.getKey())));
+    Assert.assertTrue("No DataPackages must be found in this repository", packagesNotInRepoCount == 0);
   }
 
   /**
@@ -149,7 +175,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false, null, null);
+    List<DataPackage> dataPackages = mapper.list("testUser", null, null, null, false, null, null, null, null);
     Assert.assertTrue(dataPackages.size() >=  1);
   }
 
@@ -164,7 +190,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     List<DataPackage> dataPackages = mapper.list(null, null, null, null, null,
                                                  dataPackage.getTags().stream()
                                                    .map(Tag::getValue).collect(Collectors.toList()),
-                                                 null);
+                                                 null, null, null);
     Assert.assertTrue(dataPackages.size() >=  1);
   }
 
@@ -176,8 +202,8 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     insertDataPackage(dataPackage);
-    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"), null);
-    Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"), null);
+    List<DataPackage> dataPackages = mapper.list(null, null, null, null, null, Collections.singletonList("NoATag"), null, null, null);
+    Long count = mapper.count(null, null, null, null, Collections.singletonList("NoATag"), null, null, null);
     Assert.assertTrue(dataPackages.isEmpty());
     Assert.assertTrue(count ==  0);
   }
@@ -190,7 +216,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     DataPackageMapper mapper = injector.getInstance(DataPackageMapper.class);
     DataPackage dataPackage = testDataPackage();
     mapper.create(dataPackage);
-    Assert.assertTrue(mapper.count("testUser", null, null, false, null, null) >= 1);
+    Assert.assertTrue(mapper.count("testUser", null, null, false, null, null, null, null) >= 1);
   }
 
   /**

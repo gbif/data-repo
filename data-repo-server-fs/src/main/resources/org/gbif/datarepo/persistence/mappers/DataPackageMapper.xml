@@ -14,6 +14,8 @@
     <result property="createdBy" column="created_by"/>
     <result property="checksum" column="checksum"/>
     <result property="size" column="size"/>
+    <result property="publishedIn" column="published_in"/>
+    <result property="shareIn" column="share_in" typeHandler="TextArrayToSetTypeHandler"/>
     <collection property="files" column="key" select="listDataPackageFiles"/>
     <collection property="tags" column="key" select="listTags"/>
     <collection property="creators" column="key" select="listCreators"/>
@@ -21,7 +23,7 @@
   </resultMap>
 
   <sql id="DATA_PACKAGE_FIELDS">
-    dp.key, dp.doi, dp.title, dp.description, dp.license, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size
+    dp.key, dp.doi, dp.title, dp.description, dp.license, dp.created, dp.modified, dp.deleted, dp.created_by, dp.checksum, dp.size, dp.published_in, dp.share_in
   </sql>
 
   <select id="getByDOI" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP">
@@ -88,6 +90,12 @@
           #{item}
         </foreach>
       </if>
+      <if test="publishedIn !=null" >
+        AND published_in=#{publishedIn,jdbcType=OTHER}
+      </if>
+      <if test="shareIn !=null" >
+        AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
+      </if>
       <if test="query !=null" >
         AND query @@ dp.fulltext_search
       </if>
@@ -127,18 +135,25 @@
         #{item}
       </foreach>
     </if>
+    <if test="publishedIn !=null" >
+      AND published_in=#{publishedIn,jdbcType=OTHER}
+    </if>
+    <if test="shareIn !=null" >
+      AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
+    </if>
     <if test="query !=null" >
       AND query @@ dp.fulltext_search
     </if>
   </select>
 
   <insert id="create" parameterType="DataPackage" useGeneratedKeys="false">
-    INSERT INTO data_package (key, doi, title, description, license, created, modified, created_by, modified_by, checksum, size)
+    INSERT INTO data_package (key, doi, title, description, license, created, modified, created_by, modified_by, checksum, size, published_in, share_in)
     VALUES(#{key, jdbcType=OTHER, typeHandler=UuidTypeHandler}, #{doi, jdbcType=OTHER, typeHandler=DoiTypeHandler}, #{title, jdbcType=OTHER},
     #{description, jdbcType=OTHER},  #{license, jdbcType=OTHER},
     <choose><when test="created !=null " >#{created, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
     <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
-    #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER})
+    #{createdBy, jdbcType=OTHER}, #{createdBy,jdbcType=OTHER}, #{checksum,jdbcType=OTHER}, #{size,jdbcType=OTHER},
+    #{publishedIn,jdbcType=OTHER}, #{shareIn,jdbcType=OTHER,typeHandler=TextArrayToSetTypeHandler})
   </insert>
 
   <update id="update" parameterType="DataPackage">
@@ -149,7 +164,8 @@
         modified = <choose><when test="modified != null" >#{modified, jdbcType=TIMESTAMP}</when><otherwise>now()</otherwise></choose>,
         modified_by = #{createdBy, jdbcType=OTHER},
         checksum = #{checksum, jdbcType=OTHER},
-        size = #{size, jdbcType=OTHER}
+        size = #{size, jdbcType=OTHER},
+        share_in = #{shareIn, jdbcType=OTHER, typeHandler=TextArrayToSetTypeHandler}
     WHERE key = #{key, jdbcType=OTHER}
   </update>
 
