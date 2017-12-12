@@ -99,7 +99,7 @@ public class DataPackage {
   @JsonIgnore
   private String publishedIn;
 
-  @JsonIgnore
+  @JsonProperty
   private Set<String> shareIn;
 
   private final String baseUrl;
