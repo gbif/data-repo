@@ -90,12 +90,20 @@
           #{item}
         </foreach>
       </if>
-      <if test="publishedIn !=null" >
-        AND published_in=#{publishedIn,jdbcType=OTHER}
-      </if>
-      <if test="shareIn !=null" >
-        AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
-      </if>
+      <choose>
+        <when test="publishedIn !=null and shareIn !=null">
+          AND (#{publishedIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in)) OR
+          #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in)))
+        </when>
+        <otherwise>
+          <if test="publishedIn !=null" >
+            AND published_in=#{publishedIn,jdbcType=OTHER}
+          </if>
+          <if test="shareIn !=null" >
+            AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
+          </if>
+        </otherwise>
+      </choose>
       <if test="query !=null" >
         AND query @@ dp.fulltext_search
       </if>
@@ -135,12 +143,20 @@
         #{item}
       </foreach>
     </if>
-    <if test="publishedIn !=null" >
-      AND published_in=#{publishedIn,jdbcType=OTHER}
-    </if>
-    <if test="shareIn !=null" >
-      AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
-    </if>
+    <choose>
+      <when test="publishedIn !=null and shareIn !=null">
+        AND (#{publishedIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in)) OR
+        #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in)))
+      </when>
+      <otherwise>
+        <if test="publishedIn !=null" >
+          AND published_in=#{publishedIn,jdbcType=OTHER}
+        </if>
+        <if test="shareIn !=null" >
+          AND #{shareIn,jdbcType=OTHER} = ANY(array_append(share_in,published_in))
+        </if>
+      </otherwise>
+    </choose>
     <if test="query !=null" >
       AND query @@ dp.fulltext_search
     </if>
