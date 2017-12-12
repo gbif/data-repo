@@ -124,6 +124,7 @@ public class FileSystemDataRepository implements DataRepository {
     newDataPackage.setModified(dataPackage.getModified());
     newDataPackage.setLicense(dataPackage.getLicense());
     newDataPackage.setPublishedIn(dataRepoName);
+    newDataPackage.setShareIn(dataPackage.getShareIn());
 
     //store all the submitted files
     newFiles.stream().forEach(fileInputContent -> {
