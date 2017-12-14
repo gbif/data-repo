@@ -68,14 +68,14 @@
 
     <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
-    <gbif-doi.version>1.6-SNAPSHOT</gbif-doi.version>
+    <gbif-doi.version>1.6</gbif-doi.version>
     <gbif-common.version>0.35</gbif-common.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-api.version>0.58-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.58</gbif-api.version>
     <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <service-discovery.version>0.1</service-discovery.version>
     <gbif-common-mybatis.version>0.28</gbif-common-mybatis.version>
-    <gbif-registry.version>2.70</gbif-registry.version>
+    <gbif-registry.version>2.75</gbif-registry.version>
     <findbugs.version>3.0.1</findbugs.version>
 
     <!-- fixed to the version coming with Dropwizard -->
