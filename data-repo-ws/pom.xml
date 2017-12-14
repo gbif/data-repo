@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.gbif.data</groupId>
     <artifactId>data-repo-motherpom</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>data-repo-ws</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GBIF Data Repo WS</name>
