@@ -21,6 +21,7 @@ import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_HEADERS_PARAM
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_ORIGINS_PARAM;
 import static org.eclipse.jetty.servlets.CrossOriginFilter.CHAIN_PREFLIGHT_PARAM;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -108,9 +109,10 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
     corsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
     corsFilter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
-    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization");
+    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Content-Length,Accept,Origin,Authorization");
     corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
     corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
+    corsFilter.setInitParameter(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
     corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
 
 
