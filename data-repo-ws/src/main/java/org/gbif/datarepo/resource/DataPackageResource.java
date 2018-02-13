@@ -16,6 +16,7 @@ import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
+import org.gbif.datarepo.resource.logging.EventLogger;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
@@ -183,6 +184,7 @@ public class DataPackageResource {
       dataPackage.setRelatedIdentifiers(identifiersValidator.validateIdentifiers(multiPart, dataPackage.getRelatedIdentifiers()));
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles), true);
+      EventLogger.logCreate(LOG, principal, newDataPackage.getDoi().getDoiName());
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
@@ -274,7 +276,9 @@ public class DataPackageResource {
   @Path("{identifier}")
   public DataPackage get(@PathParam("identifier") String identifier)  {
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
-    return getOrNotFound(identifier);
+    DataPackage dataPackage = getOrNotFound(identifier);
+    EventLogger.logRead(LOG, dataPackage.getDoi().getDoiName());
+    return dataPackage;
   }
 
 
@@ -295,7 +299,7 @@ public class DataPackageResource {
         //Check file existence before send it in the Response
     return fileInputStream.isPresent() ? Response.ok(fileInputStream.get()).build()
       : Response.status(Status.NOT_FOUND)
-        .entity(String.format("Metadata file not found")).build();
+        .entity("Metadata file not found").build();
 
   }
 
@@ -313,11 +317,11 @@ public class DataPackageResource {
     Optional<InputStream> fileInputStream = dataRepository.getFileInputStream(dataPackage.getKey(), fileName);
 
     //Check file existence before send it in the Response
-    return fileInputStream.isPresent() ? Response.ok(fileInputStream.get())
-                                                    .header(HttpHeaders.CONTENT_DISPOSITION, FILE_ATTACHMENT + fileName)
-                                                    .build()
-                                        : Response.status(Status.NOT_FOUND)
-                                          .entity(String.format("File %s not found", fileName)).build();
+    return fileInputStream.map(inputStream ->  {
+        EventLogger.logRead(LOG, dataPackage.getDoi().getDoiName());
+        return Response.ok(inputStream).header(HttpHeaders.CONTENT_DISPOSITION,
+                                               FILE_ATTACHMENT + fileName).build();
+    }).orElse(Response.status(Status.NOT_FOUND).entity(String.format("File %s not found", fileName)).build());
   }
 
   /**
@@ -333,8 +337,8 @@ public class DataPackageResource {
     Optional<DataPackageFile> dataPackageFile = dataRepository.getFile(dataPackage.getKey(), fileName);
 
     //Check file existence before send it in the Response
-    return dataPackageFile.isPresent() ? Response.ok(dataPackageFile.get()).build()
-      : Response.status(Status.NOT_FOUND).entity(String.format("File %s not found", fileName)).build();
+    return dataPackageFile.map(dp -> Response.ok(dp).build())
+        .orElse(Response.status(Status.NOT_FOUND).entity(String.format("File %s not found", fileName)).build());
   }
 
   /**
@@ -355,6 +359,7 @@ public class DataPackageResource {
 
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
     dataRepository.delete(dataPackage.getKey());
+    EventLogger.logDelete(LOG, principal, dataPackage.getDoi().getDoiName());
   }
 
   @GET
