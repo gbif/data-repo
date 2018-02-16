@@ -170,7 +170,6 @@
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
         <version>${logback.version}</version>
-        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>janino</groupId>
