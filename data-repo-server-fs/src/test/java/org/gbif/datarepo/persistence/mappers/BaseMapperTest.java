@@ -32,7 +32,15 @@ public class BaseMapperTest {
 
   private static String jdbcUrl;
 
-  /**
+   /**
+   *
+   * @return the jdbc connection Url, if ti was created.
+   */
+  protected static String getJdbcUrl() {
+    return jdbcUrl;
+  }
+
+   /**
    * Cheks if the embedded database server has been initialized.
    */
   public static boolean hasInitiated() {

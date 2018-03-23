@@ -12,8 +12,10 @@ import org.gbif.datarepo.persistence.mappers.IdentifierMapper;
 import org.gbif.datarepo.persistence.mappers.CreatorMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageFileMapper;
 import org.gbif.datarepo.persistence.mappers.DataPackageMapper;
+import org.gbif.datarepo.persistence.mappers.LoggingMapper;
 import org.gbif.datarepo.persistence.mappers.RepositoryStatsMapper;
 import org.gbif.datarepo.persistence.mappers.TagMapper;
+import org.gbif.datarepo.persistence.model.DBLoggingEvent;
 import org.gbif.datarepo.persistence.type.DoiTypeHandler;
 import org.gbif.datarepo.persistence.type.TextArrayToListTypeHandler;
 import org.gbif.datarepo.persistence.type.TextArrayToSetTypeHandler;
@@ -23,6 +25,7 @@ import org.gbif.mybatis.guice.MyBatisModule;
 import java.util.Properties;
 import java.util.UUID;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.inject.PrivateModule;
@@ -64,6 +67,8 @@ public class DataPackageMyBatisModule extends PrivateModule {
       addAlias("Tag").to(Tag.class);
       addAlias("Creator").to(Creator.class);
       addAlias("uuid").to(UUID.class);
+      addAlias("DBLoggingEvent").to(DBLoggingEvent.class);
+      addAlias("MDCEntry").to(DBLoggingEvent.MDCEntry.class);
       //Mappers
       addMapperClass(DataPackageMapper.class);
       addMapperClass(DataPackageFileMapper.class);
@@ -71,6 +76,7 @@ public class DataPackageMyBatisModule extends PrivateModule {
       addMapperClass(IdentifierMapper.class);
       addMapperClass(TagMapper.class);
       addMapperClass(CreatorMapper.class);
+      addMapperClass(LoggingMapper.class);
     }
 
     /**
@@ -112,6 +118,7 @@ public class DataPackageMyBatisModule extends PrivateModule {
     expose(IdentifierMapper.class);
     expose(TagMapper.class);
     expose(CreatorMapper.class);
+    expose(LoggingMapper.class);
     bind(DataRepoPersistenceService.class);
     expose(DataRepoPersistenceService.class);
   }

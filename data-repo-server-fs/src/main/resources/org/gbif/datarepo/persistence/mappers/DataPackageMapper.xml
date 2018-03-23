@@ -19,7 +19,6 @@
     <collection property="files" column="key" select="listDataPackageFiles"/>
     <collection property="tags" column="key" select="listTags"/>
     <collection property="creators" column="key" select="listCreators"/>
-
   </resultMap>
 
   <sql id="DATA_PACKAGE_FIELDS">
