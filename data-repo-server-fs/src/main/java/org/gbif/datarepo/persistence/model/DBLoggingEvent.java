@@ -1,8 +1,12 @@
 package org.gbif.datarepo.persistence.model;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
@@ -75,7 +79,7 @@ public class DBLoggingEvent {
     private String callerLine;
     private Long eventId;
 
-    private List<MDCEntry> mdc;
+    private final Map<String,String> mdc = new HashMap<>();
 
     private List<String> stackTrace;
 
@@ -199,12 +203,19 @@ public class DBLoggingEvent {
         this.eventId = eventId;
     }
 
-    public List<MDCEntry> getMdc() {
-        return mdc;
+    public Set<MDCEntry> getMdc() {
+        return mdc.entrySet().stream()
+            .map(entry -> new MDCEntry(entry.getKey(), entry.getValue()))
+            .collect(Collectors.toSet());
     }
 
-    public void setMdc(List<MDCEntry> mdc) {
-        this.mdc = mdc;
+    public MDCEntry getMdc(String key) {
+      return Optional.ofNullable(mdc.get(key)).map(value -> new MDCEntry(key,value)).orElse(null);
+    }
+
+    public void setMdc(Set<MDCEntry> mdc) {
+        mdc.clear();
+        mdc.forEach(mdcEntry -> this.mdc.put(mdcEntry.getKey(), mdcEntry.getValue()));
     }
 
     public List<String> getStackTrace() {
@@ -321,7 +332,7 @@ public class DBLoggingEvent {
       loggingEvent.setLevel(Level.toLevel(level));
       loggingEvent.setLoggerName(loggerName);
       loggingEvent.setThreadName(threadName);
-      loggingEvent.setMDCPropertyMap(mdc.stream().collect(Collectors.toMap(MDCEntry::getKey, MDCEntry::getValue)));
+      loggingEvent.setMDCPropertyMap(getMdc().stream().collect(Collectors.toMap(MDCEntry::getKey, MDCEntry::getValue)));
       loggingEvent.setMessage(formattedMessage);
       loggingEvent.setTimeStamp(timestamp);
       loggingEvent.setCallerData(new StackTraceElement[]{new StackTraceElement(callerClass, callerMethod,

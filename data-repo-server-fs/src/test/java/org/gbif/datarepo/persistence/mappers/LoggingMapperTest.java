@@ -4,8 +4,6 @@ package org.gbif.datarepo.persistence.mappers;
 import org.gbif.datarepo.persistence.model.DBLoggingEvent;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -15,11 +13,9 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.db.DBAppender;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.db.DataSourceConnectionSource;
 import com.google.inject.Injector;
 import com.zaxxer.hikari.HikariDataSource;
-import org.glassfish.jersey.internal.util.Producer;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -27,6 +23,9 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+/**
+ * Tests for class {@link LoggingMapper}.
+ */
 public class LoggingMapperTest extends BaseMapperTest {
 
     //Guice injector used to instantiate Mappers.
