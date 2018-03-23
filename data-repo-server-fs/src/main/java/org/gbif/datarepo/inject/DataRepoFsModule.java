@@ -4,6 +4,7 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.fs.DataRepoFileSystemService;
 import org.gbif.datarepo.persistence.DataPackageMyBatisModule;
 import org.gbif.datarepo.persistence.DataRepoPersistenceService;
+import org.gbif.datarepo.persistence.mappers.LoggingMapper;
 import org.gbif.datarepo.registry.DoiRegistrationWsClient;
 import org.gbif.datarepo.impl.FileSystemDataRepository;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
@@ -64,6 +65,10 @@ public class DataRepoFsModule {
                                         new DataRepoFileSystemService(new Path(configuration.getDataRepoPath()),
                                                                   configuration.getFileSystem()),
                                         configuration.getDataRepoName());
+  }
+
+  public LoggingMapper loggingMapper() {
+      return injector.getInstance(LoggingMapper.class);
   }
 
 }
