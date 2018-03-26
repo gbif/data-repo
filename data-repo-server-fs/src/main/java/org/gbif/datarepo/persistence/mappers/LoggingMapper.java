@@ -19,6 +19,5 @@ public interface LoggingMapper {
 
     Long count(@Nullable @Param("fromDate") Long fromDate,
                @Nullable @Param("toDate") Long toDate,
-               @Nullable @Param("mdc") Map<String,String> mdc,
-               @Nullable @Param("page") Pageable page);
+               @Nullable @Param("mdc") Map<String,String> mdc);
 }

@@ -74,9 +74,6 @@
         ]]>
         </if>
       </where>
-      <if test="page != null" >
-        LIMIT #{page.limit} OFFSET #{page.offset}
-      </if>
     </select>
 
     <select id="listMDCs" resultMap="MDC_ENTRY">

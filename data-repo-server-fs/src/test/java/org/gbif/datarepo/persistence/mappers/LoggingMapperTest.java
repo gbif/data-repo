@@ -1,6 +1,7 @@
 package org.gbif.datarepo.persistence.mappers;
 
 
+import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.datarepo.persistence.model.DBLoggingEvent;
 
 import java.time.Instant;
@@ -108,8 +109,8 @@ public class LoggingMapperTest extends BaseMapperTest {
      * Asserts that the count and list.size match.
      */
     private static void assertCountsOnList(long count, List<DBLoggingEvent> loggingEvents, long countExpected) {
-      Assert.assertEquals("Expected count differs from count", count, countExpected);
-      Assert.assertEquals("Count and list contain different results", count, loggingEvents.size());
+      Assert.assertEquals("Expected count differs from count", countExpected, count);
+      Assert.assertEquals("Count and list contain different results", loggingEvents.size(), count);
     }
 
     /**
@@ -134,25 +135,39 @@ public class LoggingMapperTest extends BaseMapperTest {
       MDC.clear();
 
       //Test a find all query
-      assertCountsOnList(loggingMapper.count(null, null, null, null),
+      assertCountsOnList(loggingMapper.count(null, null, null),
                          loggingMapper.list(null, null, null, null),
                          2);
 
-
       //Test a find by mdc query
-      assertCountsOnList(loggingMapper.count(null, null, mdc, null),
+      assertCountsOnList(loggingMapper.count(null, null, mdc),
                          loggingMapper.list(null, null, mdc, null),
                          1);
 
-
       //Test a find by mdc query
-      assertCountsOnList(loggingMapper.count(now, tomorrow, null, null),
+      assertCountsOnList(loggingMapper.count(now, tomorrow, null),
                          loggingMapper.list(now, tomorrow, null, null),
                          2);
 
       //Expects nothing from tomorrow
-      assertCountsOnList(loggingMapper.count(tomorrow, null, null, null),
+      assertCountsOnList(loggingMapper.count(tomorrow, null, null),
                          loggingMapper.list(tomorrow, null, null, null),
                          0);
+
+      //Paging request tests
+      pagingTest(dbLogger, loggingMapper);
+    }
+
+    /**
+     * Test of paging requests.
+     */
+    private static void pagingTest(Logger logger, LoggingMapper loggingMapper) {
+      for(int i = 0; i < 5; i++) {
+        logger.info("Test {}", i);
+      }
+      PagingRequest pagingRequest = new PagingRequest(0,3);
+      assertCountsOnList(pagingRequest.getLimit(),
+                         loggingMapper.list(null, null, null, pagingRequest),
+                         pagingRequest.getLimit());
     }
 }
