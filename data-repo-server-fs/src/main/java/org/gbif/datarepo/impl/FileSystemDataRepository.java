@@ -88,8 +88,8 @@ public class FileSystemDataRepository implements DataRepository {
    * Can this repository expose this data package.
    */
   private boolean canShareIt(DataPackage dataPackage) {
-    return (dataRepoName.equalsIgnoreCase(dataPackage.getPublishedIn()) ||
-            (dataPackage.getShareIn() != null && dataPackage.getShareIn().contains(dataRepoName)));
+    return dataRepoName.equalsIgnoreCase(dataPackage.getPublishedIn()) ||
+           (dataPackage.getShareIn() != null && dataPackage.getShareIn().contains(dataRepoName));
   }
 
   /**
@@ -127,7 +127,7 @@ public class FileSystemDataRepository implements DataRepository {
     newDataPackage.setShareIn(dataPackage.getShareIn());
 
     //store all the submitted files
-    newFiles.stream().forEach(fileInputContent -> {
+    newFiles.forEach(fileInputContent -> {
       Path newFilePath = fileSystemService.store(dataPackageKey, fileInputContent);
       long fileLength = fileSystemService.fileSize(newFilePath);
       DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName(),

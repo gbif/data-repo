@@ -32,7 +32,7 @@ public class DBLoggingEvent {
         this.value = value;
       }
 
-        public String getKey() {
+      public String getKey() {
         return key;
       }
 
@@ -42,14 +42,14 @@ public class DBLoggingEvent {
 
       @Override
       public boolean equals(Object o) {
-          if(this == o) {
-            return true;
-          }
-          if(o == null || getClass() != o.getClass()) {
-              return false;
-          }
-          MDCEntry mdcEntry = (MDCEntry) o;
-          return Objects.equals(key, mdcEntry.key) && Objects.equals(value, mdcEntry.value);
+        if(this == o) {
+          return true;
+        }
+        if(o == null || getClass() != o.getClass()) {
+          return false;
+        }
+        MDCEntry mdcEntry = (MDCEntry) o;
+        return Objects.equals(key, mdcEntry.key) && Objects.equals(value, mdcEntry.value);
       }
 
       @Override
@@ -57,10 +57,10 @@ public class DBLoggingEvent {
         return Objects.hash(key, value);
       }
 
-        @Override
-        public String toString() {
-            return "MDCEntry{" + "key='" + key + '\'' + ", value='" + value + '\'' + '}';
-        }
+      @Override
+      public String toString() {
+        return "MDCEntry{" + "key='" + key + '\'' + ", value='" + value + '\'' + '}';
+      }
     }
 
     private Long timestamp;
@@ -84,129 +84,129 @@ public class DBLoggingEvent {
     private List<String> stackTrace;
 
     public Long getTimestamp() {
-        return timestamp;
+      return timestamp;
     }
 
     public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
+      this.timestamp = timestamp;
     }
 
     public String getFormattedMessage() {
-        return formattedMessage;
+      return formattedMessage;
     }
 
     public void setFormattedMessage(String formattedMessage) {
-        this.formattedMessage = formattedMessage;
+      this.formattedMessage = formattedMessage;
     }
 
     public String getLoggerName() {
-        return loggerName;
+      return loggerName;
     }
 
     public void setLoggerName(String loggerName) {
-        this.loggerName = loggerName;
+      this.loggerName = loggerName;
     }
 
     public String getLevel() {
-        return level;
+      return level;
     }
 
     public void setLevel(String level) {
-        this.level = level;
+      this.level = level;
     }
 
     public String getThreadName() {
-        return threadName;
+      return threadName;
     }
 
     public void setThreadName(String threadName) {
-        this.threadName = threadName;
+      this.threadName = threadName;
     }
 
     public Integer getReferenceFlag() {
-        return referenceFlag;
+      return referenceFlag;
     }
 
     public void setReferenceFlag(Integer referenceFlag) {
-        this.referenceFlag = referenceFlag;
+      this.referenceFlag = referenceFlag;
     }
 
     public String getArg0() {
-        return arg0;
+      return arg0;
     }
 
     public void setArg0(String arg0) {
-        this.arg0 = arg0;
+      this.arg0 = arg0;
     }
 
     public String getArg1() {
-        return arg1;
+      return arg1;
     }
 
     public void setArg1(String arg1) {
-        this.arg1 = arg1;
+      this.arg1 = arg1;
     }
 
     public String getArg2() {
-        return arg2;
+      return arg2;
     }
 
     public void setArg2(String arg2) {
-        this.arg2 = arg2;
+      this.arg2 = arg2;
     }
 
     public String getArg3() {
-        return arg3;
+      return arg3;
     }
 
     public void setArg3(String arg3) {
-        this.arg3 = arg3;
+      this.arg3 = arg3;
     }
 
     public String getCallerFilename() {
-        return callerFilename;
+      return callerFilename;
     }
 
     public void setCallerFilename(String callerFilename) {
-        this.callerFilename = callerFilename;
+      this.callerFilename = callerFilename;
     }
 
     public String getCallerClass() {
-        return callerClass;
+      return callerClass;
     }
 
     public void setCallerClass(String callerClass) {
-        this.callerClass = callerClass;
+      this.callerClass = callerClass;
     }
 
     public String getCallerMethod() {
-        return callerMethod;
+      return callerMethod;
     }
 
     public void setCallerMethod(String callerMethod) {
-        this.callerMethod = callerMethod;
+      this.callerMethod = callerMethod;
     }
 
     public String getCallerLine() {
-        return callerLine;
+      return callerLine;
     }
 
     public void setCallerLine(String callerLine) {
-        this.callerLine = callerLine;
+      this.callerLine = callerLine;
     }
 
     public Long getEventId() {
-        return eventId;
+      return eventId;
     }
 
     public void setEventId(Long eventId) {
-        this.eventId = eventId;
+      this.eventId = eventId;
     }
 
     public Set<MDCEntry> getMdc() {
-        return mdc.entrySet().stream()
-            .map(entry -> new MDCEntry(entry.getKey(), entry.getValue()))
-            .collect(Collectors.toSet());
+      return mdc.entrySet().stream()
+        .map(entry -> new MDCEntry(entry.getKey(), entry.getValue()))
+        .collect(Collectors.toSet());
     }
 
     public MDCEntry getMdc(String key) {
@@ -214,16 +214,16 @@ public class DBLoggingEvent {
     }
 
     public void setMdc(Set<MDCEntry> mdc) {
-        mdc.clear();
-        mdc.forEach(mdcEntry -> this.mdc.put(mdcEntry.getKey(), mdcEntry.getValue()));
+      this.mdc.clear();
+      mdc.forEach(mdcEntry -> this.mdc.put(mdcEntry.getKey(), mdcEntry.getValue()));
     }
 
     public List<String> getStackTrace() {
-        return stackTrace;
+      return stackTrace;
     }
 
     public void setStackTrace(List<String> stackTrace) {
-        this.stackTrace = stackTrace;
+      this.stackTrace = stackTrace;
     }
 
     @Override
