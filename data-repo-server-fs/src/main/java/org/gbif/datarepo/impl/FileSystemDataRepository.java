@@ -12,6 +12,7 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.fs.DataRepoFileSystemService;
 import org.gbif.datarepo.api.validation.identifierschemes.IdentifierSchemaValidatorFactory;
+import org.gbif.datarepo.impl.util.MimeTypesUtil;
 import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.impl.metadata.DataCiteMetadataGenerator;
 import org.gbif.doi.service.InvalidMetadataException;
@@ -131,7 +132,9 @@ public class FileSystemDataRepository implements DataRepository {
       Path newFilePath = fileSystemService.store(dataPackageKey, fileInputContent);
       long fileLength = fileSystemService.fileSize(newFilePath);
       DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName(),
-                                                            fileSystemService.md5(newFilePath), fileLength);
+                                                            MimeTypesUtil.detectMimeType(newFilePath.getName()),
+                                                            fileSystemService.md5(newFilePath),
+                                                            fileLength);
       newDataPackage.setSize(newDataPackage.getSize() + fileLength);
       newDataPackage.addFile(dataPackageFile);
     });
@@ -191,8 +194,7 @@ public class FileSystemDataRepository implements DataRepository {
 
     if (dataPackage.getRelatedIdentifiers() != null && dataPackage.getRelatedIdentifiers()
                                                          .stream()
-                                                         .filter(this::isAlternativeIdentifierInUse)
-                                                         .count() > 0) {
+                                                         .anyMatch(this::isAlternativeIdentifierInUse)) {
       throw new IllegalStateException("An identifier has been used as alternative identifier in other data package");
     }
     UUID dataPackageKey  = UUID.randomUUID();

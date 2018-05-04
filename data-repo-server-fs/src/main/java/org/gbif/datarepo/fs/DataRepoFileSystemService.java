@@ -1,8 +1,10 @@
 package org.gbif.datarepo.fs;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.impl.download.FileDownload;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,11 +142,21 @@ public class DataRepoFileSystemService {
       if (fileSystem instanceof RawLocalFileSystem) {
         return md5(new File(file.toUri().getPath()));
       }
-      return fileSystem.getFileChecksum(file).toString().split(":")[1];
+      return md5Hdfs(file);
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
   }
+
+  /**
+    *  Reads a HDFS file and calculates its MD5 hash.
+    */
+  private String md5Hdfs(Path file) throws IOException {
+   try(InputStream inputStream = new BufferedInputStream(fileSystem.open(file))) {
+     return DigestUtils.md5Hex(inputStream);
+   }
+  }
+
 
   /**
    * Calculates the MD5 hash of File content.

@@ -1,6 +1,7 @@
 package org.gbif.datarepo.api.model;
 import org.gbif.api.model.common.DOI;
 import org.gbif.datarepo.fs.DataRepoFileSystemService;
+import org.gbif.datarepo.impl.util.MimeTypesUtil;
 import org.gbif.datarepo.test.utils.ResourceTestUtils;
 
 import java.io.File;
@@ -32,6 +33,7 @@ public class DataPackageDeSerTest {
 
   private static final DataPackageFile OCCURRENCE_TEST_FILE =
     new DataPackageFile("occurrence.txt",
+                        MimeTypesUtil.detectMimeType(CONTENT_TEST_FILE),
                         DataRepoFileSystemService.md5(new File(TEST_DATA_PACKAGE_DIR + CONTENT_TEST_FILE)),
                         18644);
 
@@ -40,9 +42,7 @@ public class DataPackageDeSerTest {
    */
   @Test
   public void serializesToJSON() throws Exception {
-    String expected = MAPPER.writeValueAsString(
-      MAPPER.readValue(fixture(DP_JSON_TEST_FILE), DataPackage.class));
-
+    String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture(DP_JSON_TEST_FILE), DataPackage.class));
     assertThat(MAPPER.writeValueAsString(testDataPackage())).isEqualTo(expected);
   }
 

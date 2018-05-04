@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.inject.Injector;
+import org.gbif.datarepo.impl.util.MimeTypesUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -72,7 +73,8 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     dataPackage.setPublishedIn(TEST_REPO_NAME);
     dataPackage.setShareIn(Sets.newHashSet(TEST_OTHER_REPO_NAME));
     dataPackage.setLicense(License.CC_BY_NC_4_0);
-    dataPackage.addFile(new DataPackageFile("test.xml", testChecksum, 1));
+    String fileName = "test.xml";
+    dataPackage.addFile(new DataPackageFile(fileName, MimeTypesUtil.detectMimeType(fileName),testChecksum, 1));
     return dataPackage;
   }
 

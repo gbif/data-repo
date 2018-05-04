@@ -10,6 +10,8 @@ public class DataPackageFile {
 
   private String fileName;
 
+  private String format;
+
   private String checksum;
 
   private long size;
@@ -24,8 +26,9 @@ public class DataPackageFile {
   /**
    * Full constructor.
    */
-  public DataPackageFile(String fileName, String checksum, long size) {
+  public DataPackageFile(String fileName, String format, String checksum, long size) {
     this.fileName = fileName;
+    this.format = format;
     this.checksum = checksum;
     this.size = size;
   }
@@ -39,6 +42,17 @@ public class DataPackageFile {
 
   public void setFileName(String fileName) {
     this.fileName = fileName;
+  }
+
+  /**
+   * File format.
+   */
+  public String getFormat() {
+     return format;
+  }
+
+  public void setFormat(String format) {
+     this.format = format;
   }
 
   /**
@@ -65,7 +79,7 @@ public class DataPackageFile {
 
   @Override
   public int hashCode() {
-    return Objects.hash(fileName, checksum);
+    return Objects.hash(fileName, format, checksum, size);
   }
 
   @Override
@@ -79,12 +93,14 @@ public class DataPackageFile {
     DataPackageFile other = (DataPackageFile) obj;
     return Objects.equals(checksum, other.checksum)
            && Objects.equals(fileName, other.fileName)
+           && Objects.equals(format, other.format)
            && Objects.equals(size, other.size);
   }
 
   @Override
   public String toString() {
     return "{\"fileName\": \"" + fileName
+           + "\", \"format\": \"" + format
            + "\", \"checksum\": \"" + checksum
            + "\", \"fileSize\": \"" + size + "\"}";
   }

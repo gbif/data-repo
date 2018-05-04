@@ -64,7 +64,10 @@
     <mybatis.version>3.2.8</mybatis.version>
     <javax.mail.version>1.4.7</javax.mail.version>
     <commons-codec.version>1.6</commons-codec.version>
+    <commons-net.version>3.1</commons-net.version>
     <jjwt.version>0.7.0</jjwt.version>
+    <tika.version>1.13</tika.version>
+    <javax.inject.version>1</javax.inject.version>
 
     <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
@@ -261,6 +264,11 @@
         <version>${commons-codec.version}</version>
       </dependency>
       <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>${commons-net.version}</version>
+      </dependency>
+      <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>${javax.servlet-api.version}</version>
@@ -274,6 +282,11 @@
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+        <version>${javax.inject.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.mail</groupId>
@@ -523,11 +536,22 @@
         </exclusions>
       </dependency>
       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-common</artifactId>
+         <version>${hadoop.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.github.rholder</groupId>
         <artifactId>guava-retrying</artifactId>
         <version>${guava-retrying.version}</version>
       </dependency>
 
+        <!-- Used to extract MimeTypes from file names and content -->
+      <dependency>
+         <groupId>org.apache.tika</groupId>
+         <artifactId>tika-core</artifactId>
+         <version>${tika.version}</version>
+      </dependency>
 
       <!-- Test -->
       <dependency>

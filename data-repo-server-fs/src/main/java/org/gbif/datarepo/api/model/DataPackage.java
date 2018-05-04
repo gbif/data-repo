@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.gbif.datarepo.impl.util.MimeTypesUtil;
 
 /**
  * This class represents a data package, which contains: a metadata file, a DOI and a list from containing files.
@@ -343,7 +344,7 @@ public class DataPackage {
    * The baseUrl is prepend to the file name.
    */
   public void addFile(String fileName, String checksum, long size) {
-    files.add(new DataPackageFile(baseUrl + fileName, checksum, size));
+    files.add(new DataPackageFile(baseUrl + fileName, MimeTypesUtil.detectMimeType(fileName), checksum, size));
   }
 
   /**
@@ -351,7 +352,7 @@ public class DataPackage {
    * The baseUrl is prepend to the file name.
    */
   public void addFile(DataPackageFile file) {
-    files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getChecksum(), file.getSize()));
+    files.add(new DataPackageFile(baseUrl + file.getFileName(), file.getFormat(), file.getChecksum(), file.getSize()));
   }
 
   /**
@@ -455,7 +456,7 @@ public class DataPackage {
     DataPackage dataPackage = new DataPackage(url);
     dataPackage.setDoi(doi);
     dataPackage.setKey(key);
-    files.stream().forEach(dataPackage::addFile);
+    files.forEach(dataPackage::addFile);
     dataPackage.setCreatedBy(createdBy);
     dataPackage.setCreated(created);
     dataPackage.setDeleted(deleted);
