@@ -17,11 +17,26 @@
         <artifactId>hive-metastore</artifactId>
         <version>1.1.0-cdh5.12.0</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-exec</artifactId>
+        <version>1.1.0-cdh5.12.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-cli</artifactId>
+        <version>1.1.0-cdh5.12.0</version>
+      </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
+            <artifactId>hive-service</artifactId>
             <version>1.1.0-cdh5.12.0</version>
         </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
+        <version>1.1.0-cdh5.12.0</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
@@ -30,6 +45,12 @@
             <groupId>org.gbif</groupId>
             <artifactId>dwc-api</artifactId>
             <version>1.18-SNAPSHOT</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
         </dependency>
     </dependencies>
 
