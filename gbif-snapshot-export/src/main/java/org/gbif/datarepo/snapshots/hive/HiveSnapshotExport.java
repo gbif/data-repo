@@ -1,5 +1,6 @@
 package org.gbif.datarepo.snapshots.hive;
 
+import com.google.common.collect.Maps;
 import freemarker.template.*;
 import org.apache.hadoop.hive.cli.CliSessionState;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -13,15 +14,12 @@ import org.apache.thrift.TException;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HiveSnapshotExport {
@@ -60,14 +58,15 @@ public class HiveSnapshotExport {
         }
     }
 
+    private static final String TEMPLATES_DIR = "/templates/";
     private final Config config;
 
     public HiveSnapshotExport(Config config) {
         this.config = config;
     }
 
-    private void generateEml(List<Term> termFields) throws IOException {
-        Configuration cfg = new Configuration(new Version(2, 3, 23));
+    private void generateEml(Map<String, Term> colTerms) throws IOException {
+        Configuration cfg = new Configuration(new Version(2, 3, 25));
         // Where do we load the templates from:
         cfg.setClassForTemplateLoading(HiveSnapshotExport.class, "/templates/");
         // Some other recommended settings:
@@ -75,7 +74,7 @@ public class HiveSnapshotExport {
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         Template eml = cfg.getTemplate("eml.ftl");
         Map<String, Object> input = new HashMap<>();
-        input.put("terms", termFields);
+        input.put("terms", colTerms.values());
         input.put("exportDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         input.put("exportFileName",config.snapshotTable + ".gz");
         input.put("doi", "");
@@ -91,22 +90,58 @@ public class HiveSnapshotExport {
         }
     }
 
+    private void runHiveFile(String pathToFile) {
+        try {
+            Process process = Runtime.getRuntime().exec((new String[]{"hive", "-f", pathToFile}));
+            process.waitFor();
+        } catch (InterruptedException | IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void runTemplate(Map<?,?> params, String templateFile, String exportPath) {
+        Configuration cfg = new Configuration(new Version(2, 3, 25));
+        // Where do we load the templates from:
+        cfg.setClassForTemplateLoading(HiveSnapshotExport.class, TEMPLATES_DIR);
+        // Some other recommended settings:
+        cfg.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        // Write output to the console
+        try (Writer writer = new FileWriter(new File(exportPath))) {
+            Template eml = cfg.getTemplate(templateFile);
+            eml.process(params, writer);
+        } catch (TemplateException | IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void generateHiveExport(Map<FieldSchema, Term> colTerms) throws IOException {
+        Map<String,String> hiveColMapping = colTerms.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toMap(e -> toHiveColumn(e.getKey()), e -> e.getValue().simpleName()));
+        runTemplate(Collections.singletonMap("colMap", hiveColMapping), "export_snapshot.ftl", "export_snapshot.ql");
+    }
+
+    private static String toHiveColumn(FieldSchema field) {
+      return field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
+    }
+
     public void export() {
         try {
             HiveConf hiveConf = new HiveConf();
             //hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.metaStoreUris);
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
-            org.apache.hadoop.hive.ql.Driver driver = new Driver(hiveConf);
-            HiveMetaStoreClient client = new HiveMetaStoreClient(hiveConf);
-            SessionState.start(new CliSessionState(hiveConf));
-            CommandProcessorResponse response = driver.run("select count (*) from " + config.getFullSnapshotTableName());
+           // org.apache.hadoop.hive.ql.Driver driver = new Driver(hiveConf);
+           // SessionState.start(new CliSessionState(hiveConf));
+           // CommandProcessorResponse response = driver.run("select count (*) from " + config.getFullSnapshotTableName());
 
-            List<FieldSchema> fieldSchemas = hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable);
-            generateEml(fieldSchemas.stream().map(fieldSchema -> TermFactory.instance()
-                    .findTerm(fieldSchema.getName().replaceFirst("v_", "")))
-                .collect(Collectors.toList()));
+            Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable).stream()
+                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema,TermFactory.instance()
+                            .findTerm(fieldSchema.getName().replaceFirst("v_", ""))))
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
-        } catch (TException | IOException | CommandNeedRetryException ex) {
+            generateHiveExport(colTerms);
+        } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
     }
