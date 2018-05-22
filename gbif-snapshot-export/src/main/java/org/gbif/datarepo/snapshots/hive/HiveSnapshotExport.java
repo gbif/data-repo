@@ -73,7 +73,6 @@ public class HiveSnapshotExport {
         input.put("exportFileName",config.snapshotTable + ".gz");
         input.put("doi", "");
         input.put("exportFileSize","");
-        input.put("exportFileSize","");
         input.put("numberOfRecords", "");
         // Write output to the console
         Writer consoleWriter = new OutputStreamWriter(System.out);
@@ -113,9 +112,21 @@ public class HiveSnapshotExport {
         Map<String,String> hiveColMapping = colTerms.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .collect(Collectors.toMap(e -> toHiveColumn(e.getKey()), e -> e.getValue().simpleName()));
-        runTemplate(Collections.singletonMap("colMap", hiveColMapping), "export_snapshot.ftl", "export_snapshot.ql");
+        Map<String, Object> params = new HashMap<>();
+        params.put("colMap", hiveColMapping);
+        params.put("hiveDB", config.getHiveDB());
+        params.put("snapshotTable", config.getSnapshotTable());
+        runTemplate(params, "export_snapshot.ftl", "export_snapshot.ql");
     }
 
+    private int runHiveExport(String pathToQueryFile) {
+        try {
+            Process hiveScript = new ProcessBuilder("hive", "-f " + pathToQueryFile).start();
+            return hiveScript.waitFor();
+        } catch (IOException | InterruptedException ex) {
+          throw  new RuntimeException(ex);
+        }
+    }
     private static String toHiveColumn(FieldSchema field) {
       return field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
     }
@@ -147,6 +158,7 @@ public class HiveSnapshotExport {
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
             generateHiveExport(colTerms);
+            runHiveExport(new File("export_snapshot.ql").getAbsolutePath());
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }

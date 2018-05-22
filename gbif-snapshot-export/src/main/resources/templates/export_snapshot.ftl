@@ -1,6 +1,5 @@
-USE ${r"${hiveDB}"};
+USE ${hiveDB};
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
-
 
 CREATE TABLE export_${r"${snapshotTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
 AS
@@ -9,4 +8,4 @@ SELECT
   ${key} AS ${value}<#sep>,
 </#list>
 
-FROM ${r"${snapshotTable}"} LIMIT 1000;
+FROM ${snapshotTable};
