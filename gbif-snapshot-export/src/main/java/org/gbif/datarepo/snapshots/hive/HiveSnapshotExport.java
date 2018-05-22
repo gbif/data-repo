@@ -1,15 +1,9 @@
 package org.gbif.datarepo.snapshots.hive;
 
-import com.google.common.collect.Maps;
 import freemarker.template.*;
-import org.apache.hadoop.hive.cli.CliSessionState;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.ql.CommandNeedRetryException;
-import org.apache.hadoop.hive.ql.Driver;
-import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse;
-import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.thrift.TException;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -126,15 +120,27 @@ public class HiveSnapshotExport {
       return field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
     }
 
+    private Long count() {
+        try {
+            Class.forName("org.apache.hive.jdbc.HiveDriver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (Connection con = DriverManager.getConnection(config.getHive2JdbcUrl(), "hive", "");
+             Statement stmt = con.createStatement();
+             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM " + config.getHiveDB() + "." + config.getSnapshotTable())) {
+             return result.next() ? result.getLong(1): 0    ;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void export() {
         try {
             HiveConf hiveConf = new HiveConf();
-            //hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.metaStoreUris);
+            hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.metaStoreUris);
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
-           // org.apache.hadoop.hive.ql.Driver driver = new Driver(hiveConf);
-           // SessionState.start(new CliSessionState(hiveConf));
-           // CommandProcessorResponse response = driver.run("select count (*) from " + config.getFullSnapshotTableName());
-
             Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable).stream()
                     .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema,TermFactory.instance()
                             .findTerm(fieldSchema.getName().replaceFirst("v_", ""))))
@@ -151,7 +157,7 @@ public class HiveSnapshotExport {
 
     public static void main(String[] arg) throws Exception {
         Config config = new Config("thrift://c5master1-vh.gbif.org:9083","jdbc:hive2://c5master2-vh.gbif.org:10000/",
-                "snapshot","raw_20180409" );
+                "fede","raw_20180409_small" );
         HiveSnapshotExport export = new HiveSnapshotExport(config);
         export.export();
     }

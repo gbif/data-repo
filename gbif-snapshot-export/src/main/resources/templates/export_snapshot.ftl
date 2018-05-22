@@ -9,4 +9,4 @@ SELECT
   ${key} AS ${value}<#sep>,
 </#list>
 
-FROM ${r"${snapshotTable}"};
+FROM ${r"${snapshotTable}"} LIMIT 1000;
