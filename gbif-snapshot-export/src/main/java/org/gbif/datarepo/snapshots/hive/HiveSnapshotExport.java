@@ -121,11 +121,11 @@ public class HiveSnapshotExport {
 
     private int runHiveExport(String pathToQueryFile) {
         try {
-            Process hiveScript = new ProcessBuilder("hive", "-f", pathToQueryFile)
+            return new ProcessBuilder("hive" ,"-hiveconf","CUSTOM_JARS=\"*.jar\"","-f", pathToQueryFile)
                     .redirectError(ProcessBuilder.Redirect.INHERIT)
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                    .start();
-            return hiveScript.waitFor();
+                    .start()
+                    .waitFor();
         } catch (IOException | InterruptedException ex) {
           throw  new RuntimeException(ex);
         }
