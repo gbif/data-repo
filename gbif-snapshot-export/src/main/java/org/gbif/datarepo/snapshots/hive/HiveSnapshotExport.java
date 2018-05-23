@@ -5,6 +5,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.thrift.TException;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
@@ -167,8 +168,10 @@ public class HiveSnapshotExport {
             HiveConf hiveConf = new HiveConf();
             hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.metaStoreUris);
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
-            Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable).stream()
-                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema,TermFactory.instance()
+            Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable)
+                    .stream()
+                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, fieldSchema.getName().equalsIgnoreCase("dataset_id")? GbifTerm.datasetKey :
+                            TermFactory.instance()
                             .findTerm(fieldSchema.getName().replaceFirst("v_", ""))))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
