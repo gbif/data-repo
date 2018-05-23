@@ -92,6 +92,14 @@ public class HiveSnapshotExport {
         }
     }
 
+    private static String getRunningContext() {
+        return new java.io.File(HiveSnapshotExport.class.getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .getPath())
+                .getName();
+    }
+
     private void runTemplate(Map<?,?> params, String templateFile, String exportPath) {
         Configuration cfg = new Configuration(new Version(2, 3, 25));
         // Where do we load the templates from:
@@ -116,12 +124,16 @@ public class HiveSnapshotExport {
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
         params.put("snapshotTable", config.getSnapshotTable());
+        String runningContext = getRunningContext();
+        if(runningContext.endsWith(".jar")) {
+           params.put("thisJar", runningContext);
+        }
         runTemplate(params, "export_snapshot.ftl", "export_snapshot.ql");
     }
 
     private int runHiveExport(String pathToQueryFile) {
         try {
-            return new ProcessBuilder("hive" ,"-hiveconf","CUSTOM_JARS=\"*.jar\"","-f", pathToQueryFile)
+            return new ProcessBuilder("hive" , "-f", pathToQueryFile)
                     .redirectError(ProcessBuilder.Redirect.INHERIT)
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                     .start()

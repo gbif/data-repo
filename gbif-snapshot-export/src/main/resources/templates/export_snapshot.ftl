@@ -1,4 +1,6 @@
-ADD JARS :CUSTOM-JARS;
+<#if hitsJar != null>
+ADD JAR ${thisJar};
+</#if>
 USE ${hiveDB};
 
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
