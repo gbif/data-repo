@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.gbif</groupId>
             <artifactId>dwc-api</artifactId>
-            <version>1.18-SNAPSHOT</version>
+            <version>1.18</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
         <dependency>
