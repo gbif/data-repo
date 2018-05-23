@@ -161,7 +161,7 @@ public class HiveSnapshotExport {
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
             generateHiveExport(colTerms);
-            runHiveExport(new File("export_snapshot.ql").getAbsolutePath());
+            runHiveExport("export_snapshot.ql");
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
