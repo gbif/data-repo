@@ -1,4 +1,4 @@
-<#if thisJar>
+<#if thisJar??>
 ADD JAR ${thisJar};
 </#if>
 USE ${hiveDB};
