@@ -170,9 +170,7 @@ public class HiveSnapshotExport {
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
             Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable)
                     .stream()
-                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, fieldSchema.getName().equalsIgnoreCase("dataset_id")? GbifTerm.datasetKey :
-                            TermFactory.instance()
-                            .findTerm(fieldSchema.getName().replaceFirst("v_", ""))))
+                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, getColumnTerm(fieldSchema.getName())))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
             generateHiveExport(colTerms);
@@ -180,6 +178,17 @@ public class HiveSnapshotExport {
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
+    }
+
+    private static Term getColumnTerm(String columnName) {
+        if (columnName.equalsIgnoreCase("dataset_id")) {
+            return GbifTerm.datasetKey;
+        }
+        if (columnName.equalsIgnoreCase("id")) {
+            return GbifTerm.gbifID;
+        }
+        return  TermFactory.instance()
+                .findTerm(columnName.replaceFirst("v_", ""));
     }
 
 
