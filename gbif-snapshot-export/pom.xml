@@ -55,7 +55,7 @@
         <dependency>
             <groupId>org.gbif.occurrence</groupId>
             <artifactId>occurrence-hive</artifactId>
-            <version>0.80-SNAPSHOT</version>
+            <version>0.80</version>
         </dependency>
     </dependencies>
 
