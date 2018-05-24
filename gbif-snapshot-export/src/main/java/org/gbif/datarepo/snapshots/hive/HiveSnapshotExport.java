@@ -217,7 +217,7 @@ public class HiveSnapshotExport {
     private void zipPreDeflated(String header, Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
-        appendHeaderFile(header, fs, sourcePath, ModalZipOutputStream.MODE.PRE_DEFLATED);
+        appendHeaderFile(header, fs, sourcePath);
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
              D2CombineInputStream in =
@@ -252,14 +252,10 @@ public class HiveSnapshotExport {
     /**
      * Creates a compressed file named '0' that contains the content of the file HEADER.
      */
-    private void appendHeaderFile(String header, FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
+    private void appendHeaderFile(String header, FileSystem fileSystem, Path dir)
             throws IOException {
         try (FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(dir, "0"))) {
-            if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
-                D2Utils.compress(new ByteArrayInputStream(header.getBytes()), fsDataOutputStream);
-            } else {
-                fsDataOutputStream.write(header.getBytes());
-            }
+            D2Utils.compress(new ByteArrayInputStream(header.getBytes()), fsDataOutputStream);
         }
     }
 
