@@ -176,7 +176,7 @@ public class HiveSnapshotExport {
     public void export() {
         try {
             HiveConf hiveConf = new HiveConf();
-            hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.metaStoreUris);
+            hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.getMetaStoreUris());
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
             Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable)
                     .stream()
@@ -185,7 +185,7 @@ public class HiveSnapshotExport {
 
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/" + config.getHiveDB()), new Path("/user/fmendez/"));
+            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/" + config.getHiveDB() + "/"), new Path("/user/fmendez/"));
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -205,7 +205,6 @@ public class HiveSnapshotExport {
     public FileSystem getFileSystem() {
         try {
             org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
-            configuration.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY, config.getHdfsNameNode());
             return FileSystem.get(configuration);
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
@@ -216,17 +215,11 @@ public class HiveSnapshotExport {
     /**
      * Merges the pre-deflated content using the hadoop-compress library.
      */
-    private void zipPreDeflated(
-            Path sourcePath,
-            Path outputPath
-    ) throws IOException {
+    private void zipPreDeflated(Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
-        try (
-                FSDataOutputStream zipped = fs.create(outputPath, true);
-                ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
-        ) {
+        try (FSDataOutputStream zipped = fs.create(outputPath, true);
+             ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped))) {
             //Get all the files inside the directory and creates a list of InputStreams.
-
             try (
                 D2CombineInputStream in =
                         new D2CombineInputStream(Arrays.stream(fs.listStatus(sourcePath)).map(input -> {
