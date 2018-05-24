@@ -241,7 +241,6 @@ public class HiveSnapshotExport {
             } catch (Exception ex) {
                 throw Throwables.propagate(ex);
             }
-        }
     }
 
 
