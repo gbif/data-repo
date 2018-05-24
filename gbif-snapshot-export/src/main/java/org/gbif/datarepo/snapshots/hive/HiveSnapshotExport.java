@@ -185,7 +185,7 @@ public class HiveSnapshotExport {
 
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/"), new Path("/user/fmendez/"));
+            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/user/fmendez/"));
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
