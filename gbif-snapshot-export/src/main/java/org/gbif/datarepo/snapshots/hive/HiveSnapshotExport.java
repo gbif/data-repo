@@ -225,26 +225,25 @@ public class HiveSnapshotExport {
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
              )
             {
-      try (D2CombineInputStream in =
-          new D2CombineInputStream(
-              Arrays.stream(fs.listStatus(sourcePath))
-                  .map(
-                      input -> {
-                        try {
-                          return fs.open(input.getPath());
-                        } catch (IOException ex) {
-                          throw Throwables.propagate(ex);
-                        }
-                      })
-                  .collect(Collectors.toList()))) {
-        ZipEntry ze = new ZipEntry(sourcePath.getName());
-        zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
-        ByteStreams.copy(in, zos);
-        ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
-        ze.setCompressedSize(in.getCompressedLength());
-        ze.setCrc(in.getCrc32());
-        zos.closeEntry();
-                }
+              D2CombineInputStream in =
+                  new D2CombineInputStream(
+                      Arrays.stream(fs.listStatus(sourcePath))
+                          .map(
+                              input -> {
+                                try {
+                                  return fs.open(input.getPath());
+                                } catch (IOException ex) {
+                                  throw Throwables.propagate(ex);
+                                }
+                              })
+                          .collect(Collectors.toList()));
+                ZipEntry ze = new ZipEntry(sourcePath.getName());
+                zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
+                ByteStreams.copy(in, zos);
+                ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
+                ze.setCompressedSize(in.getCompressedLength());
+                ze.setCrc(in.getCrc32());
+                zos.closeEntry();
             } catch (Exception ex) {
                 throw Throwables.propagate(ex);
             }
