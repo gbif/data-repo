@@ -187,7 +187,7 @@ public class HiveSnapshotExport {
 
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/user/fmendez/"));
+            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/user/fmendez/" + config.getSnapshotTable()  + ".zip"));
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -207,7 +207,7 @@ public class HiveSnapshotExport {
     public FileSystem getFileSystem() {
         try {
             org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
-            return FileSystem.get(configuration);
+            return FileSystem.newInstance(configuration);
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -220,7 +220,6 @@ public class HiveSnapshotExport {
     private void zipPreDeflated(Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
-        System.out.println(fs.getUri());
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped))) {
             //Get all the files inside the directory and creates a list of InputStreams.
