@@ -221,10 +221,8 @@ public class HiveSnapshotExport {
         FileSystem fs = getFileSystem();
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
-             ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped))) {
-            //Get all the files inside the directory and creates a list of InputStreams.
-            try (
-                D2CombineInputStream in =
+             ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
+             D2CombineInputStream in =
                         new D2CombineInputStream(Arrays.stream(fs.listStatus(sourcePath)).map(input -> {
                             try {
                                 return fs.open(input.getPath());
