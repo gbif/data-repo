@@ -10,7 +10,6 @@ import freemarker.template.TemplateException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -21,6 +20,8 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -72,6 +73,7 @@ public class HiveSnapshotExport {
         }
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(HiveSnapshotExport.class);
     private static final String TEMPLATES_DIR = "/templates/";
     private final Config config;
 
@@ -217,6 +219,7 @@ public class HiveSnapshotExport {
      */
     private void zipPreDeflated(Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
+        LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped))) {
             //Get all the files inside the directory and creates a list of InputStreams.
