@@ -223,24 +223,26 @@ public class HiveSnapshotExport {
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
+             D2CombineInputStream in =
+                     new D2CombineInputStream(
+                             Arrays.stream(fs.listStatus(sourcePath))
+                                     .map(
+                                             input -> {
+                                                 System.out.println(input.getPath().toString());
+                                                 try {
+                                                     return fs.open(input.getPath());
+                                                 } catch (IOException ex) {
+                                                     throw Throwables.propagate(ex);
+                                                 }
+                                             })
+                                     .collect(Collectors.toList()))
              )
             {
-              D2CombineInputStream in =
-                  new D2CombineInputStream(
-                      Arrays.stream(fs.listStatus(sourcePath))
-                          .map(
-                              input -> {
-                                  System.out.println(input.getPath().toString());
-                                try {
-                                  return fs.open(input.getPath());
-                                } catch (IOException ex) {
-                                  throw Throwables.propagate(ex);
-                                }
-                              })
-                          .collect(Collectors.toList()));
+
                 ZipEntry ze = new ZipEntry(sourcePath.getName());
                 zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
                 ByteStreams.copy(in, zos);
+                in.close(); // required to get the sizes
                 ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
                 ze.setCompressedSize(in.getCompressedLength());
                 ze.setCrc(in.getCrc32());
