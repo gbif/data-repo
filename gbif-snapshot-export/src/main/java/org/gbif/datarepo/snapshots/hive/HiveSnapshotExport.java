@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
+import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.slf4j.Logger;
@@ -38,14 +39,12 @@ public class HiveSnapshotExport {
         private final String hive2JdbcUrl;
         private final String hiveDB;
         private final String snapshotTable;
-        private final String hdfsNameNode;
 
-        public Config(String metaStoreUris, String hive2JdbcUrl, String hiveDB, String snapshotTable, String hdfsNameNode) {
+        public Config(String metaStoreUris, String hive2JdbcUrl, String hiveDB, String snapshotTable) {
             this.metaStoreUris = metaStoreUris;
             this.hive2JdbcUrl = hive2JdbcUrl;
             this.hiveDB = hiveDB;
             this.snapshotTable = snapshotTable;
-            this.hdfsNameNode = hdfsNameNode;
         }
 
         public String getMetaStoreUris() {
@@ -64,9 +63,6 @@ public class HiveSnapshotExport {
             return hive2JdbcUrl;
         }
 
-        public String getHdfsNameNode() {
-            return hdfsNameNode;
-        }
 
         public String getFullSnapshotTableName() {
             return hiveDB  + "." + snapshotTable;
@@ -184,10 +180,10 @@ public class HiveSnapshotExport {
                     .stream()
                     .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, getColumnTerm(fieldSchema.getName())))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-
+            String header = colTerms.values().stream().map(Term::simpleName).collect(Collectors.joining("\t"));
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
+            zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -218,9 +214,10 @@ public class HiveSnapshotExport {
     /**
      * Merges the pre-deflated content using the hadoop-compress library.
      */
-    private void zipPreDeflated(Path sourcePath, Path outputPath) throws IOException {
+    private void zipPreDeflated(String header, Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
+        appendHeaderFile(fs,sourcePath,ModalZipOutputStream.MODE.PRE_DEFLATED);
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
              D2CombineInputStream in =
@@ -249,6 +246,21 @@ public class HiveSnapshotExport {
             } catch (Exception ex) {
                 throw Throwables.propagate(ex);
             }
+    }
+
+
+    /**
+     * Creates a compressed file named '0' that contains the content of the file HEADER.
+     */
+    private void appendHeaderFile(FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
+            throws IOException {
+        try (FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(dir, "0"))) {
+            if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
+                D2Utils.compress(new ByteArrayInputStream(header.getBytes()), fsDataOutputStream);
+            } else {
+                fsDataOutputStream.write(header.getBytes());
+            }
+        }
     }
 
 
