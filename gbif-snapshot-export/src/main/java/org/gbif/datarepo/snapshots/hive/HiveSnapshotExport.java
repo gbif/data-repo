@@ -207,6 +207,7 @@ public class HiveSnapshotExport {
     public FileSystem getFileSystem() {
         try {
             org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
+            configuration.addResource("hdfs-site.xml");
             return FileSystem.newInstance(configuration);
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
