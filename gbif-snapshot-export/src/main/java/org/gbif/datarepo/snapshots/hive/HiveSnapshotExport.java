@@ -217,7 +217,7 @@ public class HiveSnapshotExport {
     private void zipPreDeflated(String header, Path sourcePath, Path outputPath) throws IOException {
         FileSystem fs = getFileSystem();
         LOG.info("Zipping {} to {} in FileSystem", sourcePath, outputPath, fs.getUri());
-        appendHeaderFile(fs,sourcePath,ModalZipOutputStream.MODE.PRE_DEFLATED);
+        appendHeaderFile(header, fs, sourcePath, ModalZipOutputStream.MODE.PRE_DEFLATED);
         try (FSDataOutputStream zipped = fs.create(outputPath, true);
              ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
              D2CombineInputStream in =
@@ -252,7 +252,7 @@ public class HiveSnapshotExport {
     /**
      * Creates a compressed file named '0' that contains the content of the file HEADER.
      */
-    private void appendHeaderFile(FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
+    private void appendHeaderFile(String header, FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
             throws IOException {
         try (FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(dir, "0"))) {
             if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
@@ -268,7 +268,7 @@ public class HiveSnapshotExport {
 
     public static void main(String[] arg) throws Exception {
         Config config = new Config("thrift://c5master1-vh.gbif.org:9083","jdbc:hive2://c5master2-vh.gbif.org:10000/",
-                "fede","raw_20180409_small" , "hdfs://ha-nn/");
+                "fede","raw_20180409_small");
         HiveSnapshotExport export = new HiveSnapshotExport(config);
         export.export();
     }
