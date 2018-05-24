@@ -7,6 +7,8 @@ ADD JAR ${thisJar};
 </#if>
 USE ${hiveDB};
 
+DROP TABLE IF EXISTS export_${snapshotTable};
+
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 
 CREATE TABLE export_${snapshotTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
