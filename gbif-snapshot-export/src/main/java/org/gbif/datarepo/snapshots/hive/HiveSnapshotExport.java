@@ -228,7 +228,6 @@ public class HiveSnapshotExport {
                              Arrays.stream(fs.listStatus(sourcePath))
                                      .map(
                                              input -> {
-                                                 System.out.println(input.getPath().toString());
                                                  try {
                                                      return fs.open(input.getPath());
                                                  } catch (IOException ex) {
@@ -239,7 +238,7 @@ public class HiveSnapshotExport {
              )
             {
 
-                ZipEntry ze = new ZipEntry(sourcePath.getName());
+                ZipEntry ze = new ZipEntry(sourcePath.getName() + ".csv");
                 zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
                 ByteStreams.copy(in, zos);
                 in.close(); // required to get the sizes
