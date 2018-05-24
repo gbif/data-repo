@@ -1,4 +1,4 @@
 HIVE_DB=$1
 SNAPSHOT_TABLE=$2
 
-hive -hiveconf CUSTOM_JARS="*.jar" -f export_snapshot.ql
+hadoop dfs -getmerge /user/hive/warehouse/$($HIVE_DB).db/$SNAPSHOT_TABLE

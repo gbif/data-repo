@@ -1,6 +1,16 @@
 package org.gbif.datarepo.snapshots.hive;
 
-import freemarker.template.*;
+import com.google.common.base.Throwables;
+import com.google.common.io.ByteStreams;
+import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.Template;
+import freemarker.template.Version;
+import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -8,6 +18,9 @@ import org.apache.thrift.TException;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.hadoop.compress.d2.D2CombineInputStream;
+import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
+import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,12 +37,14 @@ public class HiveSnapshotExport {
         private final String hive2JdbcUrl;
         private final String hiveDB;
         private final String snapshotTable;
+        private final String hdfsNameNode;
 
-        public Config(String metaStoreUris, String hive2JdbcUrl, String hiveDB, String snapshotTable) {
+        public Config(String metaStoreUris, String hive2JdbcUrl, String hiveDB, String snapshotTable, String hdfsNameNode) {
             this.metaStoreUris = metaStoreUris;
             this.hive2JdbcUrl = hive2JdbcUrl;
             this.hiveDB = hiveDB;
             this.snapshotTable = snapshotTable;
+            this.hdfsNameNode = hdfsNameNode;
         }
 
         public String getMetaStoreUris() {
@@ -46,6 +61,10 @@ public class HiveSnapshotExport {
 
         public String getHive2JdbcUrl() {
             return hive2JdbcUrl;
+        }
+
+        public String getHdfsNameNode() {
+            return hdfsNameNode;
         }
 
         public String getFullSnapshotTableName() {
@@ -80,15 +99,6 @@ public class HiveSnapshotExport {
         try {
         eml.process(input, consoleWriter);
         } catch (TemplateException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private void runHiveFile(String pathToFile) {
-        try {
-            Process process = Runtime.getRuntime().exec((new String[]{"hive", "-f", pathToFile}));
-            process.waitFor();
-        } catch (InterruptedException | IOException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -175,6 +185,7 @@ public class HiveSnapshotExport {
 
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
+            zipPreDeflated(new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/" + config.getHiveDB()), new Path("/user/fmendez/"));
         } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -191,12 +202,60 @@ public class HiveSnapshotExport {
                 .findTerm(columnName.replaceFirst("v_", ""));
     }
 
+    public FileSystem getFileSystem() {
+        try {
+            org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
+            configuration.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY, config.getHdfsNameNode());
+            return FileSystem.get(configuration);
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+
+    }
+
+    /**
+     * Merges the pre-deflated content using the hadoop-compress library.
+     */
+    private void zipPreDeflated(
+            Path sourcePath,
+            Path outputPath
+    ) throws IOException {
+        FileSystem fs = getFileSystem();
+        try (
+                FSDataOutputStream zipped = fs.create(outputPath, true);
+                ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
+        ) {
+            //Get all the files inside the directory and creates a list of InputStreams.
+
+            try (
+                D2CombineInputStream in =
+                        new D2CombineInputStream(Arrays.stream(fs.listStatus(sourcePath)).map(input -> {
+                            try {
+                                return fs.open(input.getPath());
+                            } catch (IOException ex) {
+                                throw Throwables.propagate(ex);
+                            }
+                        }).collect(Collectors.toList())))
+            {
+                ZipEntry ze = new ZipEntry(sourcePath.getName());
+                zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
+                ByteStreams.copy(in, zos);
+                ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
+                ze.setCompressedSize(in.getCompressedLength());
+                ze.setCrc(in.getCrc32());
+                zos.closeEntry();
+            } catch (Exception ex) {
+                throw Throwables.propagate(ex);
+            }
+        }
+    }
+
 
     //private HiveMetaStoreClient hiveMetaStoreClient;
 
     public static void main(String[] arg) throws Exception {
         Config config = new Config("thrift://c5master1-vh.gbif.org:9083","jdbc:hive2://c5master2-vh.gbif.org:10000/",
-                "fede","raw_20180409_small" );
+                "fede","raw_20180409_small" , "hdfs://ha-nn/");
         HiveSnapshotExport export = new HiveSnapshotExport(config);
         export.export();
     }
