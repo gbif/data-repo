@@ -180,7 +180,7 @@ public class HiveSnapshotExport {
                     .stream()
                     .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, getColumnTerm(fieldSchema.getName())))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-            String header = colTerms.values().stream().map(Term::simpleName).collect(Collectors.joining("\t"));
+            String header = colTerms.values().stream().map(Term::simpleName).collect(Collectors.joining("\t"))  + '\n';
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
             zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
