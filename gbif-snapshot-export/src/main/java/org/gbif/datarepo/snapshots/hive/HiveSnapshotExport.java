@@ -185,9 +185,9 @@ public class HiveSnapshotExport {
                     .map(Term::simpleName).sorted().collect(Collectors.joining("\t"))  + '\n';
             generateHiveExport(colTerms);
             System.out.println(header);
-           // runHiveExport("export_snapshot.ql");
-           // zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
-        } catch (TException ex) {
+           runHiveExport("export_snapshot.ql");
+           zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
+        } catch (TException | IOException ex) {
           throw new RuntimeException(ex);
         }
     }
