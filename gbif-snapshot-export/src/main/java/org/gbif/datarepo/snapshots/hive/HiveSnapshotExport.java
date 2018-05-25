@@ -125,10 +125,11 @@ public class HiveSnapshotExport {
         }
     }
 
-    private void generateHiveExport(Map<FieldSchema, Term> colTerms) throws IOException {
-        Map<String,String> hiveColMapping = colTerms.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(e -> toHiveColumn(e.getKey()), e -> e.getValue().simpleName()));
+    private void generateHiveExport(Map<Term, FieldSchema> colTerms) {
+        Map<String,String> hiveColMapping = colTerms.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey() != GbifTerm.gbifID)
+                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> toHiveColumn(e.getValue()), (e1,e2) -> e1, TreeMap::new));
         Map<String, Object> params = new HashMap<>();
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
@@ -176,15 +177,17 @@ public class HiveSnapshotExport {
             HiveConf hiveConf = new HiveConf();
             hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, config.getMetaStoreUris());
             HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
-            Map<FieldSchema,Term> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable)
+            Map<Term,FieldSchema> colTerms =  hiveMetaStoreClient.getFields(config.hiveDB, config.snapshotTable)
                     .stream()
-                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(fieldSchema, getColumnTerm(fieldSchema.getName())))
+                    .map(fieldSchema -> new AbstractMap.SimpleEntry<>(getColumnTerm(fieldSchema.getName()), fieldSchema))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-            String header = colTerms.values().stream().map(Term::simpleName).collect(Collectors.joining("\t"))  + '\n';
+            String header = GbifTerm.gbifID.simpleName() + '\t' +colTerms.keySet().stream().filter(term -> term != GbifTerm.gbifID)
+                    .map(Term::simpleName).sorted().collect(Collectors.joining("\t"))  + '\n';
             generateHiveExport(colTerms);
-            runHiveExport("export_snapshot.ql");
-            zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
-        } catch (TException | IOException ex) {
+            System.out.println(header);
+           // runHiveExport("export_snapshot.ql");
+           // zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path("/tmp/" + config.getSnapshotTable()  + ".zip"));
+        } catch (TException ex) {
           throw new RuntimeException(ex);
         }
     }
@@ -196,15 +199,16 @@ public class HiveSnapshotExport {
         if (columnName.equalsIgnoreCase("id")) {
             return GbifTerm.gbifID;
         }
+        if (columnName.equalsIgnoreCase("publisher_country")) {
+            return GbifTerm.publishingCountry;
+        }
         return  TermFactory.instance()
                 .findTerm(columnName.replaceFirst("v_", ""));
     }
 
     public FileSystem getFileSystem() {
         try {
-            org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
-            configuration.addResource("hdfs-site.xml");
-            return FileSystem.newInstance(configuration);
+            return FileSystem.newInstance(new org.apache.hadoop.conf.Configuration());
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }

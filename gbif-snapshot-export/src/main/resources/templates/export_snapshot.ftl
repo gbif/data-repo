@@ -14,8 +14,9 @@ CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.Clean
 CREATE TABLE export_${snapshotTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
 AS
 SELECT
+  id AS gbifID,
 <#list colMap as key, value>
-  ${key} AS ${value}<#sep>,
+  ${value} AS ${key}<#sep>,
 </#list>
 
 FROM ${snapshotTable};
