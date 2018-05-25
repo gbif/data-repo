@@ -129,7 +129,7 @@ public class HiveSnapshotExport {
         Map<String,String> hiveColMapping = colTerms.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey() != GbifTerm.gbifID)
-                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> toHiveColumn(e.getValue()), (e1,e2) -> e1, TreeMap::new));
+                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> toHiveColumn(e.getValue(), e.getKey()), (e1,e2) -> e1, TreeMap::new));
         Map<String, Object> params = new HashMap<>();
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
@@ -152,8 +152,8 @@ public class HiveSnapshotExport {
           throw  new RuntimeException(ex);
         }
     }
-    private static String toHiveColumn(FieldSchema field) {
-      return field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
+    private static String toHiveColumn(FieldSchema field, Term term) {
+      return !(term instanceof GbifTerm) && field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
     }
 
     private Long count() {
