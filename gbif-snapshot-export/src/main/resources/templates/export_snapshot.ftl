@@ -15,4 +15,4 @@ SELECT
   ${value} AS ${key}<#sep>,
 </#list>
 
-FROM ${snapshotTable} LIMIT;
+FROM ${snapshotTable};
