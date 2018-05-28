@@ -126,7 +126,7 @@ class HiveSnapshot {
             return GbifTerm.publishingCountry;
         }
         return  TermFactory.instance()
-                .findTerm(columnName.replaceFirst("v_", ""));
+                .findTerm(columnName.replaceFirst("v_", "").replaceAll("_",""));
     }
 
     public void export() {
