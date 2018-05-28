@@ -2,9 +2,7 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-<#if thisJar??>
-ADD JAR ${thisJar};
-</#if>
+
 USE ${hiveDB};
 
 DROP TABLE IF EXISTS export_${snapshotTable};
@@ -19,4 +17,4 @@ SELECT
   ${value} AS ${key}<#sep>,
 </#list>
 
-FROM ${snapshotTable};
+FROM ${snapshotTable} LIMIT;

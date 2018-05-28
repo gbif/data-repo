@@ -44,9 +44,6 @@ class HiveSnapshot {
             throw  new RuntimeException(ex);
         }
     }
-    private static String toHiveColumn(FieldSchema field, Term term) {
-        return !(term instanceof GbifTerm) && field.getType().equals("string") ? "cleanDelimiters("  + field.getName()+ ")" : field.getName();
-    }
 
     private static FileSystem getFileSystem() {
         try {
@@ -108,29 +105,15 @@ class HiveSnapshot {
         Map<String,String> hiveColMapping = colTerms.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey() != GbifTerm.gbifID)
-                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> toHiveColumn(e.getValue(), e.getKey()), (e1,e2) -> e1, TreeMap::new));
+                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> e.getKey().simpleName(), (e1,e2) -> e1, TreeMap::new));
         Map<String, Object> params = new HashMap<>();
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
         params.put("snapshotTable", config.getSnapshotTable());
-        String runningContext = getRunningContext();
-        if(runningContext.endsWith(".jar")) {
-            params.put("thisJar", runningContext);
-        }
-
         TemplateUtils.runTemplate(params, "export_snapshot.ftl", "export_snapshot.ql");
     }
 
-    /**
-     * Returns the directory or JAR from where this class is executed.
-     */
-    private static String getRunningContext() {
-        return new java.io.File(SnapshotExport.class.getProtectionDomain()
-                .getCodeSource()
-                .getLocation()
-                .getPath())
-                .getName();
-    }
+
 
     private static Term getColumnTerm(String columnName) {
         if (columnName.equalsIgnoreCase("dataset_id")) {
