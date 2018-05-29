@@ -9,6 +9,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.thrift.TException;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -22,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 class HiveSnapshot {
@@ -116,17 +118,18 @@ class HiveSnapshot {
 
 
     private static Term getColumnTerm(String columnName) {
-        if (columnName.equalsIgnoreCase("dataset_id")) {
-            return GbifTerm.datasetKey;
-        }
         if (columnName.equalsIgnoreCase("id")) {
             return GbifTerm.gbifID;
         }
         if (columnName.equalsIgnoreCase("publisher_country")) {
             return GbifTerm.publishingCountry;
         }
+        if (columnName.equalsIgnoreCase("publisher_id")) {
+            return GbifInternalTerm.publishingOrgKey;
+        }
         return  TermFactory.instance()
-                .findTerm(columnName.replaceFirst("v_", "").replaceAll("_",""));
+                .findTerm(columnName.replaceFirst("v_", "")
+                        .replaceAll("_id", "key").replaceAll("_",""));
     }
 
     public void export() {
