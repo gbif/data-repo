@@ -188,7 +188,7 @@ class HiveSnapshot {
             throw new RuntimeException(e);
         }
 
-        try (Connection con = DriverManager.getConnection(config.getHive2JdbcUrl(), "", "");
+        try (Connection con = DriverManager.getConnection(config.getHive2JdbcUrl(), "hive", "");
              Statement stmt = con.createStatement();
              ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM " + config.getHiveDB() + "." + config.getSnapshotTable())) {
             return result.next() ? result.getLong(1) : 0;
