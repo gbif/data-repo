@@ -102,6 +102,14 @@ class HiveSnapshot {
         }
     }
 
+    private static String getRunningContext() {
+        return new java.io.File(HiveSnapshot.class.getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .getPath())
+                .getName();
+    }
+
     private void generateHiveExport(Map<Term, FieldSchema> colTerms) {
         Map<String,String> hiveColMapping = colTerms.entrySet()
                 .stream()
@@ -111,6 +119,10 @@ class HiveSnapshot {
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
         params.put("snapshotTable", config.getSnapshotTable());
+        String runningContext = getRunningContext();
+        if(runningContext.endsWith(".jar")) {
+            params.put("thisJar", runningContext);
+        }
         TemplateUtils.runTemplate(params, "export_snapshot.ftl", "export_snapshot.ql");
     }
 
