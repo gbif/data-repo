@@ -154,7 +154,18 @@ class HiveSnapshot {
         params.put("doi", "doi");
         params.put("numberOfRecords", count());
         params.put("exportDate", SimpleDateFormat.getDateTimeInstance().format(new Date()));
-        TemplateUtils.runTemplate(params, "eml.ftl", "eml.xml");
+        TemplateUtils.runTemplate(params, "eml.ftl", config.getSnapshotTable() + ".eml");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void generateRdf() {
+        try {
+            Map<String,Object> params = new HashMap<>();
+            params.put("snapshotTable", config.getSnapshotTable());
+            params.put("exportDate", SimpleDateFormat.getDateTimeInstance().format(new Date()));
+            TemplateUtils.runTemplate(params, "rdf.ftl", config.getSnapshotTable() + ".rdf");
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -173,9 +184,10 @@ class HiveSnapshot {
                     .map(Term::simpleName).sorted().collect(Collectors.joining("\t"))  + '\n';
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            Path exportPath = new Path(config.getExportPath() + config.getSnapshotTable()  + ".zip");
+            Path exportPath = new Path(config.getExportPath() + config.getSnapshotTable()  + "csv.zip");
             zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), exportPath);
             generateEmlMetadata(colTerms.keySet(), exportPath);
+            generateRdf();
         } catch (TException | IOException ex) {
             throw new RuntimeException(ex);
         }
