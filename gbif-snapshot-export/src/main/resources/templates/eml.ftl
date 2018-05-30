@@ -114,7 +114,7 @@
    <entityDescription>Worldwide bird observation data submitted to eBird</entityDescription>
    <physical>
       <objectName>${exportFileName}</objectName>
-      <size>${exportFileSize}</size>
+      <size>${exportFileSize?string.number}</size>
       <compressionMethod>gzip</compressionMethod>
       <dataFormat>
          <textFormat>
@@ -146,7 +146,7 @@
        </attribute>
      </#list>
    </attributeList>
-   <numberOfRecords>${numberOfRecords}</numberOfRecords>
+   <numberOfRecords>${numberOfRecords?string.number}</numberOfRecords>
    </dataTable>
  </dataset>
 </eml:eml>
