@@ -106,7 +106,7 @@ class HiveSnapshot {
         Map<String,String> hiveColMapping = colTerms.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey() != GbifTerm.gbifID)
-                .collect(Collectors.toMap(e -> e.getValue().getName(), e -> e.getKey().simpleName(), (e1,e2) -> e1, TreeMap::new));
+                .collect(Collectors.toMap(e -> e.getKey().simpleName(), e -> e.getValue().getName(), (e1,e2) -> e1, TreeMap::new));
         Map<String, Object> params = new HashMap<>();
         params.put("colMap", hiveColMapping);
         params.put("hiveDB", config.getHiveDB());
