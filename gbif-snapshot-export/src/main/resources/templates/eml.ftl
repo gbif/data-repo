@@ -130,6 +130,19 @@
    </physical>
 
    <attributeList>
+      <attribute>
+        <attributeName>gbifID</attributeName>
+        <attributeDefinition>http://rs.gbif.org/terms/1.0/gbifID</attributeDefinition>
+        <measurementScale>
+            <nominal>
+               <nonNumericDomain>
+                  <textDomain>
+                     <definition>Non-specified text</definition>
+                  </textDomain>
+               </nonNumericDomain>
+            </nominal>
+         </measurementScale>
+      </attribute>
      <#list terms as term>
       <attribute>
                <attributeName>${term.simpleName()}</attributeName>

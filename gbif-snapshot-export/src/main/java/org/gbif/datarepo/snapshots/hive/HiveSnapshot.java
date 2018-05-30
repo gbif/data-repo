@@ -148,7 +148,7 @@ class HiveSnapshot {
     private void generateEmlMetadata(Collection<Term> terms, Path exportFile) {
         try {
         Map<String,Object> params = new HashMap<>();
-        params.put("terms", terms);
+        params.put("terms", terms.stream().filter(t -> GbifTerm.gbifID != t).sorted().collect(Collectors.toList()));
         params.put("exportFileName",exportFile.getName());
         params.put("exportFileSize",getFileSystem().getStatus(exportFile).getCapacity());
         params.put("doi", "doi");
