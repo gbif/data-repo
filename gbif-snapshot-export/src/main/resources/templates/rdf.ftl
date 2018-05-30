@@ -35,6 +35,6 @@
   </rdf:Description>
   <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/${snapshotTable}.eml">
     <dcterms:identifier>${snapshotTable}.eml</dcterms:identifier>
-    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/${snapshotTable}.csv.gz"/>
+    <cito:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/${snapshotTable}.csv.zip"/>
   </rdf:Description>
 </rdf:RDF>
