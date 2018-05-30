@@ -22,7 +22,9 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 class HiveSnapshot {
@@ -120,7 +122,7 @@ class HiveSnapshot {
         params.put("hiveDB", config.getHiveDB());
         params.put("snapshotTable", config.getSnapshotTable());
         String runningContext = getRunningContext();
-        if(runningContext.endsWith(".jar")) {
+        if (runningContext.endsWith(".jar")) {
             params.put("thisJar", runningContext);
         }
         TemplateUtils.runTemplate(params, "export_snapshot.ftl", "export_snapshot.ql");
@@ -143,6 +145,21 @@ class HiveSnapshot {
                         .replaceAll("_id", "key").replaceAll("_",""));
     }
 
+    private void generateEmlMetadata(Collection<Term> terms, Path exportFile) {
+        try {
+        Map<String,Object> params = new HashMap<>();
+        params.put("terms", terms);
+        params.put("exportFileName",exportFile.getName());
+        params.put("exportFileSize",getFileSystem().getStatus(exportFile).getCapacity());
+        params.put("doi", "doi");
+        params.put("numberOfRecords", count());
+        params.put("exportDate", SimpleDateFormat.getDateTimeInstance().format(new Date()));
+        TemplateUtils.runTemplate(params, "eml.ftl", "eml.xml");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public void export() {
         try {
             HiveConf hiveConf = new HiveConf();
@@ -156,7 +173,9 @@ class HiveSnapshot {
                     .map(Term::simpleName).sorted().collect(Collectors.joining("\t"))  + '\n';
             generateHiveExport(colTerms);
             runHiveExport("export_snapshot.ql");
-            zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), new Path(config.getExportPath() + config.getSnapshotTable()  + ".zip"));
+            Path exportPath = new Path(config.getExportPath() + config.getSnapshotTable()  + ".zip");
+            zipPreDeflated(header, new Path("/user/hive/warehouse/" + config.getHiveDB() + ".db/export_" + config.getSnapshotTable() + "/"), exportPath);
+            generateEmlMetadata(colTerms.keySet(), exportPath);
         } catch (TException | IOException ex) {
             throw new RuntimeException(ex);
         }
