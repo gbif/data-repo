@@ -35,7 +35,6 @@
     <module>data-repo-server-fs</module>
     <module>data-repo-ws</module>
       <module>gbif-snapshot-export</module>
-      <module>data-repo-ws-client</module>
       <module>data-repo-api</module>
   </modules>
 
