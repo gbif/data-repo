@@ -1,5 +1,7 @@
 package org.gbif.datarepo.snapshots.hive;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Template;
 import freemarker.template.Version;
@@ -58,8 +60,8 @@ public class SnapshotExport {
     //private HiveMetaStoreClient hiveMetaStoreClient;
 
     public static void main(String[] arg) throws Exception {
-        Config config = new Config("thrift://c5master1-vh.gbif.org:9083","jdbc:hive2://c5master2-vh.gbif.org:10000/",
-                "fede","occurrence_20180409_small", "/tmp/");
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        Config config = objectMapper.readValue(new File(arg[0]), Config.class);
         SnapshotExport export = new SnapshotExport(config);
         export.export();
     }

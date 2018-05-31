@@ -56,10 +56,25 @@
 
     <dependencies>
       <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-metastore</artifactId>
-        <version>1.1.0-cdh5.12.0</version>
+        <groupId>org.gbif.data</groupId>
+        <artifactId>data-repo-server-fs</artifactId>
+        <version>${project.version}</version>
       </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gbif.data</groupId>
+            <artifactId>data-repo-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-metastore</artifactId>
+            <version>1.1.0-cdh5.12.0</version>
+        </dependency>
       <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-exec</artifactId>
@@ -94,11 +109,6 @@
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.25-incubating</version>
-        </dependency>
-        <dependency>
-            <groupId>org.gbif.occurrence</groupId>
-            <artifactId>occurrence-hive</artifactId>
-            <version>0.80</version>
         </dependency>
         <dependency>
             <groupId>org.gbif.hadoop</groupId>

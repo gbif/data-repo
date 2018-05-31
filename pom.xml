@@ -35,6 +35,8 @@
     <module>data-repo-server-fs</module>
     <module>data-repo-ws</module>
       <module>gbif-snapshot-export</module>
+      <module>data-repo-ws-client</module>
+      <module>data-repo-api</module>
   </modules>
 
 
@@ -163,6 +165,11 @@
       <dependency>
         <groupId>io.dropwizard</groupId>
         <artifactId>dropwizard-core</artifactId>
+        <version>${dropwizard.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard</groupId>
+        <artifactId>dropwizard-client</artifactId>
         <version>${dropwizard.version}</version>
       </dependency>
       <dependency>

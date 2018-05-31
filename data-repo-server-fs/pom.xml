@@ -87,6 +87,11 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.data</groupId>
+       <artifactId>data-repo-api</artifactId>
+       <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
       <exclusions>
