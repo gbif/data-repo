@@ -70,6 +70,10 @@
             <artifactId>dropwizard-jersey</artifactId>
         </dependency>
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.gbif.data</groupId>
             <artifactId>data-repo-api</artifactId>
             <version>${project.version}</version>
