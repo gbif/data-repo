@@ -11,10 +11,24 @@
 
     <artifactId>data-repo-api</artifactId>
 
+    <packaging>jar</packaging>
+
+    <name>GBIF DataRepo API</name>
+    <description>Model classes and service of the GBIF DataRepository</description>
+    <url>http://github.com/gbif/data-repo</url>
+
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
