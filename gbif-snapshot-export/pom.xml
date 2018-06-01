@@ -80,10 +80,9 @@
             <version>${jackson.dropwizard.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.dropwizard</groupId>
-            <artifactId>dropwizard-jersey</artifactId>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.gbif.data</groupId>
             <artifactId>data-repo-api</artifactId>
