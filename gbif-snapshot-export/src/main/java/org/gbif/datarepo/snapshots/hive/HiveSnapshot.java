@@ -55,7 +55,7 @@ class HiveSnapshot {
         this.config = config;
         DataRepoFsModule dataRepoFsModule = new DataRepoFsModule(config.getDataRepoConfiguration(), null, null);
 
-        dataRepository = dataRepoFsModule.dataRepository(new ObjectMapper());
+        dataRepository = dataRepoFsModule.dataRepository(OBJECT_MAPPER);
     }
 
     private static int runHiveExport(String pathToQueryFile) {
