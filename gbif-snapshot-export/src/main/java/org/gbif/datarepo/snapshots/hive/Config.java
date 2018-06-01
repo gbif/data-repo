@@ -2,6 +2,9 @@ package org.gbif.datarepo.snapshots.hive;
 
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 
+/**
+ * Configuration settings to run a Snapshot export into the GBIF DataRepo/DataOne.
+ */
 public class Config {
     private String metaStoreUris;
     private String hive2JdbcUrl;
