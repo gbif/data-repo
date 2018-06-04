@@ -135,7 +135,7 @@
                <attributeName>${term.simpleName()}</attributeName>
                <attributeDefinition>${term.qualifiedName()}</attributeDefinition>
                <measurementScale>
-               <#if term.simpleName().equals("decimalLatitude") >
+               <#if term.simpleName() == "decimalLatitude">
                     <ratio>
                         <unit>
                             <standardUnit>degree</standardUnit>
@@ -148,7 +148,7 @@
                             </bounds>
                         </numericDomain>
                     </ratio>
-               <#elseif term.simpleName().equals("decimalLongitude") >
+               <#elseif term.simpleName() == "decimalLongitude">
                         <ratio>
                             <unit>
                                 <standardUnit>degree</standardUnit>
