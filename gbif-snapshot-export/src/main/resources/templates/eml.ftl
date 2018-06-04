@@ -38,15 +38,9 @@
 		</metadataProvider>
    		<pubDate>${exportDate}</pubDate>
 		<abstract>
-			<para>The eBird Citizen Science Project is a real-time, on line checklist program launched in 2002 by the
-                          Cornell Lab of Ornithology and the National Audubon Society. The observations of each volunteer participant
-                          join those of others creating a database of international avian observation events. The dataset contains
-                          count data for bird species observed by novice and experienced bird observers alike. Aggregated observation
-                          data is available for non-commercial research purposes.</para>
-			<para>eBird data can be used to document the presence or absence of avian species, as well as abundance
-                          and distribution at a variety of spatial and temporal scales. The dataset includes spatial, and
-                          temporal parameters describing the observation event.</para>
-			<para>The data collection is static, updated annually</para>
+			<para>GBIF—the Global Biodiversity Information Facility—is an international network and research infrastructure
+			funded by the world’s governments and aimed at providing anyone, anywhere, open access to data about all types of life on Earth.
+			The dataset contains occurrence records published through GBIF.org by different members of the GBIF network.</para>
 		</abstract>
 		<keywordSet>
 			<keyword>gbif</keyword>
@@ -65,15 +59,8 @@
 		</keywordSet>
 		<intellectualRights>
 			<section>
-				<title>Data License</title>
-				<para>Data and documentation are copyrighted by Cornell University ("Cornell") and ownership remains
-				  with Cornell.</para>
-				<para>Cornell hereby grants You (hereafter, Licensee) a fee-free license to use the data and documentation
-				  for academic, and research purposes only.  Any commercial use of the data or documentation are expressly
-				  prohibited.</para>
-				<para>These data are made available through the Cornell Lab of Ornithology at Cornell University and the
-				  National Audubon Society. No warranty either expressed or implied is made regarding the accuracy of
-				  these data.</para>
+				<title>Data License - CC BY-NC</title>
+				<para>Data are made available for any use provided that attribution is appropriately given and provided the use is not for commercial purposes</para>
 			</section>
 		</intellectualRights>
 		<coverage>
@@ -143,18 +130,46 @@
             </nominal>
          </measurementScale>
       </attribute>
-     <#list terms as term>
+     <#list terms as term, fieldSchema>
       <attribute>
                <attributeName>${term.simpleName()}</attributeName>
                <attributeDefinition>${term.qualifiedName()}</attributeDefinition>
                <measurementScale>
-                   <nominal>
-                      <nonNumericDomain>
-                         <textDomain>
-                            <definition>Non-specified text</definition>
-                         </textDomain>
-                      </nonNumericDomain>
-                   </nominal>
+               <#if term.simpleName().equals("decimalLatitude") >
+                    <ratio>
+                        <unit>
+                            <standardUnit>degree</standardUnit>
+                        </unit>
+                        <numericDomain>
+                            <numberType>real</numberType>
+                            <bounds>
+                                <minimum exclusive="false">-90</minimum>
+                                <maximum exclusive="false">90</maximum>
+                            </bounds>
+                        </numericDomain>
+                    </ratio>
+               <#elseif term.simpleName().equals("decimalLongitude") >
+                        <ratio>
+                            <unit>
+                                <standardUnit>degree</standardUnit>
+                            </unit>
+                            <numericDomain>
+                                <numberType>real</numberType>
+                                <bounds>
+                                    <minimum exclusive="false">-180</minimum>
+                                    <maximum exclusive="false">180</maximum>
+                                </bounds>
+                            </numericDomain>
+                        </ratio>
+               <#else>
+                       <nominal>
+                          <nonNumericDomain>
+                             <textDomain>
+                                <definition>Non-specified text</definition>
+                             </textDomain>
+                          </nonNumericDomain>
+                       </nominal>
+                </#if>
                 </measurementScale>
        </attribute>
      </#list>
