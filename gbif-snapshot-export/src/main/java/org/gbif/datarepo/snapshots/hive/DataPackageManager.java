@@ -8,6 +8,8 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +23,8 @@ import java.util.Collections;
 class DataPackageManager {
 
     private static final String CREATOR = "gbif-snapshot";
+
+    private static final Logger LOG = LoggerFactory.getLogger(DataPackageManager.class);
 
     private final DataRepository dataRepository;
 
@@ -63,6 +67,7 @@ class DataPackageManager {
      * Creates and persists a DataPackage from Hadoop HDFS path.
      */
     public DataPackage createSnapshotDataPackage(Path file) {
+        LOG.info("Creating DataPackage for file {}", file);
         return dataRepository.create(buildDataPackage(
                 "GBIF occurrence data snapshot " + file.getName(),
                 "GBIF snapshot data in compress format"),
@@ -75,10 +80,12 @@ class DataPackageManager {
      */
 
     private DataPackage createDataPackage(File file, String title, String description, String doi) {
+        LOG.info("Creating DataPackage for file {}", file);
         try (InputStream inputStream = new FileInputStream(file)) {
             return dataRepository.create(buildDataPackage(title, description, doi),
                     Collections.singletonList(FileInputContent.from(file.getName(), inputStream)), true);
         } catch (IOException ex) {
+            LOG.error("Error creating DataPackage", ex);
             throw Throwables.propagate(ex);
         }
     }
