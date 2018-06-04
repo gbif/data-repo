@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 
 /**
@@ -66,13 +68,17 @@ class DataPackageManager {
     /**
      * Creates and persists a DataPackage from Hadoop HDFS path.
      */
-    public DataPackage createSnapshotDataPackage(Path file) {
+    public DataPackage createSnapshotDataPackage(Path file, String baseUri) {
+        try {
         LOG.info("Creating DataPackage for file {}", file);
         return dataRepository.create(buildDataPackage(
                 "GBIF occurrence data snapshot " + file.getName(),
                 "GBIF snapshot data in compress format"),
-                Collections.singletonList(FileInputContent.from(file.getName(), file.toUri())), true);
-
+                Collections.singletonList(FileInputContent.from(file.getName(), new URI(baseUri + file.toUri().toString()))), true);
+        } catch (URISyntaxException ex) {
+            LOG.error("Error reading path to file");
+            throw Throwables.propagate(ex);
+        }
     }
 
     /**
