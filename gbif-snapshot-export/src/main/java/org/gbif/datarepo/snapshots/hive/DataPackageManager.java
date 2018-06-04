@@ -68,13 +68,14 @@ class DataPackageManager {
     /**
      * Creates and persists a DataPackage from Hadoop HDFS path.
      */
-    public DataPackage createSnapshotDataPackage(Path file, String baseUri) {
+    public DataPackage createSnapshotDataPackage(URI file) {
         try {
-        LOG.info("Creating DataPackage for file {}", file);
-        return dataRepository.create(buildDataPackage(
-                "GBIF occurrence data snapshot " + file.getName(),
-                "GBIF snapshot data in compress format"),
-                Collections.singletonList(FileInputContent.from(file.getName(), new URI(baseUri + file.toUri().toString()))), true);
+            Path path = new Path(file);
+            LOG.info("Creating DataPackage for file {}", file);
+            return dataRepository.create(buildDataPackage(
+                    "GBIF occurrence data snapshot " + path.getName(),
+                    "GBIF snapshot data in compress format"),
+                    Collections.singletonList(FileInputContent.from(path.getName(), file)), true);
         } catch (URISyntaxException ex) {
             LOG.error("Error reading path to file");
             throw Throwables.propagate(ex);

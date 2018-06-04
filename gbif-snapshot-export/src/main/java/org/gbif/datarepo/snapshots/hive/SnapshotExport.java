@@ -263,7 +263,7 @@ class SnapshotExport {
         try {
             Map<Term,FieldSchema>  colTerms = getTermsHiveColumnMapping();
             Path exportPath = runHiveExport(colTerms);
-            DataPackage dataPackage = dataPackageManager.createSnapshotDataPackage(exportPath, fileSystem.getUri().toString());
+            DataPackage dataPackage = dataPackageManager.createSnapshotDataPackage(fileSystem.getUri().resolve(exportPath.toUri()));
             fileSystem.delete(exportPath, false);
             createEmlMetadata(colTerms.keySet(), exportPath, dataPackage.getDoi().toString());
             createRdf(dataPackage.getDoi().toString());
