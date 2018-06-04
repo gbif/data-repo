@@ -130,7 +130,7 @@
             </nominal>
          </measurementScale>
       </attribute>
-     <#list terms as term, fieldSchema>
+     <#list terms as term>
       <attribute>
                <attributeName>${term.simpleName()}</attributeName>
                <attributeDefinition>${term.qualifiedName()}</attributeDefinition>
