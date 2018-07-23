@@ -113,7 +113,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
     corsFilter.setInitParameter(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
     corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
-    corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+    corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
 
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
