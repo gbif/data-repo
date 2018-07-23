@@ -107,13 +107,13 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
 
     //CORS Filter
     FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
-    corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     corsFilter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
     corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Content-Length,Accept,Origin,Authorization");
     corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
     corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
     corsFilter.setInitParameter(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
     corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
+    corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
 
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
