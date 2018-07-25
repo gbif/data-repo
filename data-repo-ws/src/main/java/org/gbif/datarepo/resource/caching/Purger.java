@@ -14,7 +14,7 @@ import java.io.IOException;
 public class Purger {
 
     private static final Logger LOG = LoggerFactory.getLogger(Purger.class);
-
+    private static final String DP_PATH = "data_packages/";
     private final CloseableHttpClient httpClient;
     private final String cacheUrl;
 
@@ -34,7 +34,7 @@ public class Purger {
      */
     private void purgePath(String path) {
         try {
-            httpClient.execute(RequestBuilder.create("PURGE").setUri(cacheUrl + path).build());
+            httpClient.execute(RequestBuilder.create("PURGE").setUri(cacheUrl +  DP_PATH +path).build());
         } catch (IOException ex) {
             LOG.error("Error purging root path");
         }
@@ -52,7 +52,12 @@ public class Purger {
      * Purges the relative root path.
      */
     public void purgeRoot() {
-        purgePath("");
+        try {
+            httpClient.execute(RequestBuilder.create("BAN").setUri(cacheUrl)
+                    .addHeader("x-ban-url",cacheUrl + DP_PATH).build());
+        } catch (IOException ex) {
+            LOG.error("Error purging root path");
+        }
     }
 
 }
