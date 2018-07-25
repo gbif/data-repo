@@ -16,6 +16,7 @@ import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
+import org.gbif.datarepo.resource.caching.Purger;
 import org.gbif.datarepo.resource.logging.EventLogger;
 
 import com.codahale.metrics.annotation.Timed;
@@ -101,11 +102,13 @@ public class DataPackageResource {
 
   private final OrcidPublicService orcidPublicService;
 
+  private final Purger purger;
+
   /**
    * Full constructor.
    */
   public DataPackageResource(DataRepository dataRepository, DataRepoConfigurationDW configuration, Validator validator,
-                             OrcidPublicService orcidPublicService) {
+                             OrcidPublicService orcidPublicService, Purger purger) {
     this.dataRepository = dataRepository;
     DataRepoConfiguration dataRepoConfiguration = configuration.getDataRepoConfiguration();
     uriBuilder = new DataPackageUriBuilder(dataRepoConfiguration.getDataPackageApiUrl());
@@ -113,6 +116,7 @@ public class DataPackageResource {
     identifiersValidator = new IdentifiersValidator(dataRepository, downloadHandler);
     this.validator = validator;
     this.orcidPublicService = orcidPublicService;
+    this.purger = purger;
   }
 
   /**
@@ -185,6 +189,7 @@ public class DataPackageResource {
       dataPackage.setCreatedBy(principal.getName());
       DataPackage newDataPackage = dataRepository.create(dataPackage, streamFiles(files, urlFiles), true);
       EventLogger.logCreate(LOG, principal, newDataPackage.getDoi().getDoiName());
+      purger.purgeRoot();
       return newDataPackage.inUrl(uriBuilder.build(newDataPackage.getKey()));
     } catch (Exception ex) {
       LOG.error("Error creating data package", ex);
@@ -360,6 +365,7 @@ public class DataPackageResource {
     //Gets the data package, throws a NOT_FOUND error if it doesn't exist
     dataRepository.delete(dataPackage.getKey());
     EventLogger.logDelete(LOG, principal, dataPackage.getDoi().getDoiName());
+    purger.purgeResource(identifier);
   }
 
   @GET

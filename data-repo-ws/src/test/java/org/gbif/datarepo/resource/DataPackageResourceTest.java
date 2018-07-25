@@ -12,6 +12,7 @@ import org.gbif.datarepo.persistence.DataRepoPersistenceService;
 import org.gbif.datarepo.persistence.mappers.BaseMapperTest;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 import org.gbif.datarepo.impl.FileSystemDataRepository;
+import org.gbif.datarepo.resource.caching.Purger;
 import org.gbif.datarepo.test.mocks.DoiRegistrationServiceMock;
 import org.gbif.doi.service.DoiException;
 
@@ -187,7 +188,7 @@ public class DataPackageResourceTest extends BaseMapperTest {
                                                                     .getFileSystem()),
                                                                       TEST_REPO_NAME),
                                          configuration(), Validation.buildDefaultValidatorFactory().getValidator(),
-                                         mockOrcidService()))
+                                         mockOrcidService(), mock(Purger.class)))
     .build();
 
   /**

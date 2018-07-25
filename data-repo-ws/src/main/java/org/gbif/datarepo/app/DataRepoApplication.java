@@ -10,6 +10,7 @@ import org.gbif.datarepo.health.DataRepoHealthCheck;
 import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
 import org.gbif.datarepo.resource.RepositoryStatsResource;
+import org.gbif.datarepo.resource.caching.Purger;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 
 import java.util.EnumSet;
@@ -128,7 +129,8 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     environment.jersey().register(MultiPartFeature.class);
     environment.jersey().register(new DataPackageResource(dataRepoModule.dataRepository(), configuration,
                                                           environment.getValidator(),
-                                                          new OrcidPublicClient()));
+                                                          new OrcidPublicClient(),
+            new Purger(configuration.getDataRepoConfiguration().getGbifApiUrl())));
     environment.jersey().register(new RepositoryStatsResource(dataRepoModule.dataRepository()));
     if (configuration.getService().isDiscoverable()) {
       environment.lifecycle().manage(new DiscoveryLifeCycle(configuration.getService()));
