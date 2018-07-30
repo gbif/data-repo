@@ -11,18 +11,12 @@ import org.gbif.datarepo.health.AuthenticatorHealthCheck;
 import org.gbif.datarepo.resource.DataPackageResource;
 import org.gbif.datarepo.resource.RepositoryStatsResource;
 import org.gbif.datarepo.resource.caching.Purger;
+import org.gbif.datarepo.resource.cors.CORSFilter;
 import org.gbif.discovery.lifecycle.DiscoveryLifeCycle;
 
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
-
-import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_METHODS_PARAM;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_HEADERS_PARAM;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOW_CREDENTIALS_PARAM;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.ALLOWED_ORIGINS_PARAM;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.CHAIN_PREFLIGHT_PARAM;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -38,7 +32,6 @@ import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.slf4j.Logger;
@@ -107,13 +100,7 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     DataRepoModule dataRepoModule = new DataRepoModule(configuration, environment);
 
     //CORS Filter
-    FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
-    corsFilter.setInitParameter(ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,HEAD,OPTIONS");
-    corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Content-Length,Accept,Origin,Authorization");
-    corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
-    corsFilter.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
-    corsFilter.setInitParameter(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
-    corsFilter.setInitParameter(CHAIN_PREFLIGHT_PARAM, Boolean.FALSE.toString());
+    FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CORSFilter.class);
     corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
 

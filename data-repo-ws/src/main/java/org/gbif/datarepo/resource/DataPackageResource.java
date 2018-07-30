@@ -410,6 +410,13 @@ public class DataPackageResource {
     return CitationGenerator.generateCitation(dataPackage);
   }
 
+    @GET
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("test")
+  public String test() {
+      return "Yes";
+  }
   /**
    * Gets a DataPackage form a DOI, throw HTTP NOT_FOUND exception if the elements is not found.
    */
