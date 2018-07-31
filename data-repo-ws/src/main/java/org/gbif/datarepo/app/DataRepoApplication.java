@@ -100,8 +100,8 @@ public class DataRepoApplication extends Application<DataRepoConfigurationDW> {
     DataRepoModule dataRepoModule = new DataRepoModule(configuration, environment);
 
     //CORS Filter
-    FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CORSFilter.class);
-    corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+    //FilterRegistration.Dynamic corsFilter = environment.servlets().addFilter("CORSFilter", CORSFilter.class);
+    //corsFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
 
     // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
