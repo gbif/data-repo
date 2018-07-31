@@ -34,8 +34,10 @@ public class Purger {
      */
     private void purgePath(String path) {
         try {
+            String urlToBan = cacheUrl + DP_PATH + path;
+            LOG.debug("Purging url {}", urlToBan);
             httpClient.execute(RequestBuilder.create("BAN").setUri(cacheUrl +  DP_PATH)
-                    .addHeader("x-ban-url",cacheUrl + DP_PATH + path).build());
+                    .addHeader("x-ban-url",urlToBan).build());
         } catch (IOException ex) {
             LOG.error("Error purging root path");
         }
@@ -54,8 +56,10 @@ public class Purger {
      */
     public void purgeRoot() {
         try {
+            String urlToBan = cacheUrl + DP_PATH;
+            LOG.debug("Purging url {}", urlToBan);
             httpClient.execute(RequestBuilder.create("BAN").setUri(cacheUrl)
-                    .addHeader("x-ban-url",cacheUrl + DP_PATH).build());
+                    .addHeader("x-ban-url", urlToBan).build());
         } catch (IOException ex) {
             LOG.error("Error purging root path");
         }

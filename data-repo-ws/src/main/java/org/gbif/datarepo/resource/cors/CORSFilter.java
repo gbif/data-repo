@@ -22,7 +22,7 @@ public class CORSFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        LOG.info("Filtering request {}", request);
+        LOG.debug("Filtering request {}", request);
         HttpServletResponse httpServletResponse = (HttpServletResponse)response;
         HttpServletRequest httpServletRequest = (HttpServletRequest)request;
         httpServletResponse.addHeader("Access-Control-Allow-Origin", "*");
