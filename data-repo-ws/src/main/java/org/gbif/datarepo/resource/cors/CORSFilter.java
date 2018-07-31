@@ -36,6 +36,7 @@ public class CORSFilter implements Filter {
             httpServletResponse.addHeader("Access-Control-Allow-Headers",
                     httpServletRequest.getHeader("Access-Control-Request-Headers"));
         }
+        chain.doFilter(httpServletRequest, httpServletResponse);
     }
 
     @Override
