@@ -1,5 +1,6 @@
 package org.gbif.datarepo.resource.caching;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -16,15 +17,15 @@ public class Purger {
     private static final Logger LOG = LoggerFactory.getLogger(Purger.class);
     private final String DP_PATH = "data_packages/";
     private final CloseableHttpClient httpClient;
-    private final String cacheUrl;
+    private final String dataRepoApiUrl;
 
     /**
      * Full constructor.
-     * @param cacheUrl full url to the data repo url.
+     * @param apiUrl full url to the data repo url.
      */
-    public Purger(String cacheUrl) {
+    public Purger(String apiUrl) {
         httpClient = HttpClients.createDefault();
-        this.cacheUrl = cacheUrl;
+        this.dataRepoApiUrl = apiUrl + DP_PATH;
     }
 
 
@@ -34,10 +35,11 @@ public class Purger {
      */
     private void purgePath(String path) {
         try {
-            String urlToBan = cacheUrl + DP_PATH + path;
+            String urlToBan = dataRepoApiUrl + path;
             LOG.debug("Purging url {}", urlToBan);
-            httpClient.execute(RequestBuilder.create("BAN").setUri(cacheUrl +  DP_PATH)
-                    .addHeader("x-ban-url",urlToBan).build());
+            HttpResponse response = httpClient.execute(RequestBuilder.create("BAN").setUri(dataRepoApiUrl)
+                    .addHeader("X-Ban-URL", urlToBan).build());
+            LOG.debug("BAN Response {}", response);
         } catch (IOException ex) {
             LOG.error("Error purging root path");
         }
@@ -56,10 +58,10 @@ public class Purger {
      */
     public void purgeRoot() {
         try {
-            String urlToBan = cacheUrl + DP_PATH;
-            LOG.debug("Purging url {}", urlToBan);
-            httpClient.execute(RequestBuilder.create("BAN").setUri(cacheUrl)
-                    .addHeader("x-ban-url", urlToBan).build());
+            LOG.debug("Purging url {}", dataRepoApiUrl);
+            HttpResponse response = httpClient.execute(RequestBuilder.create("BAN").setUri(dataRepoApiUrl)
+                    .addHeader("x-ban-url", dataRepoApiUrl).build());
+            LOG.debug("BAN Response {}", response);
         } catch (IOException ex) {
             LOG.error("Error purging root path");
         }
