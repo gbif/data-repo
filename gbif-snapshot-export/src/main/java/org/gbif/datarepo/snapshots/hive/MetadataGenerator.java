@@ -39,10 +39,10 @@ class MetadataGenerator {
           try {
               dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]));
           } catch (ParseException ex) {
-            return dateFormat.format(SimpleDateFormat.getDateTimeInstance().format(new Date()));
+            return dateFormat.format(new Date());
           }
         }
-        return dateFormat.format(SimpleDateFormat.getDateTimeInstance().format(new Date()));
+        return dateFormat.format(new Date());
     }
 
     /**
