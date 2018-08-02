@@ -37,7 +37,7 @@ class MetadataGenerator {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         if (components.length > 1) {
           try {
-              dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]));
+              return dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]));
           } catch (ParseException ex) {
             return dateFormat.format(new Date());
           }
@@ -79,5 +79,10 @@ class MetadataGenerator {
         } catch (Exception ex) {
             throw Throwables.propagate(ex);
         }
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println(exportDate("occurrence_20180409_small"));
     }
 }
