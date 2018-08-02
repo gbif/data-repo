@@ -1,6 +1,5 @@
-
 <eml:eml
- packageId="clo-ebird_observation_data_12-12-2017"
+ packageId="gbif_occurrence_data_${exportDate}"
  system="http://dataone.ornith.cornell.edu/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
@@ -98,7 +97,7 @@
 
 <dataTable>
    <entityName>${exportFileName}</entityName>
-   <entityDescription>Worldwide bird observation data submitted to eBird</entityDescription>
+   <entityDescription>GBIF snapshot of occurrence data</entityDescription>
    <physical>
       <objectName>${exportFileName}</objectName>
       <size>${exportFileSize?string.computer}</size>

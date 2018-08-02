@@ -23,6 +23,8 @@ import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.sql.*;
@@ -43,6 +45,8 @@ class SnapshotExport {
     private static final String HIVE_EXPORT_SCRIPT = "export_snapshot.ql";
 
     private static final ObjectMapper OBJECT_MAPPER  = new ObjectMapper();
+
+    private static final Logger LOG = LoggerFactory.getLogger(SnapshotExport.class);
 
     static {
         // determines whether encountering from unknown properties (ones that do not map to a property, and there is no
@@ -262,12 +266,18 @@ class SnapshotExport {
     private void run() {
         try {
             Map<Term,FieldSchema>  colTerms = getTermsHiveColumnMapping();
+            LOG.info("Exporting snapshot table into a compressed table");
             Path exportPath = runHiveExport(colTerms);
+            LOG.info("Creating a data package for the GBIF snapshot");
             DataPackage dataPackage = dataPackageManager.createSnapshotDataPackage(fileSystem.getUri().resolve(exportPath.toUri()));
+            LOG.info("Deleting temporary files");
             fileSystem.delete(exportPath, false);
+            LOG.info("Creating EML metadata");
             createEmlMetadata(colTerms.keySet(), exportPath, dataPackage.getDoi().toString());
+            LOG.info("Creating RDF metadata");
             createRdf(dataPackage.getDoi().toString());
         } catch (IOException ex) {
+            LOG.error("Error exporting snapshot as data package", ex);
             throw Throwables.propagate(ex);
         }
     }

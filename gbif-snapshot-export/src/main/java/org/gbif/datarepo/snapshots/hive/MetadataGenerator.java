@@ -15,7 +15,11 @@ import java.util.stream.Collectors;
  */
 class MetadataGenerator {
 
+    //Date format used in table names
     private static final String SNAPSHOT_TABLE_DATE_FORMAT = "yyyyMMdd";
+
+    //Date format used for the generated metadata
+    private static final String DATE_FORMAT = "dd-MM-yyyy";
 
     /**
      * Private constructor.
@@ -30,14 +34,15 @@ class MetadataGenerator {
      */
     private static String exportDate(String snapshotTable) {
         String[] components = snapshotTable.split("_");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         if (components.length > 1) {
           try {
-            new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]);
+              dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]));
           } catch (ParseException ex) {
-            return SimpleDateFormat.getDateTimeInstance().format(new Date());
+            return dateFormat.format(SimpleDateFormat.getDateTimeInstance().format(new Date()));
           }
         }
-        return SimpleDateFormat.getDateTimeInstance().format(new Date());
+        return dateFormat.format(SimpleDateFormat.getDateTimeInstance().format(new Date()));
     }
 
     /**
