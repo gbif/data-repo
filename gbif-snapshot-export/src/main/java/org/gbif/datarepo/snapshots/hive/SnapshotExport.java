@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateEmlMetadata;
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
 
+/**
+ * Utility class to export GBIF snapshots into DataOne.
+ */
 class SnapshotExport {
 
     private final Config config;
