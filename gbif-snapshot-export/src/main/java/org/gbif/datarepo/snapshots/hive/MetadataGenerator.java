@@ -81,8 +81,4 @@ class MetadataGenerator {
         }
     }
 
-
-    public static void main(String[] args) {
-        System.out.println(exportDate("occurrence_20180409_small"));
-    }
 }
