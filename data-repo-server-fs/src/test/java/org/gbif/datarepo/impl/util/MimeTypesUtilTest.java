@@ -23,6 +23,7 @@ public class MimeTypesUtilTest {
             .put("test.tar","application/x-tar")
             .put("test.gz","application/gzip")
             .put("test.doc","application/msword")
+            .put("test.eml","message/rfc822")
             .put("test.bin","application/octet-stream") //default MimeType
             .build();
 

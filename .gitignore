@@ -1,0 +1,7 @@
+
+\.idea/
+target/
+
+gbif-snapshot-export/dependency-reduced-pom\.xml
+
+gbif-snapshot-export/export_snapshot\.ql
