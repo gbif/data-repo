@@ -13,11 +13,11 @@ import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.app.DataRepoConfigurationDW;
 import org.gbif.datarepo.citation.CitationGenerator;
 import org.gbif.datarepo.identifiers.orcid.OrcidPublicService;
+import org.gbif.datarepo.logging.EventLogger;
 import org.gbif.datarepo.registry.JacksonObjectMapperProvider;
 import org.gbif.datarepo.impl.download.FileDownload;
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 import org.gbif.datarepo.resource.caching.Purger;
-import org.gbif.datarepo.resource.logging.EventLogger;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;

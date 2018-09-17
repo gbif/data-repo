@@ -1,4 +1,4 @@
-package org.gbif.datarepo.resource.logging;
+package org.gbif.datarepo.logging;
 
 /**
  * Tipyes of logging events.

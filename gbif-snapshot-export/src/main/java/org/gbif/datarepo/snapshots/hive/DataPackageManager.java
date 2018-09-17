@@ -9,8 +9,8 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.api.model.Tag;
-
 import org.gbif.datarepo.impl.util.MimeTypesUtil;
+import org.gbif.datarepo.logging.EventLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.Date;
 
 /**
  * Utility class to persist DataPackages for GBIF Snapshots.
@@ -80,10 +78,12 @@ class DataPackageManager {
     public DataPackage createSnapshotDataPackage(URI file) {
         Path path = new Path(file);
         LOG.info("Creating DataPackage for file {}", file);
-        return dataRepository.create(buildDataPackage(
+        DataPackage newDataPackage = dataRepository.create(buildDataPackage(
                 "GBIF occurrence data snapshot " + path.getName(),
                 "GBIF snapshot data in compress format", MimeTypesUtil.detectMimeType(path.getName())),
                 Collections.singletonList(FileInputContent.from(path.getName(), file)), true);
+        EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
+        return newDataPackage;
     }
 
     /**
@@ -93,9 +93,11 @@ class DataPackageManager {
     private DataPackage createDataPackage(File file, String title, String description, String doi) {
         LOG.info("Creating DataPackage for file {}", file);
         try (InputStream inputStream = new FileInputStream(file)) {
-            return dataRepository.create(
+            DataPackage newDataPackage = dataRepository.create(
                     buildDataPackageWithDoi(title, description, MimeTypesUtil.detectMimeType(file.getName()), doi),
                     Collections.singletonList(FileInputContent.from(file.getName(), inputStream)), true);
+            EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
+            return newDataPackage;
         } catch (IOException ex) {
             LOG.error("Error creating DataPackage", ex);
             throw Throwables.propagate(ex);

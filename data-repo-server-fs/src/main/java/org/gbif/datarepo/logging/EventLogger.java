@@ -1,10 +1,10 @@
-package org.gbif.datarepo.resource.logging;
-
-import java.security.Principal;
-import java.util.Optional;
+package org.gbif.datarepo.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.MDC;
+
+import java.security.Principal;
+import java.util.Optional;
 
 /**
  * Utility class that logs data packages relevant events.
