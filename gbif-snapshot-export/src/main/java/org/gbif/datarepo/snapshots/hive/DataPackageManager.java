@@ -8,8 +8,6 @@ import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.Identifier;
-import org.gbif.datarepo.api.model.Tag;
-import org.gbif.datarepo.impl.util.MimeTypesUtil;
 import org.gbif.datarepo.logging.EventLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +25,6 @@ import java.util.Collections;
 class DataPackageManager {
 
     private static final String CREATOR = "gbif-snapshot";
-    // Note that this prefix has to match with the one used in dataone project
-    private static final String FORMAT_ID_PREFIX = "DataOne:formatId:";
 
     private static final Logger LOG = LoggerFactory.getLogger(DataPackageManager.class);
 
@@ -45,8 +41,8 @@ class DataPackageManager {
     /**
      * Builds a simple DataPackage using basic information and the 'relatedDoi' as a related identifier.
      */
-    private DataPackage buildDataPackageWithDoi(String title, String description, String format, String relatedDoi) {
-        DataPackage dataPackage = buildDataPackage(title, description, format);
+    private DataPackage buildDataPackageWithDoi(String title, String description, String relatedDoi) {
+        DataPackage dataPackage = buildDataPackage(title, description);
         Identifier identifier = new Identifier();
         identifier.setIdentifier(relatedDoi);
         identifier.setType(Identifier.Type.DOI);
@@ -59,16 +55,13 @@ class DataPackageManager {
     /**
      * Builds a DataPackage that will be shared in DataOne.
      */
-    private DataPackage buildDataPackage(String title, String description, String format) {
+    private DataPackage buildDataPackage(String title, String description) {
         DataPackage dataPackage = new DataPackage();
         dataPackage.setCreatedBy(CREATOR);
         dataPackage.setTitle(title);
         dataPackage.setDescription(description);
         dataPackage.setLicense(License.CC_BY_4_0);
         dataPackage.setShareIn(Sets.newHashSet("DataOne"));
-        Tag tag = new Tag();
-        tag.setValue(FORMAT_ID_PREFIX + format);
-        dataPackage.setTags(Collections.singleton(tag));
         return dataPackage;
     }
 
@@ -80,7 +73,7 @@ class DataPackageManager {
         LOG.info("Creating DataPackage for file {}", file);
         DataPackage newDataPackage = dataRepository.create(buildDataPackage(
                 "GBIF occurrence data snapshot " + path.getName(),
-                "GBIF snapshot data in compress format", MimeTypesUtil.detectMimeType(path.getName())),
+                "GBIF snapshot data in compress format"),
                 Collections.singletonList(FileInputContent.from(path.getName(), file)), true);
         EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
         return newDataPackage;
@@ -94,7 +87,7 @@ class DataPackageManager {
         LOG.info("Creating DataPackage for file {}", file);
         try (InputStream inputStream = new FileInputStream(file)) {
             DataPackage newDataPackage = dataRepository.create(
-                    buildDataPackageWithDoi(title, description, MimeTypesUtil.detectMimeType(file.getName()), doi),
+                    buildDataPackageWithDoi(title, description, doi),
                     Collections.singletonList(FileInputContent.from(file.getName(), inputStream)), true);
             EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
             return newDataPackage;

@@ -46,7 +46,7 @@
   </select>
 
   <select id="listDataPackageFiles" resultMap="org.gbif.datarepo.persistence.mappers.DataPackageFileMapper.DATA_PACKAGE_FILE_DATA_MAP">
-    SELECT file_name, checksum, size
+    SELECT file_name, checksum, size, format
     FROM data_package_file
     WHERE  data_package_key = #{dataPackageKey, jdbcType=OTHER}
   </select>

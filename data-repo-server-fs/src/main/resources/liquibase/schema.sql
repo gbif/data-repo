@@ -88,6 +88,7 @@ CREATE TABLE data_package_file (
     file_name text NOT NULL,
     checksum varchar(32) NOT NULL CHECK (length(checksum) = 32),
     size bigint,
+    format varchar(150) NOT NULL,
     PRIMARY KEY (data_package_key, file_name)
 );
 CREATE INDEX data_package_file_idx ON data_package_file (data_package_key, file_name, checksum);
