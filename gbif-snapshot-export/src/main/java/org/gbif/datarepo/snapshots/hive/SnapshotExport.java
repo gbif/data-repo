@@ -197,13 +197,14 @@ class SnapshotExport {
     /**
      * Creates the EML metadata for the snapshot table and persists it into the DataRepo.
      */
-    private void createEmlMetadata(Collection<Term> terms, Path exportFile, String doi) {
+    private DataPackage createEmlMetadata(Collection<Term> terms, Path exportFile, String doi) {
         try {
             File file = generateEmlMetadata(terms, config.getSnapshotTable(), exportFile.getName(),
                     fileSystem.getStatus(exportFile).getCapacity(), getSnapshotRecordCount(), doi);
-            dataPackageManager.createSnapshotEmlDataPackage(file,  doi);
+            DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file,  doi);
             //The file can be deleted since it was copied into the DataRepo
             file.delete();
+            return dataPackageCreated;
         } catch (Exception ex) {
             throw Throwables.propagate(ex);
         }
@@ -213,10 +214,11 @@ class SnapshotExport {
      * Creates the RDF metadata for the snapshot table and persists it into the DataRepo.
      */
 
-    private void createRdf(String doi) {
+    private void createRdf(String doi, UUID dataObjectId, UUID emlId) {
         try {
-            File file  = generateRdf(config.getSnapshotTable());
-            dataPackageManager.createSnapshotRdfDataPackage(file, doi);
+            UUID rdfId = UUID.randomUUID();
+            File file  = generateRdf(config.getSnapshotTable(), dataObjectId, emlId, rdfId);
+            dataPackageManager.createSnapshotRdfDataPackage(file, doi, rdfId);
             //The file can be deleted since it was copied into the DataRepo
             file.delete();
         } catch (Exception ex) {
@@ -272,13 +274,13 @@ class SnapshotExport {
             LOG.info("Exporting snapshot table into a compressed table");
             Path exportPath = runHiveExport(colTerms);
             LOG.info("Creating a data package for the GBIF snapshot");
-            DataPackage dataPackage = dataPackageManager.createSnapshotDataPackage(fileSystem.getUri().resolve(exportPath.toUri()));
+            DataPackage dataPackageData = dataPackageManager.createSnapshotDataPackage(fileSystem.getUri().resolve(exportPath.toUri()));
             LOG.info("Deleting temporary files");
             fileSystem.delete(exportPath, false);
             LOG.info("Creating EML metadata");
-            createEmlMetadata(colTerms.keySet(), exportPath, dataPackage.getDoi().toString());
+            DataPackage dataPackageEml = createEmlMetadata(colTerms.keySet(), exportPath, dataPackageData.getDoi().toString());
             LOG.info("Creating RDF metadata");
-            createRdf(dataPackage.getDoi().toString());
+            createRdf(dataPackageData.getDoi().toString(), dataPackageData.getKey(), dataPackageEml.getKey());
         } catch (IOException ex) {
             LOG.error("Error exporting snapshot as data package", ex);
             throw Throwables.propagate(ex);

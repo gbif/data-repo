@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
  * Utility class to persist DataPackages for GBIF Snapshots.
@@ -83,11 +84,11 @@ class DataPackageManager {
      * Creates and persists a DataPackage from local file.
      */
 
-    private DataPackage createDataPackage(File file, String title, String description, String doi) {
+    private DataPackage createDataPackage(File file, DataPackage dataPackage) {
         LOG.info("Creating DataPackage for file {}", file);
         try (InputStream inputStream = new FileInputStream(file)) {
             DataPackage newDataPackage = dataRepository.create(
-                    buildDataPackageWithDoi(title, description, doi),
+                    dataPackage,
                     Collections.singletonList(FileInputContent.from(file.getName(), inputStream)), true);
             EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
             return newDataPackage;
@@ -100,10 +101,11 @@ class DataPackageManager {
     /**
      * Creates RDF DataPackage related to the snapshotDOI param.
      */
-    DataPackage createSnapshotRdfDataPackage(File file, String snapshotDOI) {
-        return createDataPackage(file,
-                "GBIF Snapshot RDF Metadata " + file.getName(),
+    DataPackage createSnapshotRdfDataPackage(File file, String snapshotDOI, UUID generatedId) {
+        DataPackage dataPackage = buildDataPackageWithDoi("GBIF Snapshot RDF Metadata " + file.getName(),
                 "RDF Metadata for GBIF Snapshot " + file.getName(), snapshotDOI);
+        dataPackage.setKey(generatedId);
+        return createDataPackage(file, dataPackage);
     }
 
     /**
@@ -111,8 +113,8 @@ class DataPackageManager {
      */
 
     DataPackage createSnapshotEmlDataPackage(File file, String snapshotDOI) {
-        return createDataPackage(file, "GBIF Snapshot Metadata " + file.getName(),
-                "EML Metadata for GBIF Snapshot " + file.getName(), snapshotDOI);
+        return createDataPackage(file, buildDataPackageWithDoi("GBIF Snapshot Metadata " + file.getName(),
+                "EML Metadata for GBIF Snapshot " + file.getName(), snapshotDOI));
     }
 
 }

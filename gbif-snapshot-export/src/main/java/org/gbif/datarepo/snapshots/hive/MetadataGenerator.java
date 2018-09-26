@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -20,6 +21,8 @@ class MetadataGenerator {
 
     //Date format used for the generated metadata
     private static final String DATE_FORMAT = "dd-MM-yyyy";
+
+    private static final String ENCODING = "UTF-8";
 
     /**
      * Private constructor.
@@ -69,11 +72,16 @@ class MetadataGenerator {
     /**
      * Executes a FreeMarker template that generates the RDF document.
      */
-    static File generateRdf(String snapshotTable) {
+    static File generateRdf(String snapshotTable, UUID dataObjectId, UUID emlId, UUID rdfId) {
         try {
             Map<String,Object> params = new HashMap<>();
-            params.put("snapshotTable", snapshotTable);
             params.put("exportDate", exportDate(snapshotTable));
+            params.put("URL_ENCODED_ORE_GUID", URLEncoder.encode(rdfId.toString(), ENCODING));
+            params.put("ORE_GUID", rdfId.toString());
+            params.put("URL_ENCODED_METADATA_GUID", URLEncoder.encode(emlId.toString(), ENCODING));
+            params.put("METADATA_GUID", emlId.toString());
+            params.put("URL_ENCODED_DATA_GUID", URLEncoder.encode(dataObjectId.toString(), ENCODING));
+            params.put("DATA_GUID", dataObjectId.toString());
             TemplateUtils.runTemplate(params, "rdf.ftl", snapshotTable + ".rdf");
             return new File(snapshotTable + ".rdf");
         } catch (Exception ex) {

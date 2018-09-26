@@ -132,7 +132,7 @@ public class FileSystemDataRepository implements DataRepository {
       Path newFilePath = fileSystemService.store(dataPackageKey, fileInputContent);
       long fileLength = fileSystemService.fileSize(newFilePath);
       DataPackageFile dataPackageFile = new DataPackageFile(newFilePath.getName(),
-                                                            MimeTypesUtil.detectMimeType(newFilePath.getName()),
+                                                            MimeTypesUtil.detectDataOneFormat(newFilePath.getName()),
                                                             fileSystemService.md5(newFilePath),
                                                             fileLength);
       newDataPackage.setSize(newDataPackage.getSize() + fileLength);
@@ -197,7 +197,7 @@ public class FileSystemDataRepository implements DataRepository {
                                                          .anyMatch(this::isAlternativeIdentifierInUse)) {
       throw new IllegalStateException("An identifier has been used as alternative identifier in other data package");
     }
-    UUID dataPackageKey  = UUID.randomUUID();
+    UUID dataPackageKey  = dataPackage.getKey() != null ? dataPackage.getKey() : UUID.randomUUID();
     //Generates a DataCiteMetadata object for further validation/manipulation
     try {
       DataPackage newDataPackage = prePersist(dataPackage, files, dataPackageKey);

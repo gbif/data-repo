@@ -74,7 +74,7 @@ public class DataPackageFileMapperTest extends BaseMapperTest {
     dataPackage.setShareIn(Sets.newHashSet(TEST_OTHER_REPO_NAME));
     dataPackage.setLicense(License.CC_BY_NC_4_0);
     String fileName = "test.xml";
-    dataPackage.addFile(new DataPackageFile(fileName, MimeTypesUtil.detectMimeType(fileName),testChecksum, 1));
+    dataPackage.addFile(new DataPackageFile(fileName, MimeTypesUtil.detectDataOneFormat(fileName),testChecksum, 1));
     return dataPackage;
   }
 
