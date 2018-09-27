@@ -79,7 +79,7 @@ public interface DataRepository {
    */
   PagingResponse<DataPackage> list(@Nullable String user, @Nullable Pageable page, @Nullable Date fromDate,
                                    @Nullable Date toDate, Boolean deleted, @Nullable List<String> tags,
-                                   @Nullable String q);
+                                   @Nullable String q, @Nullable String formatId);
 
   /**
    * Page through AlternativeIdentifiers, optionally filtered by user and dates.

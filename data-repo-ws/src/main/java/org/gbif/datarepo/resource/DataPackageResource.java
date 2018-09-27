@@ -133,7 +133,7 @@ public class DataPackageResource {
                                           @Nullable @QueryParam("toDate") Date toDate,
                                           @Nullable @QueryParam("tag") List<String> tags,
                                           @Nullable @QueryParam("q") String q) {
-    return dataRepository.list(user, page, fromDate, toDate, false, tags, q);
+    return dataRepository.list(user, page, fromDate, toDate, false, tags, q, null);
   }
 
   /**

@@ -168,10 +168,10 @@ public class DataRepoPersistenceService {
                                                       @Nullable Date fromDate, @Nullable Date toDate,
                                                       @Nullable Boolean deleted, @Nullable List<String> tags,
                                                       @Nullable String publishedIn, @Nullable String shareIn,
-                                                      @Nullable String q) {
+                                                      @Nullable String q, @Nullable String formatId) {
     return asPageableResponse(page,
-                              () -> dataPackageMapper.count(user, fromDate, toDate, deleted, tags, publishedIn, shareIn, q),
-                              () -> setCitation(dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, publishedIn, shareIn, q)));
+                              () -> dataPackageMapper.count(user, fromDate, toDate, deleted, tags, publishedIn, shareIn, q, formatId),
+                              () -> setCitation(dataPackageMapper.list(user, page, fromDate, toDate, deleted, tags, publishedIn, shareIn, q, formatId)));
   }
 
   /**

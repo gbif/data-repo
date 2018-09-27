@@ -76,7 +76,7 @@ class DataPackageManager {
                 "GBIF occurrence data snapshot " + path.getName(),
                 "GBIF snapshot data in compress format"),
                 Collections.singletonList(FileInputContent.from(path.getName(), file)), true);
-        EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
+        EventLogger.logCreate(LOG, null, newDataPackage.getKey().toString());
         return newDataPackage;
     }
 
@@ -90,7 +90,7 @@ class DataPackageManager {
             DataPackage newDataPackage = dataRepository.create(
                     dataPackage,
                     Collections.singletonList(FileInputContent.from(file.getName(), inputStream)), true);
-            EventLogger.logCreate(LOG, null, newDataPackage.getDoi().getDoiName());
+            EventLogger.logCreate(LOG, null, newDataPackage.getKey().toString());
             return newDataPackage;
         } catch (IOException ex) {
             LOG.error("Error creating DataPackage", ex);

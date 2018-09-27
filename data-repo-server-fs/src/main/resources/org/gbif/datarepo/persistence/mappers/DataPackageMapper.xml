@@ -63,7 +63,8 @@
 
   <select id="list" resultType="DataPackage" resultMap="DATA_PACKAGE_DATA_MAP" parameterType="map">
     SELECT <include refid="DATA_PACKAGE_FIELDS"/>
-    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
+    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="formatId != null">, data_package_file dpf</if>
+      <if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -103,6 +104,9 @@
           </if>
         </otherwise>
       </choose>
+      <if test="formatId != null">
+        AND dpf.data_package_key = dp.key AND dpf.format = #{formatId, jdbcType=OTHER}
+      </if>
       <if test="query !=null" >
         AND query @@ dp.fulltext_search
       </if>
@@ -115,7 +119,8 @@
 
   <select id="count" resultType="Long" parameterType="map">
     SELECT count(*)
-    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
+    FROM data_package dp<if test="tags != null and !tags.isEmpty()">, tag t</if><if test="formatId != null">, data_package_file dpf</if>
+      <if test="query != null" >, plainto_tsquery('english',unaccent(#{query})) AS query</if>
     <where>
       <if test="user != null" >
         AND dp.created_by=#{user,jdbcType=OTHER}
@@ -156,6 +161,9 @@
         </if>
       </otherwise>
     </choose>
+    <if test="formatId != null">
+      AND dpf.data_package_key = dp.key AND dpf.format = #{formatId, jdbcType=OTHER}
+    </if>
     <if test="query !=null" >
       AND query @@ dp.fulltext_search
     </if>

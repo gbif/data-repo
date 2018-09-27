@@ -24,7 +24,7 @@
         <rdfs1:isDefinedBy>http://www.openarchives.org/ore/terms/</rdfs1:isDefinedBy>
         <rdfs1:label>Aggregation</rdfs1:label>
     </rdf:Description>
-    <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/${URL_ENCODED_ORE_GUID}.#aggregation">
+    <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/${URL_ENCODED_ORE_GUID}#aggregation">
         <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/${URL_ENCODED_METADATA_GUID}"/>
         <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/${URL_ENCODED_DATA_GUID}"/>
         <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>

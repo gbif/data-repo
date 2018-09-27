@@ -316,9 +316,9 @@ public class FileSystemDataRepository implements DataRepository {
   public PagingResponse<DataPackage> list(String user, @Nullable Pageable page,
                                           @Nullable Date fromDate, @Nullable Date toDate,
                                           @Nullable Boolean deleted, @Nullable List<String> tags,
-                                          @Nullable String q) {
+                                          @Nullable String q, @Nullable String formatId) {
     return persistenceService.listDataPackages(user, page, fromDate, toDate, deleted, tags, dataRepoName, dataRepoName,
-                                               q);
+                                               q, formatId);
   }
 
   /**
