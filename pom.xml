@@ -10,7 +10,7 @@
 
     <groupId>org.gbif.data</groupId>
     <artifactId>data-repo-motherpom</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>GBIF Data Repo</name>
@@ -74,7 +74,7 @@
 
         <postgresql-embedded.version>2.2</postgresql-embedded.version>
 
-        <gbif-doi.version>1.6</gbif-doi.version>
+        <gbif-doi.version>1.9</gbif-doi.version>
         <gbif-common.version>0.35</gbif-common.version>
         <gbif-httputils.version>0.10</gbif-httputils.version>
         <gbif-api.version>0.58</gbif-api.version>
