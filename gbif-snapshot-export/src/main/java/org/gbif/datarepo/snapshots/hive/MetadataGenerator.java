@@ -20,7 +20,7 @@ class MetadataGenerator {
     private static final String SNAPSHOT_TABLE_DATE_FORMAT = "yyyyMMdd";
 
     //Date format used for the generated metadata
-    private static final String DATE_FORMAT = "dd-MM-yyyy";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private static final String ENCODING = "UTF-8";
 

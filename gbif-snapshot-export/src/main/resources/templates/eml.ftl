@@ -77,7 +77,7 @@
 			<description>
 				<para>Released quarterly</para>
 			</description>
-			<maintenanceUpdateFrequency>quarterly</maintenanceUpdateFrequency>
+			<maintenanceUpdateFrequency>otherMaintenancePeriod</maintenanceUpdateFrequency>
 		</maintenance>
    		<contact>
       		<individualName>
