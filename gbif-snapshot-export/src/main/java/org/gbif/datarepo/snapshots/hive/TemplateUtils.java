@@ -1,14 +1,19 @@
 package org.gbif.datarepo.snapshots.hive;
 
-import com.google.common.base.Throwables;
-import freemarker.template.*;
-
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
+
+import com.google.common.base.Throwables;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.Version;
 
 /**
  * Utility class to run freemarker templates.
@@ -36,7 +41,7 @@ class TemplateUtils {
         cfg.setDefaultEncoding(StandardCharsets.UTF_8.name());
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         // Write output to the console
-        try (Writer writer = new FileWriter(new File(exportPath))) {
+        try (Writer writer = Files.newBufferedWriter(Paths.get(exportPath), StandardCharsets.UTF_8)) {
             Template eml = cfg.getTemplate(templateFile);
             eml.process(params, writer);
         } catch (TemplateException | IOException ex) {
