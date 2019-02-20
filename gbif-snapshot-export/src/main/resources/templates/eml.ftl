@@ -1,5 +1,5 @@
 <eml:eml
- packageId="gbif_occurrence_data_${exportDate}"
+ packageId="${doi}"
  system="http://dataone.ornith.cornell.edu/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
@@ -11,19 +11,19 @@
         </allow>
    	</access>
 	<dataset>
-  		<alternateIdentifier>${doi}</alternateIdentifier>
+  		<alternateIdentifier>gbif_occurrence_data_${exportDate}</alternateIdentifier>
   		<title>GBIF Snapshot - ${exportDate}</title>
 	  	<creator>
-			<organizationName>GBIF - Global Biodiversity Information Facility</organizationName>
-			<address>
-				<deliveryPoint>Universitetsparken 15</deliveryPoint>
-				<city>Copenhagen</city>
-				<administrativeArea>Østerbro</administrativeArea>
-				<postalCode>2100</postalCode>
-				<country>Denmark</country>
-			</address>
-			<onlineUrl>http://www.gbif.org</onlineUrl>
-		</creator>
+        <organizationName>GBIF - Global Biodiversity Information Facility</organizationName>
+        <address>
+          <deliveryPoint>Universitetsparken 15</deliveryPoint>
+          <city>Copenhagen</city>
+          <administrativeArea>Østerbro</administrativeArea>
+          <postalCode>2100</postalCode>
+          <country>Denmark</country>
+        </address>
+        <onlineUrl>http://www.gbif.org</onlineUrl>
+		  </creator>
 		<metadataProvider>
 			<organizationName>GBIF - Global Biodiversity Information Facility</organizationName>
 			<address>

@@ -14,6 +14,7 @@ import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.thrift.TException;
 import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.inject.DataRepoFsModule;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -25,8 +26,10 @@ import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import parquet.Strings;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -197,15 +200,29 @@ class SnapshotExport {
     /**
      * Creates the EML metadata for the snapshot table and persists it into the DataRepo.
      */
-    private DataPackage createEmlMetadata(Collection<Term> terms, Path exportFile, String doi) {
+    private DataPackage createEmlMetadata(Collection<Term> terms, String exportFileName, Long fileSize, String doi) {
         try {
-            File file = generateEmlMetadata(terms, config.getSnapshotTable(), exportFile.getName(),
-                    fileSystem.getStatus(exportFile).getCapacity(), getSnapshotRecordCount(), doi);
+            File file = generateEmlMetadata(terms, config.getSnapshotTable(), exportFileName, fileSize,
+                                            getSnapshotRecordCount(), doi);
             DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file,  doi);
             //The file can be deleted since it was copied into the DataRepo
             file.delete();
             return dataPackageCreated;
         } catch (Exception ex) {
+            throw Throwables.propagate(ex);
+        }
+    }
+
+    private DataPackage createEmlMetadata(Collection<Term> terms, DataPackage dataPackageData) {
+        // there should be only 1 file
+        DataPackageFile exportFile = dataPackageData.getFiles().iterator().next();
+        return createEmlMetadata(terms, exportFile.getFileName(), dataPackageData.getSize(), dataPackageData.getDoi().toString());
+    }
+
+    private DataPackage createEmlMetadata(Collection<Term> terms, Path exportFile, String doi) {
+        try {
+            return createEmlMetadata(terms, exportFile.getName(), fileSystem.getStatus(exportFile).getCapacity(), doi);
+        } catch (IOException ex) {
             throw Throwables.propagate(ex);
         }
     }
@@ -287,6 +304,18 @@ class SnapshotExport {
         }
     }
 
+    /**
+     * Updates the metadata of an export by creating a new EML and RDF but reusing an existing zip file.
+     */
+    private void updateMetadataOnly(UUID dataPackageDataId) {
+        LOG.info("Getting the Datapackage {}", dataPackageDataId);
+        DataPackage dataPackageData = dataPackageManager.getDataPackage(dataPackageDataId);
+        LOG.info("Creating EML metadata");
+        Map<Term,FieldSchema>  colTerms = getTermsHiveColumnMapping();
+        DataPackage dataPackageEml = createEmlMetadata(colTerms.keySet(), dataPackageData);
+        LOG.info("Creating RDF metadata");
+        createRdf(dataPackageData.getDoi().toString(), dataPackageData.getKey(), dataPackageEml.getKey());
+    }
 
     /**
      * Runs the export process using a configuration YAML file as parameter.
@@ -294,7 +323,12 @@ class SnapshotExport {
     public static void main(String[] arg) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         Config config = objectMapper.readValue(new File(arg[0]), Config.class);
-        new SnapshotExport(config).run();
+        SnapshotExport export = new SnapshotExport(config);
+        if (config.getUpdateMetadataPackage() != null) {
+            export.updateMetadataOnly(config.getUpdateMetadataPackage());
+        } else {
+            export.run();
+        }
     }
 
 }

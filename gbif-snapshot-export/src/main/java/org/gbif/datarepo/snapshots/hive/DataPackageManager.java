@@ -80,10 +80,13 @@ class DataPackageManager {
         return newDataPackage;
     }
 
+    public DataPackage getDataPackage(UUID id) {
+        return dataRepository.get(id).orElseThrow(IllegalArgumentException::new);
+    }
+
     /**
      * Creates and persists a DataPackage from local file.
      */
-
     private DataPackage createDataPackage(File file, DataPackage dataPackage) {
         LOG.info("Creating DataPackage for file {}", file);
         try (InputStream inputStream = new FileInputStream(file)) {

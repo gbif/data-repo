@@ -2,6 +2,8 @@ package org.gbif.datarepo.snapshots.hive;
 
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 
+import java.util.UUID;
+
 /**
  * Configuration settings to run a Snapshot export into the GBIF DataRepo/DataOne.
  */
@@ -11,6 +13,7 @@ public class Config {
     private String hiveDB;
     private String snapshotTable;
     private String exportPath;
+    private UUID updateMetadataPackage;
     private DataRepoConfiguration dataRepoConfiguration;
 
     public String getMetaStoreUris() {
@@ -51,6 +54,14 @@ public class Config {
 
     public void setExportPath(String exportPath) {
         this.exportPath = exportPath;
+    }
+
+    public UUID getUpdateMetadataPackage() {
+        return updateMetadataPackage;
+    }
+
+    public void setUpdateMetadataPackage(UUID updateMetadataPackage) {
+        this.updateMetadataPackage = updateMetadataPackage;
     }
 
     public DataRepoConfiguration getDataRepoConfiguration() {
