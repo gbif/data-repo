@@ -207,7 +207,7 @@ public class FileSystemDataRepository implements DataRepository {
                                                          .withType(DoiType.DATA_PACKAGE)
                                                          .withMetadata(dataCiteMetadata)
                                                          .withUser(dataPackage.getCreatedBy())
-                                                         .withDoi(dataPackage.getDoi()).build()) : null,
+                                                         .withDoi(dataPackage.getDoi()).build()) : dataPackage.getDoi(),
                                            dataPackageKey));
       //Persist data package info
       return setCitation(persistenceService.create(newDataPackage));

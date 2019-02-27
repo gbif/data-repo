@@ -3,6 +3,8 @@ package org.gbif.datarepo.snapshots.hive;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import org.apache.hadoop.fs.Path;
+
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.vocabulary.License;
 import org.gbif.datarepo.api.DataRepository;
 import org.gbif.datarepo.api.model.DataPackage;
@@ -76,6 +78,24 @@ class DataPackageManager {
                 "GBIF occurrence data snapshot " + path.getName(),
                 "GBIF snapshot data in compress format"),
                 Collections.singletonList(FileInputContent.from(path.getName(), file)), true);
+        EventLogger.logCreate(LOG, null, newDataPackage.getKey().toString());
+        return newDataPackage;
+    }
+
+    /**
+     * Creates and persists a DataPackage from a download
+     */
+    public DataPackage createSnapshotDataPackageFromDownload(URI file, String doi) {
+        Path path = new Path(file);
+        LOG.info("Creating DataPackage for file {}", file);
+        DataPackage dataPackage = buildDataPackage(
+          "GBIF occurrence data snapshot " + path.getName(),
+          "GBIF snapshot data in compress format");
+        dataPackage.setDoi(new DOI(doi));
+
+        DataPackage newDataPackage = dataRepository.create(dataPackage,
+                                                           Collections.singletonList(FileInputContent.from(path.getName(), file)),
+                                                           false);
         EventLogger.logCreate(LOG, null, newDataPackage.getKey().toString());
         return newDataPackage;
     }

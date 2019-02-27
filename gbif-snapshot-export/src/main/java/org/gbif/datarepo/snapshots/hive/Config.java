@@ -2,6 +2,7 @@ package org.gbif.datarepo.snapshots.hive;
 
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -15,6 +16,10 @@ public class Config {
     private String exportPath;
     private UUID updateMetadataPackage;
     private DataRepoConfiguration dataRepoConfiguration;
+
+    // TODO: get from ws??
+    // downloads
+    private List<DownloadInfo> downloads;
 
     public String getMetaStoreUris() {
         return metaStoreUris;
@@ -74,5 +79,47 @@ public class Config {
 
     public String getFullSnapshotTableName() {
         return hiveDB  + "." + snapshotTable;
+    }
+
+    public List<DownloadInfo> getDownloads() {
+        return downloads;
+    }
+
+    public void setDownloads(List<DownloadInfo> downloads) {
+        this.downloads = downloads;
+    }
+
+    enum Format {
+        DWCA, CSV, AVRO
+    }
+
+    static class DownloadInfo{
+        Format format;
+        String path;
+        String doi;
+
+        public Format getFormat() {
+            return format;
+        }
+
+        public void setFormat(Format format) {
+            this.format = format;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getDoi() {
+            return doi;
+        }
+
+        public void setDoi(String doi) {
+            this.doi = doi;
+        }
     }
 }

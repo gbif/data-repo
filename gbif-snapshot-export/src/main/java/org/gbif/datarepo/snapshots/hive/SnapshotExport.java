@@ -287,7 +287,7 @@ class SnapshotExport {
      */
     private void run() {
         try {
-            Map<Term,FieldSchema>  colTerms = getTermsHiveColumnMapping();
+            Map<Term,FieldSchema> colTerms = getTermsHiveColumnMapping();
             LOG.info("Exporting snapshot table into a compressed table");
             Path exportPath = runHiveExport(colTerms);
             LOG.info("Creating a data package for the GBIF snapshot");

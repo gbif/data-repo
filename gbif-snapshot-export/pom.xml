@@ -126,6 +126,13 @@
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
       </dependency>
+
+      <!-- TODO: version property and move to parent -->
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-hdfs-table</artifactId>
+        <version>0.85-SNAPSHOT</version>
+      </dependency>
     </dependencies>
 
 </project>
