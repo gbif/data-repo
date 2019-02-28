@@ -17,8 +17,7 @@ public class Config {
     private UUID updateMetadataPackage;
     private DataRepoConfiguration dataRepoConfiguration;
 
-    // TODO: get from ws??
-    // downloads
+    // TODO: get it from registry ws
     private List<DownloadInfo> downloads;
 
     public String getMetaStoreUris() {
@@ -97,6 +96,7 @@ public class Config {
         Format format;
         String path;
         String doi;
+        long totalRecords;
 
         public Format getFormat() {
             return format;
@@ -120,6 +120,14 @@ public class Config {
 
         public void setDoi(String doi) {
             this.doi = doi;
+        }
+
+        public long getTotalRecords() {
+            return totalRecords;
+        }
+
+        public void setTotalRecords(long totalRecords) {
+            this.totalRecords = totalRecords;
         }
     }
 }

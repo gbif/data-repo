@@ -1,5 +1,36 @@
 package org.gbif.datarepo.snapshots.hive;
 
+import org.gbif.datarepo.api.model.DataPackage;
+import org.gbif.datarepo.api.model.DataPackageFile;
+import org.gbif.datarepo.inject.DataRepoFsModule;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
+import org.gbif.hadoop.compress.d2.D2CombineInputStream;
+import org.gbif.hadoop.compress.d2.D2Utils;
+import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
+import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,26 +44,8 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.thrift.TException;
-import org.gbif.datarepo.api.model.DataPackage;
-import org.gbif.datarepo.api.model.DataPackageFile;
-import org.gbif.datarepo.inject.DataRepoFsModule;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.hadoop.compress.d2.D2CombineInputStream;
-import org.gbif.hadoop.compress.d2.D2Utils;
-import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
-import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import parquet.Strings;
-
-import java.io.*;
-import java.nio.file.Paths;
-import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateEmlMetadata;
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
