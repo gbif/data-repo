@@ -12,7 +12,7 @@
    	</access>
 	<dataset>
   		<alternateIdentifier>gbif_occurrence_data_${exportDate}</alternateIdentifier>
-  		<title>GBIF Snapshot - ${exportDate}</title>
+  		<title>GBIF Snapshot - ${exportDate} - ${doi}</title>
 	  	<creator>
         <organizationName>GBIF - Global Biodiversity Information Facility</organizationName>
         <address>
@@ -37,9 +37,11 @@
 		</metadataProvider>
    		<pubDate>${exportDate}</pubDate>
 		<abstract>
-			<para>GBIF—the Global Biodiversity Information Facility—is an international network and research infrastructure
-			funded by the world’s governments and aimed at providing anyone, anywhere, open access to data about all types of life on Earth.
-			The dataset contains occurrence records published through GBIF.org by different members of the GBIF network.</para>
+			<para>The dataset contains a snapshot of all species occurrence records accessible through GBIF.org on the date shown in the identifier.
+			The data is published through the GBIF platform by institutions around the world, and full provenance regarding the source datasets is attached to each record.
+			GBIF (the Global Biodiversity Information Facility) is an international network and research infrastructure funded by governments, aimed at providing anyone,
+			anywhere with free and open access to data about all types of life on Earth.
+       Users of GBIF.org can filter data by taxonomic, geographic, temporal and other characteristics—including more open licensing—at https://www.gbif.org/occurrence.</para>
 		</abstract>
 		<keywordSet>
 			<keyword>gbif</keyword>
@@ -81,8 +83,7 @@
 		</maintenance>
    		<contact>
       		<individualName>
-         		<givenName>Tim</givenName>
-         		<surName>Robertson</surName>
+         		<givenName>GBIF Helpdesk</givenName>
       		</individualName>
 			<address>
                 <deliveryPoint>Universitetsparken 15</deliveryPoint>
@@ -91,7 +92,7 @@
                 <postalCode>2100</postalCode>
                 <country>Denmark</country>
             </address>
-      		<electronicMailAddress>informatics@gbif.org</electronicMailAddress>
+      		<electronicMailAddress>helpdesk@gbif.org</electronicMailAddress>
    		</contact>
 
 
