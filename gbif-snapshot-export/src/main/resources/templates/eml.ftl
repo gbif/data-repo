@@ -83,7 +83,8 @@
 		</maintenance>
    		<contact>
       		<individualName>
-         		<givenName>GBIF Helpdesk</givenName>
+         		<givenName>GBIF</givenName>
+         		<surName>Helpdesk</surName>
       		</individualName>
 			<address>
                 <deliveryPoint>Universitetsparken 15</deliveryPoint>
