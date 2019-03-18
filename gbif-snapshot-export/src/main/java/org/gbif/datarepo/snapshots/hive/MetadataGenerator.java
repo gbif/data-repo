@@ -87,7 +87,7 @@ class MetadataGenerator {
             params.put("METADATA_GUID", emlId.toString());
             params.put("URL_ENCODED_DATA_GUID", URLEncoder.encode(dataObjectId.toString(), ENCODING));
             params.put("DATA_GUID", dataObjectId.toString());
-            TemplateUtils.runTemplate(params, "rdf.ftl", "occurrence-" + date + ".rdf");
+            TemplateUtils.runTemplate(params, "rdf.ftl", PREFIX_METADATA_FILES + date + ".rdf");
             return new File(PREFIX_METADATA_FILES + date + ".rdf");
         } catch (Exception ex) {
             throw Throwables.propagate(ex);
