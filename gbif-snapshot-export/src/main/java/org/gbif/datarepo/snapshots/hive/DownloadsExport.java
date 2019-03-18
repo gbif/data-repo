@@ -23,6 +23,8 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.gbif.datarepo.snapshots.hive.DownloadsConfig.DownloadInfo;
+import static org.gbif.datarepo.snapshots.hive.DownloadsConfig.Format;
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateEmlMetadata;
 import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
 
@@ -31,7 +33,7 @@ import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
  */
 class DownloadsExport {
 
-  private final Config config;
+  private final DownloadsConfig config;
 
   private final DataPackageManager dataPackageManager;
 
@@ -48,7 +50,7 @@ class DownloadsExport {
     OBJECT_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
-  private DownloadsExport(Config config) {
+  private DownloadsExport(DownloadsConfig config) {
     this.config = config;
     DataRepoFsModule dataRepoFsModule = new DataRepoFsModule(config.getDataRepoConfiguration(), null, null);
     dataPackageManager = new DataPackageManager(dataRepoFsModule.dataRepository(OBJECT_MAPPER));
@@ -69,13 +71,14 @@ class DownloadsExport {
   /**
    * Creates the EML metadata for the snapshot table and persists it into the DataRepo.
    */
-  private DataPackage createEmlMetadata(Collection<Term> terms, Path exportFile, long totalRecords, String doi) {
+  private DataPackage createEmlMetadata(Collection<Term> terms, Path exportFile, String doi,
+                                        DownloadInfo downloadInfo) {
     try {
       File file = generateEmlMetadata(terms,
-                                      config.getSnapshotTable(),
+                                      downloadInfo.date,
                                       exportFile.getName(),
                                       fileSystem.getStatus(exportFile).getCapacity(),
-                                      totalRecords,
+                                      downloadInfo.totalRecords,
                                       doi);
       DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file, doi);
       //The file can be deleted since it was copied into the DataRepo
@@ -90,10 +93,10 @@ class DownloadsExport {
    * Creates the RDF metadata for the snapshot table and persists it into the DataRepo.
    */
 
-  private void createRdf(String doi, UUID dataObjectId, UUID emlId) {
+  private void createRdf(String doi, UUID dataObjectId, UUID emlId, DownloadInfo downloadInfo) {
     try {
       UUID rdfId = UUID.randomUUID();
-      File file = generateRdf(config.getSnapshotTable(), dataObjectId, emlId, rdfId);
+      File file = generateRdf(downloadInfo.date, dataObjectId, emlId, rdfId);
       dataPackageManager.createSnapshotRdfDataPackage(file, doi, rdfId);
       //The file can be deleted since it was copied into the DataRepo
       file.delete();
@@ -108,7 +111,7 @@ class DownloadsExport {
   private void run() {
     // TODO: get latest download, DOI and number of records from registry WS. For now we set it manually in the config
 
-    for (Config.DownloadInfo downloadInfo : config.getDownloads()) {
+    for (DownloadInfo downloadInfo : config.getDownloads()) {
       Path exportPath = new Path(downloadInfo.path);
       LOG.info("Creating a data package for the CSV download");
       DataPackage dataPackageData =
@@ -118,15 +121,15 @@ class DownloadsExport {
       LOG.info("Creating EML metadata");
       DataPackage dataPackageEml = createEmlMetadata(getDownloadFields(downloadInfo.format),
                                                      exportPath,
-                                                     downloadInfo.totalRecords,
-                                                     dataPackageData.getDoi().toString());
+                                                     dataPackageData.getDoi().toString(),
+                                                     downloadInfo);
       LOG.info("Creating RDF metadata");
-      createRdf(dataPackageData.getDoi().toString(), dataPackageData.getKey(), dataPackageEml.getKey());
+      createRdf(dataPackageData.getDoi().toString(), dataPackageData.getKey(), dataPackageEml.getKey(), downloadInfo);
     }
   }
 
-  private Set<Term> getDownloadFields(Config.Format format) {
-    if (format == Config.Format.DWCA) {
+  private Set<Term> getDownloadFields(Format format) {
+    if (format == Format.DWCA) {
       return ImmutableSet.<Term>builder().addAll(DownloadTerms.DOWNLOAD_VERBATIM_TERMS)
         .addAll(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS)
         .add(GbifTerm.gbifID)
@@ -141,7 +144,7 @@ class DownloadsExport {
    */
   public static void main(String[] arg) throws Exception {
     ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-    Config config = objectMapper.readValue(new File(arg[0]), Config.class);
+    DownloadsConfig config = objectMapper.readValue(new File(arg[0]), DownloadsConfig.class);
     new DownloadsExport(config).run();
   }
 

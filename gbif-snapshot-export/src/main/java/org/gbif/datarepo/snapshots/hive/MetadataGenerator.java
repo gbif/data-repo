@@ -1,6 +1,5 @@
 package org.gbif.datarepo.snapshots.hive;
 
-import com.google.common.base.Throwables;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
@@ -8,13 +7,22 @@ import java.io.File;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.google.common.base.Throwables;
 
 /**
  * Utility class that creates the EML and RDF elements for the GBIF Snapshot.
  */
 class MetadataGenerator {
+
+    private static final String ENCODING = "UTF-8";
 
     //Date format used in table names
     private static final String SNAPSHOT_TABLE_DATE_FORMAT = "yyyyMMdd";
@@ -22,7 +30,7 @@ class MetadataGenerator {
     //Date format used for the generated metadata
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
-    private static final String ENCODING = "UTF-8";
+    private static final String PREFIX_METADATA_FILES = "occurrence-";
 
     /**
      * Private constructor.
@@ -35,23 +43,20 @@ class MetadataGenerator {
      * Tries to interpret the create date from the table name otherwise retuns the current date.
      * All GBIF Snapshot tables follow the pattern "occurrence_yyyyMMdd" as its table name.
      */
-    private static String exportDate(String snapshotTable) {
-        String[] components = snapshotTable.split("_");
+    private static String exportDate(String date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        if (components.length > 1) {
-          try {
-              return dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(components[1]));
-          } catch (ParseException ex) {
+
+        try {
+            return dateFormat.format(new SimpleDateFormat(SNAPSHOT_TABLE_DATE_FORMAT).parse(date));
+        } catch (ParseException ex) {
             return dateFormat.format(new Date());
-          }
         }
-        return dateFormat.format(new Date());
     }
 
     /**
      * Executes a FreeMarker template that generates the EML metadata document.
      */
-    static File generateEmlMetadata(Collection<Term> terms, String snapshotTable, String fileName, Long fileSize, Long numberOfRecords,
+    static File generateEmlMetadata(Collection<Term> terms, String date, String fileName, Long fileSize, Long numberOfRecords,
                                      String doi) {
         try {
             Map<String,Object> params = new HashMap<>();
@@ -60,8 +65,8 @@ class MetadataGenerator {
             params.put("exportFileSize", fileSize);
             params.put("doi", doi);
             params.put("numberOfRecords", numberOfRecords);
-            params.put("exportDate", exportDate(snapshotTable));
-            File file = new File(snapshotTable + ".eml");
+            params.put("exportDate", exportDate(date));
+            File file = new File( PREFIX_METADATA_FILES + date + ".eml");
             TemplateUtils.runTemplate(params, "eml.ftl", file.getName());
             return file;
         } catch (Exception ex) {
@@ -72,18 +77,18 @@ class MetadataGenerator {
     /**
      * Executes a FreeMarker template that generates the RDF document.
      */
-    static File generateRdf(String snapshotTable, UUID dataObjectId, UUID emlId, UUID rdfId) {
+    static File generateRdf(String date, UUID dataObjectId, UUID emlId, UUID rdfId) {
         try {
             Map<String,Object> params = new HashMap<>();
-            params.put("exportDate", exportDate(snapshotTable));
+            params.put("exportDate", exportDate(date));
             params.put("URL_ENCODED_ORE_GUID", URLEncoder.encode(rdfId.toString(), ENCODING));
             params.put("ORE_GUID", rdfId.toString());
             params.put("URL_ENCODED_METADATA_GUID", URLEncoder.encode(emlId.toString(), ENCODING));
             params.put("METADATA_GUID", emlId.toString());
             params.put("URL_ENCODED_DATA_GUID", URLEncoder.encode(dataObjectId.toString(), ENCODING));
             params.put("DATA_GUID", dataObjectId.toString());
-            TemplateUtils.runTemplate(params, "rdf.ftl", snapshotTable + ".rdf");
-            return new File(snapshotTable + ".rdf");
+            TemplateUtils.runTemplate(params, "rdf.ftl", "occurrence-" + date + ".rdf");
+            return new File(PREFIX_METADATA_FILES + date + ".rdf");
         } catch (Exception ex) {
             throw Throwables.propagate(ex);
         }

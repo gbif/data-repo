@@ -215,7 +215,7 @@ class SnapshotExport {
      */
     private DataPackage createEmlMetadata(Collection<Term> terms, String exportFileName, Long fileSize, String doi) {
         try {
-            File file = generateEmlMetadata(terms, config.getSnapshotTable(), exportFileName, fileSize,
+            File file = generateEmlMetadata(terms, extractSnapshotDate(config.getSnapshotTable()), exportFileName, fileSize,
                                             getSnapshotRecordCount(), doi);
             DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file,  doi);
             //The file can be deleted since it was copied into the DataRepo
@@ -247,7 +247,7 @@ class SnapshotExport {
     private void createRdf(String doi, UUID dataObjectId, UUID emlId) {
         try {
             UUID rdfId = UUID.randomUUID();
-            File file  = generateRdf(config.getSnapshotTable(), dataObjectId, emlId, rdfId);
+            File file  = generateRdf(extractSnapshotDate(config.getSnapshotTable()), dataObjectId, emlId, rdfId);
             dataPackageManager.createSnapshotRdfDataPackage(file, doi, rdfId);
             //The file can be deleted since it was copied into the DataRepo
             file.delete();
@@ -293,6 +293,18 @@ class SnapshotExport {
         } catch (SQLException ex) {
             throw Throwables.propagate(ex);
         }
+    }
+
+    /**
+     * Tries to interpret the create date from the table name otherwise retuns the current date.
+     * All GBIF Snapshot tables follow the pattern "occurrence_yyyyMMdd" as its table name.
+     */
+    private static String extractSnapshotDate(String snapshotTable) {
+        String[] components = snapshotTable.split("_");
+        if (components.length <= 1) {
+            throw new IllegalArgumentException("snapshot table must contain the date");
+        }
+        return components[1];
     }
 
     /**
