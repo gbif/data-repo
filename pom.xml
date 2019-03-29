@@ -84,6 +84,7 @@
         <gbif-registry.version>2.75</gbif-registry.version>
         <dwc-api.version>1.18</dwc-api.version>
         <findbugs.version>3.0.1</findbugs.version>
+        <gbif-occurrence.version>0.93</gbif-occurrence.version>
 
         <!-- fixed to the version coming with Dropwizard -->
         <!-- upgraded due to security issues. TODO: upgrade dropwizard -->
@@ -697,6 +698,12 @@
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>${findbugs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.gbif.occurrence</groupId>
+                <artifactId>occurrence-hdfs-table</artifactId>
+                <version>${gbif-occurrence.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
