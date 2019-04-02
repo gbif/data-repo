@@ -1,4 +1,4 @@
-package org.gbif.datarepo.snapshots.hive;
+package org.gbif.datarepo.snapshots;
 
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -20,7 +20,7 @@ import com.google.common.base.Throwables;
 /**
  * Utility class that creates the EML and RDF elements for the GBIF Snapshot.
  */
-class MetadataGenerator {
+public class MetadataGenerator {
 
     private static final String ENCODING = "UTF-8";
 
@@ -56,7 +56,7 @@ class MetadataGenerator {
     /**
      * Executes a FreeMarker template that generates the EML metadata document.
      */
-    static File generateEmlMetadata(Collection<Term> terms, String date, String fileName, Long fileSize, Long numberOfRecords,
+    public static File generateEmlMetadata(Collection<Term> terms, String date, String fileName, Long fileSize, Long numberOfRecords,
                                      String doi) {
         try {
             Map<String,Object> params = new HashMap<>();
@@ -77,7 +77,7 @@ class MetadataGenerator {
     /**
      * Executes a FreeMarker template that generates the RDF document.
      */
-    static File generateRdf(String date, UUID dataObjectId, UUID emlId, UUID rdfId) {
+    public static File generateRdf(String date, UUID dataObjectId, UUID emlId, UUID rdfId) {
         try {
             Map<String,Object> params = new HashMap<>();
             params.put("exportDate", exportDate(date));

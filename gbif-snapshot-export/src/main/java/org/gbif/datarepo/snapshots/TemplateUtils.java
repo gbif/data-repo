@@ -1,8 +1,7 @@
-package org.gbif.datarepo.snapshots.hive;
+package org.gbif.datarepo.snapshots;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,7 +17,7 @@ import freemarker.template.Version;
 /**
  * Utility class to run freemarker templates.
  */
-class TemplateUtils {
+public class TemplateUtils {
 
     //Templates location
     private static final String TEMPLATES_DIR = "/templates/";
@@ -33,7 +32,7 @@ class TemplateUtils {
     /**
      * Runs a FreeMarker template using a map of parameters. The output is generated into exportPath.
      */
-    static void runTemplate(Map<?,?> params, String templateFile, String exportPath) {
+    public static void runTemplate(Map<?,?> params, String templateFile, String exportPath) {
         Configuration cfg = new Configuration(new Version(2, 3, 25));
         // Where do we load the templates from:
         cfg.setClassForTemplateLoading(TemplateUtils.class, TEMPLATES_DIR);

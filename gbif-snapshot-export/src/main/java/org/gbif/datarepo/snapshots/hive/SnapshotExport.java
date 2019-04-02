@@ -3,6 +3,8 @@ package org.gbif.datarepo.snapshots.hive;
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.DataPackageFile;
 import org.gbif.datarepo.inject.DataRepoFsModule;
+import org.gbif.datarepo.snapshots.DataPackageManager;
+import org.gbif.datarepo.snapshots.TemplateUtils;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -47,8 +49,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateEmlMetadata;
-import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
+import static org.gbif.datarepo.snapshots.MetadataGenerator.generateEmlMetadata;
+import static org.gbif.datarepo.snapshots.MetadataGenerator.generateRdf;
 
 /**
  * Utility class to export GBIF snapshots into DataOne.

@@ -1,7 +1,8 @@
-package org.gbif.datarepo.snapshots.hive;
+package org.gbif.datarepo.snapshots.downloads;
 
 import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.inject.DataRepoFsModule;
+import org.gbif.datarepo.snapshots.DataPackageManager;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -23,10 +24,10 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.datarepo.snapshots.hive.DownloadsConfig.DownloadInfo;
-import static org.gbif.datarepo.snapshots.hive.DownloadsConfig.Format;
-import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateEmlMetadata;
-import static org.gbif.datarepo.snapshots.hive.MetadataGenerator.generateRdf;
+import static org.gbif.datarepo.snapshots.MetadataGenerator.generateEmlMetadata;
+import static org.gbif.datarepo.snapshots.MetadataGenerator.generateRdf;
+import static org.gbif.datarepo.snapshots.downloads.DownloadsConfig.DownloadInfo;
+import static org.gbif.datarepo.snapshots.downloads.DownloadsConfig.Format;
 
 /**
  * Utility class to export GBIF snapshots into DataOne.
@@ -75,10 +76,10 @@ class DownloadsExport {
                                         DownloadInfo downloadInfo) {
     try {
       File file = generateEmlMetadata(terms,
-                                      downloadInfo.date,
+                                      downloadInfo.getDate(),
                                       exportFile.getName(),
                                       fileSystem.getStatus(exportFile).getCapacity(),
-                                      downloadInfo.totalRecords,
+                                      downloadInfo.getTotalRecords(),
                                       doi);
       DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file, doi);
       //The file can be deleted since it was copied into the DataRepo
@@ -96,7 +97,7 @@ class DownloadsExport {
   private void createRdf(String doi, UUID dataObjectId, UUID emlId, DownloadInfo downloadInfo) {
     try {
       UUID rdfId = UUID.randomUUID();
-      File file = generateRdf(downloadInfo.date, dataObjectId, emlId, rdfId);
+      File file = generateRdf(downloadInfo.getDate(), dataObjectId, emlId, rdfId);
       dataPackageManager.createSnapshotRdfDataPackage(file, doi, rdfId);
       //The file can be deleted since it was copied into the DataRepo
       file.delete();
@@ -112,14 +113,14 @@ class DownloadsExport {
     // TODO: get latest download, DOI and number of records from registry WS. For now we set it manually in the config
 
     for (DownloadInfo downloadInfo : config.getDownloads()) {
-      Path exportPath = new Path(downloadInfo.path);
+      Path exportPath = new Path(downloadInfo.getPath());
       LOG.info("Creating a data package for the CSV download");
       DataPackage dataPackageData =
         dataPackageManager.createSnapshotDataPackageFromDownload(fileSystem.getUri().resolve(exportPath.toUri()),
-                                                                 downloadInfo.doi);
+                                                                 downloadInfo.getDoi());
       LOG.info("Deleting temporary files");
       LOG.info("Creating EML metadata");
-      DataPackage dataPackageEml = createEmlMetadata(getDownloadFields(downloadInfo.format),
+      DataPackage dataPackageEml = createEmlMetadata(getDownloadFields(downloadInfo.getFormat()),
                                                      exportPath,
                                                      dataPackageData.getDoi().toString(),
                                                      downloadInfo);

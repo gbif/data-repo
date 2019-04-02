@@ -1,4 +1,4 @@
-package org.gbif.datarepo.snapshots.hive;
+package org.gbif.datarepo.snapshots.downloads;
 
 import org.gbif.datarepo.impl.conf.DataRepoConfiguration;
 
@@ -28,11 +28,11 @@ public class DownloadsConfig {
     this.downloads = downloads;
   }
 
-  enum Format {
+  public enum Format {
     DWCA, CSV, AVRO
   }
 
-  static class DownloadInfo {
+  public static class DownloadInfo {
 
     Format format;
     String path;

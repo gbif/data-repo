@@ -1,8 +1,4 @@
-package org.gbif.datarepo.snapshots.hive;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Sets;
-import org.apache.hadoop.fs.Path;
+package org.gbif.datarepo.snapshots;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.vocabulary.License;
@@ -11,8 +7,6 @@ import org.gbif.datarepo.api.model.DataPackage;
 import org.gbif.datarepo.api.model.FileInputContent;
 import org.gbif.datarepo.api.model.Identifier;
 import org.gbif.datarepo.logging.EventLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,10 +16,16 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.UUID;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
+import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Utility class to persist DataPackages for GBIF Snapshots.
  */
-class DataPackageManager {
+public class DataPackageManager {
 
     private static final String CREATOR = "gbif-snapshot";
 
@@ -36,7 +36,7 @@ class DataPackageManager {
     /**
      * Builds an instance using the {@link DataRepository}.
      */
-    DataPackageManager(DataRepository dataRepository) {
+    public DataPackageManager(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
@@ -104,6 +104,10 @@ class DataPackageManager {
         return dataRepository.get(id).orElseThrow(IllegalArgumentException::new);
     }
 
+    public InputStream getDataPackageInputStream(UUID dataPackageKey, String fileName) {
+        return dataRepository.getFileInputStream(dataPackageKey, fileName).orElseThrow(IllegalArgumentException::new);
+    }
+
     /**
      * Creates and persists a DataPackage from local file.
      */
@@ -124,7 +128,7 @@ class DataPackageManager {
     /**
      * Creates RDF DataPackage related to the snapshotDOI param.
      */
-    DataPackage createSnapshotRdfDataPackage(File file, String snapshotDOI, UUID generatedId) {
+    public DataPackage createSnapshotRdfDataPackage(File file, String snapshotDOI, UUID generatedId) {
         DataPackage dataPackage = buildDataPackageWithDoi("GBIF Snapshot RDF Metadata " + file.getName(),
                 "RDF Metadata for GBIF Snapshot " + file.getName(), snapshotDOI);
         dataPackage.setKey(generatedId);
@@ -135,7 +139,7 @@ class DataPackageManager {
      * Creates EML DataPackage related to the snapshotDOI param.
      */
 
-    DataPackage createSnapshotEmlDataPackage(File file, String snapshotDOI) {
+    public DataPackage createSnapshotEmlDataPackage(File file, String snapshotDOI) {
         return createDataPackage(file, buildDataPackageWithDoi("GBIF Snapshot Metadata " + file.getName(),
                 "EML Metadata for GBIF Snapshot " + file.getName(), snapshotDOI));
     }
