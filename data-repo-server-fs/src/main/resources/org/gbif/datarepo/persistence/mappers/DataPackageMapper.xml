@@ -126,10 +126,10 @@
         AND dp.created_by=#{user,jdbcType=OTHER}
       </if>
       <if test="fromDate != null" >
-        AND dp.created <![CDATA[ >= ]]>  #{fromDate,jdbcType=TIMESTAMP}
+        AND dp.modified <![CDATA[ >= ]]>  #{fromDate,jdbcType=TIMESTAMP}
       </if>
       <if test="toDate !=null" >
-        AND dp.created <![CDATA[ < ]]>  #{toDate,jdbcType=TIMESTAMP}
+        AND dp.modified <![CDATA[ < ]]>  #{toDate,jdbcType=TIMESTAMP}
       </if>
       <choose>
         <when test="deleted" >
