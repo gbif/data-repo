@@ -56,13 +56,14 @@ public class MetadataGenerator {
     /**
      * Executes a FreeMarker template that generates the EML metadata document.
      */
-    public static File generateEmlMetadata(Collection<Term> terms, String date, String fileName, Long fileSize, Long numberOfRecords,
+    public static File generateEmlMetadata(Collection<Term> terms, String title, String date, String fileName, Long fileSize, Long numberOfRecords,
                                      String doi) {
         try {
             Map<String,Object> params = new HashMap<>();
             params.put("terms", terms.stream().filter(t -> GbifTerm.gbifID != t).sorted(Comparator.comparing(Term::simpleName)).collect(Collectors.toList()));
             params.put("exportFileName", fileName);
             params.put("exportFileSize", fileSize);
+            params.put("title", title);
             params.put("doi", doi);
             params.put("numberOfRecords", numberOfRecords);
             params.put("exportDate", exportDate(date));

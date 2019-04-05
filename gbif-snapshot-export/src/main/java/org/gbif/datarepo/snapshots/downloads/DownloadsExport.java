@@ -76,6 +76,7 @@ class DownloadsExport {
                                         DownloadInfo downloadInfo) {
     try {
       File file = generateEmlMetadata(terms,
+                                      "Download " + downloadInfo.getFormat().name(),
                                       downloadInfo.getDate(),
                                       exportFile.getName(),
                                       fileSystem.getStatus(exportFile).getCapacity(),

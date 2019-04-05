@@ -12,7 +12,7 @@
    	</access>
 	<dataset>
   		<alternateIdentifier>gbif_occurrence_data_${exportDate}</alternateIdentifier>
-  		<title>GBIF Snapshot - ${exportDate} - ${doi}</title>
+  		<title>${title} - ${exportDate} - ${doi}</title>
 	  	<creator>
         <organizationName>GBIF - Global Biodiversity Information Facility</organizationName>
         <address>

@@ -217,8 +217,13 @@ class SnapshotExport {
      */
     private DataPackage createEmlMetadata(Collection<Term> terms, String exportFileName, Long fileSize, String doi) {
         try {
-            File file = generateEmlMetadata(terms, extractSnapshotDate(config.getSnapshotTable()), exportFileName, fileSize,
-                                            getSnapshotRecordCount(), doi);
+            File file = generateEmlMetadata(terms,
+                                            "GBIF Snapshot",
+                                            extractSnapshotDate(config.getSnapshotTable()),
+                                            exportFileName,
+                                            fileSize,
+                                            getSnapshotRecordCount(),
+                                            doi);
             DataPackage dataPackageCreated = dataPackageManager.createSnapshotEmlDataPackage(file,  doi);
             //The file can be deleted since it was copied into the DataRepo
             file.delete();
